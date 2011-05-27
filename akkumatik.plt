@@ -20,11 +20,14 @@ set y2label "Grad Celsius";
 set y2tics border;
 
 set nolabel;
+set xtics axis;
+#set xlabel "x-Achse" -0.2:0.2;
+#set label "Angebotsfunktion" [85:200];
 
 set size 1.0,0.50;
 
 set origin 0.0,0.5;
-wfile="/home/calmar/tmpakku/Akku1-3.dat"
+wfile="/home/calmar/akkumatik/Akku1-1.dat";
 set title "Ent-Laden";
 
 plot \
