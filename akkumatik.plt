@@ -1,4 +1,4 @@
-set title "Akkumatik (Stefan Elstner)";
+set title "Akkumatik (Stefan Estner)";
 set xdata time;
 set datafile separator "";
 set timefmt "%H:%M:%S";
