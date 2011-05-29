@@ -20,6 +20,9 @@ class akkumatik_data:
   def destroy(self, widget, data=None):
       gtk.main_quit()
 
+  def buttoncb (self, widget, data=None):
+      print "Hello again - %s was pressed" % data
+
   def draw_pixbuf(self, widget, event):
      path = 'Display.jpg'
      pixbuf = gtk.gdk.pixbuf_new_from_file(path)
@@ -27,10 +30,11 @@ class akkumatik_data:
 
   def __init__(self):
 
-      self.window = gtk.Window()
+      self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
       self.window.set_title('Akkumatic Remote Display')
-      self.window.set_size_request(545,168)
-      self.window.set_default_size(545,168)
+      self.window.set_size_request(622,168)
+      self.window.set_default_size(622,168)
+      self.window.set_position(gtk.WIN_POS_CENTER)
   
       self.window.connect("delete_event", self.delete_event)
       self.window.connect("destroy", self.destroy)
@@ -44,12 +48,22 @@ class akkumatik_data:
       self.label = gtk.Label()
       self.label.modify_font(pango.FontDescription("sans 22"))
 
-      self.hbox.pack_start(self.label, True, False, 10)
+      self.hbox.pack_start(self.label, True, False, 0)
+      self.vbox = gtk.VBox()
+
+      self.hbox.pack_start(self.vbox, False, False, 0)
+
+      self.button1 = gtk.Button("Chart")
+      self.button1.connect("clicked", self.buttoncb, "Chart")
+      self.vbox.pack_start(self.button1, True, True, 0)
+      self.button2 = gtk.Button("Exit")
+      self.button2.connect("clicked", self.buttoncb, "Exit")
+      self.vbox.pack_start(self.button2, True, True, 0)
    
   
       self.window.show_all()
 
-      gobject.timeout_add(500, self.read_line) #1 is prinzipally enough -> readline waits.
+      gobject.timeout_add(1, self.read_line) #1 is prinzipally enough -> readline waits.
 
       self.ser = serial.Serial(
           port='/dev/ttyS0',
@@ -73,6 +87,8 @@ class akkumatik_data:
       #self.label.set_markup('<span foreground="#333333">' + str(self.i) + output + '</span>')
       #return True
 
+      #it hangs here
+
       lin = self.ser.readline()
       self.f.write(lin)
 
@@ -94,7 +110,7 @@ class akkumatik_data:
           cKK = long(daten[17])
 
           output ="%i: %8.3fV %s\n %6imA %8.3fAh\n %4i°(B) %4i°(Kk)" % (ausgang, ladeV, zeit, mA, mAh, cBat, cKK)
-          output_tty ="%i: %8.3fV %s %6imA %8.3fAh %4i°(B) %4i°(Kk)" % (ausgang, ladeV, zeit, mA, mAh, cBat, cKK)
+          output_tty ="%i: %8.3fV %s %6imA %8.3fAh %4i°(B) %4i°(Kk)\n" % (ausgang, ladeV, zeit, mA, mAh, cBat, cKK)
           #output = daten[0] + ": " \
              #+ daten[1] + " " \
              #+ str(long(daten[2]) / 1000.0) + "V " \
