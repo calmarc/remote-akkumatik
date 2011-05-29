@@ -13,9 +13,11 @@ import Gnuplot, Gnuplot.funcutils
 from subprocess import *
 
 def filesplit():
-      line_counter = 0
-      zaehler1 = 1
-      zaehler2 = 1
+      line_counter1 = 0
+      line_counter2 = 0
+      oldline = ""
+      file_zaehler1 = 1
+      file_zaehler2 = 1
       flag1 = False
       flag2 = False
       ausgang1_part = ""
@@ -24,47 +26,56 @@ def filesplit():
       fhI = open('/home/calmar/akkumatik/serial-akkumatik.dat', "r")
 
       for line in fhI.readlines():
-            line_counter += 1
             #filter out useless lines
             if line[2:10] == "00:00:00": #not begun yet
                   continue
 
             if line[11:16] == "00000": #no volt lines
-                  print ("DEBUG: Volt = zero")
-                  continue
+                print ("FILTER OUT: Volt has Zero value")
+                continue
+
+            if oldline[2:10] == line[2:10]:  #duplicate time for some reason
+                print ("FILTER OUT: Duplicate Time")
+                continue
+
+            oldline = line
 
             if line[0:1] == "1":
-                  if line[2:10] == "00:00:01" and line_counter > 2: #don't write when it just begun
-                        fname = '/home/calmar/akkumatik/Akku1-'+str(zaehler1)+'.dat'
+                  line_counter1 += 1
+                  if line[2:10] == "00:00:01" and line_counter1 > 1: #don't write when it just begun
+                        fname = '/home/calmar/akkumatik/Akku1-'+str(file_zaehler1)+'.dat'
                         fh1 = open(fname, "w+")
                         fh1.write(ausgang1_part)
                         print "**** Generating: " + fname + " ****"
                         fh1.close()
-                        zaehler1 += 1
+                        file_zaehler1 += 1
                         ausgang1_part = line
+                        line_counter1 = 0
                   else:
                         ausgang1_part += line
 
             elif line[0:1] == "2": #"2"
-                  if line[2:10] == "00:00:01" and line_counter > 2: #don't write when it just begun
-                        fname = '/home/calmar/akkumatik/Akku2-'+str(zaehler1)+'.dat'
+                  line_counter2 += 1
+                  if line[2:10] == "00:00:01" and line_counter2 > 1: #don't write when it just begun
+                        fname = '/home/calmar/akkumatik/Akku2-'+str(file_zaehler2)+'.dat'
                         fh2 = open(fname, "w+")
                         fh2.write(ausgang2_part)
                         print "**** Generating: " + fname + " ****"
                         fh2.close()
-                        zaehler2 += 1
+                        file_zaehler2 += 1
                         ausgang2_part = line
+                        line_counter2 = 0
                   else:
                         ausgang2_part += line
 
       if len(ausgang1_part) > 0:
-            fname = '/home/calmar/akkumatik/Akku1-'+str(zaehler1)+'.dat'
+            fname = '/home/calmar/akkumatik/Akku1-'+str(file_zaehler1)+'.dat'
             fh1 = open(fname, "w+")
             fh1.write(ausgang1_part)
             print "**** Generating: " + fname + " ****"
             fh1.close()
       if len(ausgang2_part) > 0:
-            fname = '/home/calmar/akkumatik/Akku2-'+str(zaehler1)+'.dat'
+            fname = '/home/calmar/akkumatik/Akku2-'+str(file_zaehler2)+'.dat'
             fh2 = open(fname, "w+")
             print "**** Generating: " + fname + " ****"
             fh2.write(ausgang2_part)
