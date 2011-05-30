@@ -14,6 +14,7 @@ from subprocess import *
 
 #Konstanten - oder so
 phase_list = ["Voll", "Laden", "SLaden normal?", "3NA", "4NA", "5NA", "6NA", "7NA", "8NA", "Entladen", "Pause", "11NA"] 
+exe_dir = sys.path[0]
 
 def open_file(file_name, mode):
     """Open a file."""
@@ -41,8 +42,8 @@ def filesplit():
     oldline2 = ""
 
     #TODO python like...
-    os.system("cp '/home/calmar/akkumatik/serial-akkumatik.dat' '.tmp'")
-    fhI = open_file('.tmp', "r")
+    os.system("cp '" + exe_dir + "/serial-akkumatik.dat' '" + exe_dir + "/.tmp'")
+    fhI = open_file(exe_dir + '/.tmp', "r")
 
     for line in fhI.readlines():
         print "************************"
@@ -68,7 +69,7 @@ def filesplit():
             line_counter1 += 1
             if line[2:10] == "00:00:01" and line_counter1 > 1: #don't write when it just begun
 
-                fname = '/home/calmar/akkumatik/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = open_file(fname, "w+")
                 fh1.write(ausgang1_part)
                 print "*********************************************************************"
@@ -90,7 +91,7 @@ def filesplit():
 
             line_counter2 += 1
             if line[2:10] == "00:00:01" and line_counter2 > 1: #don't write when it just begun
-                fname = '/home/calmar/akkumatik/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                 fh2 = open_file(fname, "w+")
                 fh2.write(ausgang2_part)
                 print "*********************************************************************"
@@ -104,7 +105,7 @@ def filesplit():
                 ausgang2_part += line
 
     if len(ausgang1_part) > 0:
-          fname = '/home/calmar/akkumatik/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+          fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
           fh1 = open_file(fname, "w+")
           fh1.write(ausgang1_part)
           print "********************************************8************************"
@@ -112,7 +113,7 @@ def filesplit():
           print "*********************************************************************"
           fh1.close()
     if len(ausgang2_part) > 0:
-          fname = '/home/calmar/akkumatik/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+          fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
           fh2 = open_file(fname, "w+")
           print "*********************************************************************"
           print "**** Generating: " + fname + " ****"
@@ -122,25 +123,25 @@ def filesplit():
 
     #close files
     fhI.close()
-    os.system("rm '.tmp'")
+    os.system("rm '" + exe_dir + "/.tmp'")
 
 def gnuplot():
 
     g = Gnuplot.Gnuplot(debug=1)
 
-    path="."
+    path = exe_dir
     qiv_files = ""
     dirList=os.listdir(path)
     for fname in dirList:
         if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
-            qiv_files += fname[:-4] + ".png "
+            qiv_files += exe_dir + "/" + fname[:-4] + ".png "
             print "********************************"
             print "**** Plotting: " + fname + " ****"
             print "********************************"
 
             #g('set terminal wxt')
             g('set terminal png size 1280, 1024;')
-            g('set output "' + fname[:-4] + '.png"')
+            g('set output "' + exe_dir + "/" + fname[:-4] + '.png"')
 
             g('set title "Akkumatik (Stefan Estner)";')
             g('set xdata time;')
@@ -168,9 +169,9 @@ def gnuplot():
             g('set size 1.0,0.50;')
 
             g('set origin 0.0,0.5;')
-            g('wfile="' + fname + '";')
+            g('wfile="' + exe_dir + "/" + fname + '";')
             
-            f = open_file(fname, "r")
+            f = open_file(exe_dir + "/" +fname, "r")
             l = f.readline()
             f.close()
             text = (l.split(""))[9]
@@ -207,7 +208,6 @@ wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";')
             #    g('set output "' + arg + '.png"')
             #    g('replot"')
             g('reset')
-            #raw_input('Please press return to continue...\n')
             print "**************************************"
             print "**** Plot Generated: " + fname[:-4] + ".png ****"
             print "**************************************"
@@ -242,7 +242,7 @@ class akkumatik_display:
 
 
     def draw_pixbuf(self, widget, event):
-        path = 'Display.jpg'
+        path = exe_dir + '/bilder/Display.jpg'
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
         widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
 
@@ -310,10 +310,10 @@ class akkumatik_display:
         gobject.timeout_add(1, self.read_line) #1 is prinzipally enough -> readline waits.
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-            self.f = open_file('/home/calmar/akkumatik/serial-akkumatik.dat', 'a')
+            self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
         else:
-            self.f = open_file('/home/calmar/akkumatik/serial-akkumatik.dat', 'w+')
+            self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
         self.i = 0
 
     def read_line(self):
