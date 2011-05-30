@@ -13,6 +13,7 @@ import Gnuplot, Gnuplot.funcutils
 from subprocess import *
 
 def filesplit():
+      file_line = 0
       line_counter1 = 0
       line_counter2 = 0
       oldline = ""
@@ -22,62 +23,81 @@ def filesplit():
       flag2 = False
       ausgang1_part = ""
       ausgang2_part = ""
+      oldline1 = ""
+      oldline2 = ""
 
       fhI = open('/home/calmar/akkumatik/serial-akkumatik.dat', "r")
 
       for line in fhI.readlines():
+            file_line += 1
             #filter out useless lines
             if line[2:10] == "00:00:00": #not begun yet
                   continue
 
-            if line[11:16] == "00000": #no volt lines
-                print ("FILTER OUT: Volt has Zero value")
-                continue
-
-            if oldline[2:10] == line[2:10]:  #duplicate time for some reason
-                print ("FILTER OUT: Duplicate Time")
-                continue
-
-            oldline = line
+            #if line[11:16] == "00000": #no volt lines
+                #print ("FILTER OUT: Volt has Zero value")
+                #continue
 
             if line[0:1] == "1":
-                  line_counter1 += 1
-                  if line[2:10] == "00:00:01" and line_counter1 > 1: #don't write when it just begun
-                        fname = '/home/calmar/akkumatik/Akku1-'+str(file_zaehler1)+'.dat'
-                        fh1 = open(fname, "w+")
-                        fh1.write(ausgang1_part)
-                        print "**** Generating: " + fname + " ****"
-                        fh1.close()
-                        file_zaehler1 += 1
-                        ausgang1_part = line
-                        line_counter1 = 0
-                  else:
-                        ausgang1_part += line
+
+                if oldline1[2:10] == line[2:10]:  #duplicate time for some reason
+                    print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
+                    continue
+
+                oldline1 = line
+
+                line_counter1 += 1
+                if line[2:10] == "00:00:01" and line_counter1 > 1: #don't write when it just begun
+
+                    fname = '/home/calmar/akkumatik/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                    fh1 = open(fname, "w+")
+                    fh1.write(ausgang1_part)
+                    print "*********************************************************************"
+                    print "**** Generating: " + fname + " ****"
+                    print "*********************************************************************"
+                    fh1.close()
+                    file_zaehler1 += 1
+                    ausgang1_part = line
+                    line_counter1 = 0
+                else:
+                    ausgang1_part += line
 
             elif line[0:1] == "2": #"2"
-                  line_counter2 += 1
-                  if line[2:10] == "00:00:01" and line_counter2 > 1: #don't write when it just begun
-                        fname = '/home/calmar/akkumatik/Akku2-'+str(file_zaehler2)+'.dat'
-                        fh2 = open(fname, "w+")
-                        fh2.write(ausgang2_part)
-                        print "**** Generating: " + fname + " ****"
-                        fh2.close()
-                        file_zaehler2 += 1
-                        ausgang2_part = line
-                        line_counter2 = 0
-                  else:
-                        ausgang2_part += line
+                if oldline2[2:10] == line[2:10]:  #duplicate time for some reason
+                    print ("FILTER OUT: Duplicate Time")
+                    continue
+
+                oldline2 = line
+
+                line_counter2 += 1
+                if line[2:10] == "00:00:01" and line_counter2 > 1: #don't write when it just begun
+                    fname = '/home/calmar/akkumatik/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                    fh2 = open(fname, "w+")
+                    fh2.write(ausgang2_part)
+                    print "*********************************************************************"
+                    print "**** Generating: " + fname + " ****"
+                    print "*********************************************************************"
+                    fh2.close()
+                    file_zaehler2 += 1
+                    ausgang2_part = line
+                    line_counter2 = 0
+                else:
+                    ausgang2_part += line
 
       if len(ausgang1_part) > 0:
-            fname = '/home/calmar/akkumatik/Akku1-'+str(file_zaehler1)+'.dat'
+            fname = '/home/calmar/akkumatik/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
             fh1 = open(fname, "w+")
             fh1.write(ausgang1_part)
+            print "********************************************8************************"
             print "**** Generating: " + fname + " ****"
+            print "*********************************************************************"
             fh1.close()
       if len(ausgang2_part) > 0:
-            fname = '/home/calmar/akkumatik/Akku2-'+str(file_zaehler2)+'.dat'
+            fname = '/home/calmar/akkumatik/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
             fh2 = open(fname, "w+")
+            print "*********************************************************************"
             print "**** Generating: " + fname + " ****"
+            print "*********************************************************************"
             fh2.write(ausgang2_part)
             fh2.close()
 
@@ -91,8 +111,10 @@ def gnuplot():
     path="."
     dirList=os.listdir(path)
     for fname in dirList:
-        if fname[0:4] == "Akku" and fname[5] == "-" and fname [7:11] == ".dat":
+        if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
+            print "********************************"
             print "**** Plotting: " + fname + " ****"
+            print "********************************"
 
             #g('set terminal wxt')
             g('set terminal png size 1280, 1024;')
@@ -128,10 +150,10 @@ def gnuplot():
             g('set title "Ent-Laden";')
 
             g('plot \
-                  wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
-                  wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
-                  wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
-                  wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#999999";')
+wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
+wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
+wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
+wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#999999";')
 
 
             g('set nolabel;')
@@ -149,8 +171,8 @@ def gnuplot():
             g('set size 1.0,0.50;')
             g('set origin 0.0,0.0;')
 
-            g('plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
-                  wfile using 2:6 with lines title "IOhm" axes x1y2 lw 1 lc rgbcolor "#aabbaa";')
+            g('plot wfile using 2:6 with lines title "IOhm" axes x1y2 lw 1 lc rgbcolor "#aabbaa", \
+wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";')
 
             g('set nomultiplot;')
 
@@ -159,7 +181,9 @@ def gnuplot():
             #    g('replot"')
             g('reset')
             #raw_input('Please press return to continue...\n')
-            print "**** Plot Generated: " + fname[:-4] + ".png"
+            print "**************************************"
+            print "**** Plot Generated: " + fname[:-4] + ".png ****"
+            print "**************************************"
         else:
             continue
     os.system("/usr/local/bin/qiv " + "*.png" )
@@ -310,4 +334,3 @@ if __name__ == '__main__':
     displ = akkumatik_display()
     displ.main()
 
-# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4 fileencoding=utf-8
