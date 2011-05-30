@@ -10,7 +10,7 @@ import pango
 import gobject
 import os
 import Gnuplot, Gnuplot.funcutils
-from subprocess import *
+#from subprocess import *
 
 #Konstanten - oder so
 phase_list = ["Voll", "Laden", "SLaden normal?", "3NA", "4NA", "5NA", "6NA", "7NA", "8NA", "Entladen", "Pause", "11NA"] 
@@ -264,7 +264,7 @@ class akkumatik_display:
         self.hbox.connect('expose-event', self.draw_pixbuf)
 
         self.label = gtk.Label()
-        self.label.modify_font(pango.FontDescription("sans 22"))
+        self.label.modify_font(pango.FontDescription("sans 18"))
 
         self.hbox.pack_start(self.label, True, False, 0)
         self.vbox = gtk.VBox()
@@ -284,14 +284,15 @@ class akkumatik_display:
 
         self.ser = serial.Serial(
             port='/dev/ttyS0',
-            baudrate=9600,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
+            baudrate = 9600,
+            parity = serial.PARITY_NONE,
+            stopbits = serial.STOPBITS_ONE,
             #bytesize=serial.EIGHTBITS, #geht nicht irgendwie
-            bytesize=serial.SEVENBITS,
-            dsrdtr=True,
-            rtscts=False
-            #interCharTimeout = 1100 # ??? hm.
+            bytesize = serial.SEVENBITS,
+            dsrdtr = True,
+            rtscts = False,
+            timeout = 0.1,
+            interCharTimeout = None
             )
 
 #        self.ser = serial.Serial(
@@ -301,8 +302,6 @@ class akkumatik_display:
 #            stopbits=serial.STOPBITS_TWO,
 #            bytesize=serial.SEVENBITS
 #            )
-
-
 
         self.ser.open()
         self.ser.isOpen()
