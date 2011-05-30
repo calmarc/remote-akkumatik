@@ -145,7 +145,7 @@ def gnuplot():
 
             g('set title "Akkumatik (Stefan Estner)";')
             g('set xdata time;')
-            g('set datafile separator "";')
+            g("set datafile separator '\x7f';")
             g('set timefmt "%H:%M:%S";')
             g('set grid')
 
@@ -174,7 +174,7 @@ def gnuplot():
             f = open_file(exe_dir + "/" +fname, "r")
             l = f.readline()
             f.close()
-            text = (l.split(""))[9]
+            text = (l.split("\x7f"))[9]
             g('set title "' + phase_list[long(text)] + '";')
 
             g('plot \
@@ -328,6 +328,9 @@ class akkumatik_display:
         self.f.write(lin)
 
         daten = lin.split('\x7f')
+        if len(daten) < 17:
+            return True #ignore (defective?) line
+
         if daten[0] == "1":
             ausgang = long(daten[0])
             zeit = daten[1]
