@@ -23,7 +23,7 @@ akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
 amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
 ladeart = ["Konst", "Puls", "Reflex"]
 stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
-stopmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
+stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
 fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
 
 #• NE  NiCd/NiMh Akku wird entladen
@@ -410,15 +410,15 @@ class akkumatik_display:
             prg = amprogramm[long(daten[13])] #Programm
             lart = ladeart[long(daten[14])] #Ladeart
             strohmw = stromwahl[long(daten[15])] #stromwahl
-            stopm = stopmethode[long(daten[16])] #stromwahl
+            stoppm = stoppmethode[long(daten[16])] #stromwahl
             cKK = long(daten[17]) #KK Celsius
             #balanced = long(daten[18]) #Einzelspellenspannung mVolt [18-x]
             balanced = 0 #Einzelspellenspannung mVolt [18-x]
 
             output ="%i%s%1i %5.3fV %5imA %s\n%5.3fAh Ri:%03i %2i°B %2i°KK %sx%s\n" % (ausgang, phase[0:1], zyklus, ladeV, mA, zeit, mAh, RimOhm, cBat, cKK, zellen, atyp)
 
-            output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%.3fV] [%imA] [%.3fAh] [Ri-mOhm: %i] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
-            output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stopmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stopm, fcode)
+            output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%.3fV] [%imA] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
+            output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stoppm, fcode)
             output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, zellen, atyp, balanced, sp)
             #output = "1LL2 11.9V 4:44\n +2.20A5 +0.137mAh"
 
@@ -441,225 +441,3 @@ class akkumatik_display:
 if __name__ == '__main__':
     displ = akkumatik_display()
     displ.main()
-
-
-
-##   [Anzeige Einstellungen Kanal 01]
-##   ## Zeit, Spannung, Strom, Ladung, Versorgungsspannung, Innenwiderstand,
-##   ## Temperatur, Zellenzahl, Ladephase (0..5), Zyklusnummer
-##   ## nicht in Grafik: Akkuspeicher, Akkutyp, Programm, Ladeart, Stromwahl,
-##   ##                  Stopmethode, Entladereduzierung, Erhaltungsladen,
-##   ##                  Stop-Delay, DeltaPeakLevel
-##   ##
-##   ## zusätzliche 3: U/Zelle [V], Leistung [W], Energie [Wh]
-##   Zeitbasis                       = Zeit
-##   Einheit                         = s
-##   Symbol                          = t
-##   Messgröße1                      = Spannung
-##   Einheit1                        = V
-##   Symbol1                         = U
-##   Faktor1                         = 
-##   OffsetWert1                     = 
-##   OffsetSumme1                    = 
-##   
-##   Messgröße2                      = Strom
-##   Einheit2                        = A
-##   Symbol2                         = I
-##   Faktor2                         = 
-##   OffsetWert2                     = 
-##   OffsetSumme2                    = 
-##   
-##   Messgröße3                      = Ladung
-##   Einheit3                        = mAh
-##   Symbol3                         = C
-##   Faktor3                         = 
-##   OffsetWert3                     = 
-##   OffsetSumme3                    = 
-##   
-##   Messgröße4                      = V-Spg.
-##   Einheit4                        = V
-##   Symbol4                         = U
-##   Faktor4                         = 
-##   OffsetWert4                     = 
-##   OffsetSumme4                    = 
-##   
-##   Messgröße5                      = Ri/Zelle
-##   Einheit5                        = mOhm
-##   Symbol5                         = R
-##   Faktor5                         = 
-##   OffsetWert5                     = 
-##   OffsetSumme5                    = 
-##   
-##   Messgröße6                      = Temperatur
-##   Einheit6                        = °C
-##   Symbol6                         = T
-##   Faktor6                         = 
-##   OffsetWert6                     = 
-##   OffsetSumme6                    = 
-##   
-##   Messgröße7                      = Zellen
-##   Einheit7                        = St.
-##   Symbol7                         = 
-##   Faktor7                         = 
-##   OffsetWert7                     = 
-##   OffsetSumme7                    = 
-##   
-##   Messgröße8                      = Phase
-##   Einheit8                        = Nr.
-##   Symbol8                         = 
-##   Faktor8                         = 
-##   OffsetWert8                     = 
-##   OffsetSumme8                    = 
-##   
-##   Messgröße9                      = Zyklus
-##   Einheit9                        = Nr.
-##   Symbol9                         = 
-##   Faktor9                         = 
-##   OffsetWert9                     = 
-##   OffsetSumme9                    = 
-##   
-##   Messgröße10                     = Spg./Zelle
-##   Einheit10                       = V*
-##   Symbol10                        = U*
-##   Faktor10                        = 
-##   OffsetWert10                    = 
-##   OffsetSumme10                   = 
-##   
-##   Messgröße11                     = Leistung
-##   Einheit11                       = W
-##   Symbol11                        = P
-##   Faktor11                        = 
-##   OffsetWert11                    = 
-##   OffsetSumme11                   = 
-##   
-##   Messgröße12                     = Energie
-##   Einheit12                       = Wh
-##   Symbol12                        = E
-##   Faktor12                        = 
-##   OffsetWert12                    = 
-##   OffsetSumme12                   = 
-##   
-##   Messgröße13                     = Kühlkörper
-##   Einheit13                       = °C
-##   Symbol13                        = T
-##   Faktor13                        = 
-##   OffsetWert13                    = 
-##   OffsetSumme13                   = 
-##   
-##   Messgröße14                     = Balanced
-##   Einheit14                       = mV
-##   Symbol14                        = Bal
-##   Faktor14                        = 
-##   OffsetWert14                    = 
-##   OffsetSumme14                   = 
-##   
-##   Messgröße15                     = Zelle1
-##   Einheit15                       = V
-##   Symbol15                        = U
-##   Faktor15                        = 
-##   OffsetWert15                    = 
-##   OffsetSumme15                   = 
-##   
-##   OneAxisName15                   = Zelle 1-12 [V]
-##   OneAxisGroup15                  = 1
-##   
-##   Messgröße16                     = Zelle2
-##   Einheit16                       = V
-##   Symbol16                        = U
-##   Faktor16                        = 
-##   OffsetWert16                    = 
-##   OffsetSumme16                   = 
-##   
-##   OneAxisGroup16                  = 1
-##   
-##   Messgröße17                     = Zelle3
-##   Einheit17                       = V
-##   Symbol17                        = U
-##   Faktor17                        = 
-##   OffsetWert17                    = 
-##   OffsetSumme17                   = 
-##   
-##   OneAxisGroup17                  = 1
-##   
-##   Messgröße18                     = Zelle4
-##   Einheit18                       = V
-##   Symbol18                        = U
-##   Faktor18                        = 
-##   OffsetWert18                    = 
-##   OffsetSumme18                   = 
-##   
-##   OneAxisGroup18                  = 1
-##   
-##   Messgröße19                     = Zelle5
-##   Einheit19                       = V
-##   Symbol19                        = U
-##   Faktor19                        = 
-##   OffsetWert19                    = 
-##   OffsetSumme19                   = 
-##   
-##   OneAxisGroup19                  = 1
-##   
-##   Messgröße20                     = Zelle6
-##   Einheit20                       = V
-##   Symbol20                        = U
-##   Faktor20                        = 
-##   OffsetWert20                    = 
-##   OffsetSumme20                   = 
-##   
-##   OneAxisGroup20                  = 1
-##   
-##   Messgröße21                     = Zelle7
-##   Einheit21                       = V
-##   Symbol21                        = U
-##   Faktor21                        = 
-##   OffsetWert21                    = 
-##   OffsetSumme21                   = 
-##   
-##   OneAxisGroup21                  = 1
-##   
-##   Messgröße22                     = Zelle8
-##   Einheit22                       = V
-##   Symbol22                        = U
-##   Faktor22                        = 
-##   OffsetWert22                    = 
-##   OffsetSumme22                   = 
-##   
-##   OneAxisGroup22                  = 1
-##   
-##   Messgröße23                     = Zelle9
-##   Einheit23                       = V
-##   Symbol23                        = U
-##   Faktor23                        = 
-##   OffsetWert23                    = 
-##   OffsetSumme23                   = 
-##   
-##   OneAxisGroup23                  = 1
-##   
-##   Messgröße24                     = Zelle10
-##   Einheit24                       = V
-##   Symbol24                        = U
-##   Faktor24                        = 
-##   OffsetWert24                    = 
-##   OffsetSumme24                   = 
-##   
-##   OneAxisGroup24                  = 1
-##   
-##   Messgröße25                     = Zelle11
-##   Einheit25                       = V
-##   Symbol25                        = U
-##   Faktor25                        = 
-##   OffsetWert25                    = 
-##   OffsetSumme25                   = 
-##   
-##   OneAxisGroup25                  = 1
-##   
-##   Messgröße26                     = Zelle12
-##   Einheit26                       = V
-##   Symbol26                        = U
-##   Faktor26                        = 
-##   OffsetWert26                    = 
-##   OffsetSumme26                   = 
-##   
-##   OneAxisGroup26                  = 1
-##   
-
