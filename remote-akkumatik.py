@@ -26,31 +26,6 @@ stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-
 fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
 
 
-phase_list = ["Stop", "1", "2", "3", "4", "5", "?6", "7", "8", "9", "0", "?11"] 
-
-#• NLM    NiCd/NiMh Akku laden mit fest vorgegebener Ladungsmenge
-#• NLx    NiCd/NiMh Akku laden mit automatischer Abschaltung
-#     x=1 Phase 1, automatische Abschaltung noch gesperrt
-#     x=2 Phase 2, automatische Abschaltung ist jetzt aktiv
-#     x=3 Phase 3, Spannungsanstieg wird stärker
-#     x=4 Phase 4, Spannungsanstieg wird schwächer
-#     x=5 Phase 5, kein Spannungsanstieg, warte auf Delta-Peak
-#• LLx    Lithiumakku laden
-#• BLx    Blei-Akku laden
-#• XLx    frei einstellbarer Akkutyp IUxx laden
-#     x=1 Phase 1, Vorkonditionieren (erfolgt nur bei tiefentladenen Akkus)
-#     x=2 Phase 2, Laden mit Konstantstrom, Spannung steigt an
-#     x=3 Phase 3, Laden mit Konstantspannung, Strom wird reduziert
-#     *   der Vorgang wird durch Balancer/Equalizer überwacht
-
-
-# wohl: x=7 Phase 1 Entladen
-# wohl: x=8 Phase 2 Entladen
-# wohl: x=9 Phase 3 Entladen
-
-
-#• x=10    xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
-
 anzahl_zellen = 0
 
 exe_dir = sys.path[0]
@@ -95,7 +70,7 @@ def filesplit():
 
 
         #filter out useless lines
-        #could also check for last thing is a newline ... hm. 
+        #could also check for last thing is a newline ... hm.
         #TODO: won't work when some spezial line got printed
         if len(previous_line1) > len(line) and previous_line1 > 0:
             continue #probably last broken line
@@ -118,7 +93,7 @@ def filesplit():
             previous_line1 = line
 
             line_counter1 += 1
-            
+
             if current_time1 < previous_time1:
                 fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = open_file(fname, "w+")
@@ -235,7 +210,7 @@ def gnuplot():
 
             g('set origin 0.0,0.5;')
             g('wfile="' + exe_dir + "/" + fname + '";')
-            
+
             f = open_file(exe_dir + "/" + fname, "r")
             l = f.readline()
             f.close()
@@ -252,14 +227,14 @@ def gnuplot():
                 phase = "STOP (Erhaltungladung)"
             else:
                 phase = "Unbekannte Phase (oder so)"
-                
+
             g('set title "' + phase + ' (' + fname + ')";')
 
             g('plot \
 wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
 wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
 wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
-wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#999999";')
+wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#222222";')
 
 
             g('set nolabel;')
@@ -278,7 +253,7 @@ wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#9
             g('set origin 0.0,0.0;')
 
             g('plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000" , \
-wfile using 2:7 with lines title "Ri-mOhm" axes x1y2 lw 1 lc rgbcolor "#aabbaa";')
+wfile using 2:7 with lines title "Ri-mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";')
 
             g('set nomultiplot;')
 
@@ -337,8 +312,8 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(622,168)
-        self.window.set_default_size(622,168)
+        self.window.set_size_request(792,168)
+        self.window.set_default_size(792,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", self.delete_event)
@@ -351,7 +326,7 @@ class akkumatik_display:
         self.hbox.connect('expose-event', self.draw_pixbuf)
 
         self.label = gtk.Label()
-        self.label.modify_font(pango.FontDescription("mono 18"))
+        self.label.modify_font(pango.FontDescription("mono 22"))
 
         self.hbox.pack_start(self.label, True, False, 0)
         self.vbox = gtk.VBox()
@@ -393,15 +368,17 @@ class akkumatik_display:
         self.ser.open()
         self.ser.isOpen()
 
-        gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
-                                                 # should be < 500, since every 500 new line
-                                                 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
             self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
         else:
+            raw_input("Press key to continue with new data-collectin (else Ctrl-D)")
             self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
         self.i = 0
+
+        #finally begin collecting
+        gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
+                                                 # should be < 500, since every 500 new line
 
     def read_line(self):
 
@@ -420,11 +397,13 @@ class akkumatik_display:
             return True #ignore (defective?) line
 
         if daten[0] == "1":
-            ausgang = long(daten[0]) #Ausgang
+            ausgang = str(long(daten[0])) #Ausgang
             zeit = daten[1] #Stunden Minuten Sekunden
             ladeV = long(daten[2])/1000.0 #Akkuspannung mV
-            mA = long(daten[3]) #Strom mA
-            mAh = long(daten[4])/1000.0 #Ladungsmenge mA
+            ladeV = "%6.3fV" % (ladeV) #format into string
+            ampere = long(daten[3])/1000.0 #Strom A
+            ampere = "%+.2fA" % (ampere)
+            Ah = long(daten[4])/1000.0 #Ladungsmenge Ah
             VersU = long(daten[5]) #Versorungsspannung mV
             RimOhm = long(daten[6]) #akku-unnen mOhm
             cBat = long(daten[7]) #Akkutemperatur
@@ -435,7 +414,7 @@ class akkumatik_display:
                 fcode = "--"
                 anzahl_zellen = long(tmpzellen)
 
-            phase = phase_list[long(daten[9])] #Ladephase 0-stop ...
+            phase = long(daten[9]) #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
             atyp = akku_typ[long(daten[12])] #Akkutyp
@@ -444,28 +423,70 @@ class akkumatik_display:
             strohmw = stromwahl[long(daten[15])] #stromwahl
             stoppm = stoppmethode[long(daten[16])] #stromwahl
             cKK = long(daten[17]) #KK Celsius
+            #TODO
             #balanced = long(daten[18]) #Einzelspellenspannung mVolt [18-x]
             balanced = 0 #Einzelspellenspannung mVolt [18-x]
 
-            output ="%i%s%1i %5.3fV %5imA %s\n%5.3fAh Ri:%03i %2i°B %2i°KK %sx%s\n" % (ausgang, phase[0:1], zyklus, ladeV, mA, zeit, mAh, RimOhm, cBat, cKK, anzahl_zellen, atyp)
+            #• NLM    NiCd/NiMh Akku laden mit fest vorgegebener Ladungsmenge
+            #• NLx    NiCd/NiMh Akku laden mit automatischer Abschaltung
+            #     x=1 Phase 1, automatische Abschaltung noch gesperrt
+            #     x=2 Phase 2, automatische Abschaltung ist jetzt aktiv
+            #     x=3 Phase 3, Spannungsanstieg wird stärker
+            #     x=4 Phase 4, Spannungsanstieg wird schwächer
+            #     x=5 Phase 5, kein Spannungsanstieg, warte auf Delta-Peak
+            #• LLx    Lithiumakku laden
+            #• BLx    Blei-Akku laden
+            #• XLx    frei einstellbarer Akkutyp IUxx laden
+            #     x=1 Phase 1, Vorkonditionieren (erfolgt nur bei tiefentladenen Akkus)
+            #     x=2 Phase 2, Laden mit Konstantstrom, Spannung steigt an
+            #     x=3 Phase 3, Laden mit Konstantspannung, Strom wird reduziert
+            #     *   der Vorgang wird durch Balancer/Equalizer überwacht
+            # wohl: x=7 Phase 1 Entladen
+            # wohl: x=8 Phase 2 Entladen
+            # wohl: x=9 Phase 3 Entladen
+            #• x=10    xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
 
-            output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%.3fV] [%imA] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
+            if phase >= 1 and phase <= 5:
+                c = "L"
+            elif phase >=7 and phase <= 9:
+                c = "E"
+                phase = "-"
+            elif phase == 0:
+                c = "S" #TODO: not really
+                phase = "?"
+
+            if phase == 10:
+                phasedesc = "PAUSE"
+                ausgang = ""
+                ladeV = ""
+            else:
+                phasedesc = atyp[0:1] + c + str(phase)
+
+
+            output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stoppm, fcode)
             output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, anzahl_zellen, atyp, balanced, sp)
-            #output = "1LL2 11.9V 4:44\n +2.20A5 +0.137mAh"
 
-      #terminal output
+            #keine stunde dann Minunte:Sekunden, sonst Stunde:Minuten
+            if zeit[0:2] == "00":
+                zeit = zeit [3:]
+            else:
+                zeit = zeit [:-3]
 
+            output ="%s%s %s %s|Ri:%03i %2i°B \n%-7s   %+6.3fAh|%sx%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, anzahl_zellen, atyp, cKK)
+
+
+            #terminal output
             sys.stdout.write (output_tty)
             sys.stdout.flush()
 
-      #graphical output
+            #graphical output
             self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
             while gtk.events_pending():
                 gtk.main_iteration()
 
         return True
-                     
+
     def main(self):
         gtk.main()
 
