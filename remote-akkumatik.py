@@ -18,7 +18,6 @@ import thread
 #from asyncproc import Process
 
 #Konstanten - oder so
-phase_list = ["Stop", "L1aden", "L2aden", "L3aden", "4NA", "5NA", "6NA", "E7ntladen", "E8ntladen", "E9ntladen", "Pause", "11NA"] 
 akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
 amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
 ladeart = ["Konst", "Puls", "Reflex"]
@@ -26,13 +25,33 @@ stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
 stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
 fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
 
-#• NE  NiCd/NiMh Akku wird entladen
-#• BE  Bleiakku wird entladen
-#• LE  Lithiumakku wird entladen
-#• XE  frei einstellbarer Akkutyp IUxx wird entladen
-#• xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
+
+phase_list = ["Stop", "1", "2", "3", "4", "5", "?6", "7", "8", "9", "0", "?11"] 
+
+#• NLM    NiCd/NiMh Akku laden mit fest vorgegebener Ladungsmenge
+#• NLx    NiCd/NiMh Akku laden mit automatischer Abschaltung
+#     x=1 Phase 1, automatische Abschaltung noch gesperrt
+#     x=2 Phase 2, automatische Abschaltung ist jetzt aktiv
+#     x=3 Phase 3, Spannungsanstieg wird stärker
+#     x=4 Phase 4, Spannungsanstieg wird schwächer
+#     x=5 Phase 5, kein Spannungsanstieg, warte auf Delta-Peak
+#• LLx    Lithiumakku laden
+#• BLx    Blei-Akku laden
+#• XLx    frei einstellbarer Akkutyp IUxx laden
+#     x=1 Phase 1, Vorkonditionieren (erfolgt nur bei tiefentladenen Akkus)
+#     x=2 Phase 2, Laden mit Konstantstrom, Spannung steigt an
+#     x=3 Phase 3, Laden mit Konstantspannung, Strom wird reduziert
+#     *   der Vorgang wird durch Balancer/Equalizer überwacht
 
 
+# wohl: x=7 Phase 1 Entladen
+# wohl: x=8 Phase 2 Entladen
+# wohl: x=9 Phase 3 Entladen
+
+
+#• x=10    xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
+
+anzahl_zellen = 0
 
 exe_dir = sys.path[0]
 
@@ -217,11 +236,24 @@ def gnuplot():
             g('set origin 0.0,0.5;')
             g('wfile="' + exe_dir + "/" + fname + '";')
             
-            f = open_file(exe_dir + "/" +fname, "r")
+            f = open_file(exe_dir + "/" + fname, "r")
             l = f.readline()
             f.close()
-            text = (l.split("\x7f"))[9]
-            g('set title "' + phase_list[long(text)] + '";')
+
+            phasenr = long((l.split("\x7f"))[9])
+
+            if phasenr >= 1 and phasenr <= 5:
+                phase = "LADEN"
+            elif phasenr >= 7 and phasenr < 9:
+                phase = "ENTLADEN"
+            elif phasenr == 10:
+                phase = "PAUSE (Entladespannung erreicht)"
+            elif phasenr == 0:
+                phase = "STOP (Erhaltungladung)"
+            else:
+                phase = "Unbekannte Phase (oder so)"
+                
+            g('set title "' + phase + ' (' + fname + ')";')
 
             g('plot \
 wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
@@ -373,11 +405,12 @@ class akkumatik_display:
 
     def read_line(self):
 
-    #self.i +=1
-    #self.label.set_markup('<span foreground="#333333">' + str(self.i) + output + '</span>')
-    #return True
 
-    #it hangs here
+        #self.i +=1
+        #self.label.set_markup('<span foreground="#333333">' + str(self.i) + output + '</span>')
+        #return True
+
+        global anzahl_zellen
 
         lin = self.ser.readline()
         self.f.write(lin)
@@ -397,11 +430,10 @@ class akkumatik_display:
             cBat = long(daten[7]) #Akkutemperatur
             tmpzellen = str(long(daten[8])) #Zellenzahl bei Stop -> 'Fehlercode'
             if long(tmpzellen) >= 50:
-                fcode = fehlercode[long(zellen) - 50]
+                fcode = fehlercode[long(tmpzellen) - 50]
             else:
                 fcode = "--"
-                zellen = long(tmpzellen)
-
+                anzahl_zellen = long(tmpzellen)
 
             phase = phase_list[long(daten[9])] #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
@@ -415,11 +447,11 @@ class akkumatik_display:
             #balanced = long(daten[18]) #Einzelspellenspannung mVolt [18-x]
             balanced = 0 #Einzelspellenspannung mVolt [18-x]
 
-            output ="%i%s%1i %5.3fV %5imA %s\n%5.3fAh Ri:%03i %2i°B %2i°KK %sx%s\n" % (ausgang, phase[0:1], zyklus, ladeV, mA, zeit, mAh, RimOhm, cBat, cKK, zellen, atyp)
+            output ="%i%s%1i %5.3fV %5imA %s\n%5.3fAh Ri:%03i %2i°B %2i°KK %sx%s\n" % (ausgang, phase[0:1], zyklus, ladeV, mA, zeit, mAh, RimOhm, cBat, cKK, anzahl_zellen, atyp)
 
             output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%.3fV] [%imA] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stoppm, fcode)
-            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, zellen, atyp, balanced, sp)
+            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, anzahl_zellen, atyp, balanced, sp)
             #output = "1LL2 11.9V 4:44\n +2.20A5 +0.137mAh"
 
       #terminal output
