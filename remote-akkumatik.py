@@ -407,13 +407,7 @@ class akkumatik_display:
             VersU = long(daten[5]) #Versorungsspannung mV
             RimOhm = long(daten[6]) #akku-unnen mOhm
             cBat = long(daten[7]) #Akkutemperatur
-            tmpzellen = str(long(daten[8])) #Zellenzahl bei Stop -> 'Fehlercode'
-            if long(tmpzellen) >= 50:
-                fcode = fehlercode[long(tmpzellen) - 50]
-            else:
-                fcode = "--"
-                anzahl_zellen = long(tmpzellen)
-
+            tmpzellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
             phase = long(daten[9]) #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
@@ -446,20 +440,27 @@ class akkumatik_display:
             # wohl: x=9 Phase 3 Entladen
             #• x=10    xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
 
-            if phase >= 1 and phase <= 5:
-                c = "L"
-            elif phase >=7 and phase <= 9:
-                c = "E"
-                phase = "-"
-            elif phase == 0:
-                c = "S" #TODO: not really
-                phase = "?"
+            if phase == 0: #dann 'Fehlercode' ...?
+                if tmpzellen >= 50:
+                    phasedesc = fehlercode[tmpzellen - 50]
+                    ausgang = ""
+                    ladeV = ""
+                    if tmpzellen >= 52:  #TODO hm.. when to show time...?
+                        zeit = ""
+                else:
+                    phasedesc = "?????" # should never happen possibly
 
-            if phase == 10:
+            elif phase == 10:
                 phasedesc = "PAUSE"
                 ausgang = ""
                 ladeV = ""
             else:
+                if phase >= 1 and phase <= 5:
+                    c = "L"
+                elif phase >=7 and phase <= 9:
+                    c = "E"
+                    phase = "-"
+
                 phasedesc = atyp[0:1] + c + str(phase)
 
 
