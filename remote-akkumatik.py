@@ -13,7 +13,22 @@ import Gnuplot, Gnuplot.funcutils
 #from subprocess import *
 
 #Konstanten - oder so
-phase_list = ["Voll", "Laden", "SLaden normal?", "3NA", "4NA", "5NA", "6NA", "7NA", "8NA", "Entladen", "Pause", "11NA"] 
+phase_list = ["Stop", "Laden", "Laden", "3NA", "4NA", "5NA", "6NA", "7NA", "Entladen", "Entladen", "Pause", "11NA"] 
+akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
+amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
+ladeart = ["Konst", "Puls", "Reflex"]
+stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
+stopmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
+fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
+
+#• NE  NiCd/NiMh Akku wird entladen
+#• BE  Bleiakku wird entladen
+#• LE  Lithiumakku wird entladen
+#• XE  frei einstellbarer Akkutyp IUxx wird entladen
+#• xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
+
+
+
 exe_dir = sys.path[0]
 
 def open_file(file_name, mode):
@@ -38,19 +53,29 @@ def filesplit():
     flag2 = False
     ausgang1_part = ""
     ausgang2_part = ""
-    oldline1 = ""
-    oldline2 = ""
+    previous_line1 = ""
+    previousline2 = ""
+    current_time1 = 0
+    previous_time1 = 0
+    current_time2 = 0
+    previous_time2 = 0
 
     #TODO python like...
     os.system("cp '" + exe_dir + "/serial-akkumatik.dat' '" + exe_dir + "/.tmp'")
+    os.system("rm " + exe_dir + "/Akku?-??.dat")
+    os.system("rm " + exe_dir + "/Akku?-??.png")
     fhI = open_file(exe_dir + '/.tmp', "r")
 
     for line in fhI.readlines():
-        print "************************"
-        print line
-        print "************************"
         file_line += 1
+
+
         #filter out useless lines
+        #could also check for last thing is a newline ... hm. 
+        #TODO: won't work when some spezial line got printed
+        if len(previous_line1) > len(line) and previous_line1 > 0:
+            continue #probably last broken line
+
         if line[2:10] == "00:00:00": #not begun yet
             continue
 
@@ -60,15 +85,17 @@ def filesplit():
 
         if line[0:1] == "1":
 
-            if oldline1[2:10] == line[2:10]:  #duplicate time for some reason
+            current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+
+            if previous_time1 == current_time1:  #duplicate time -> ignore so far
                 print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
                 continue
 
-            oldline1 = line
+            previous_line1 = line
 
             line_counter1 += 1
-            if line[2:10] == "00:00:01" and line_counter1 > 1: #don't write when it just begun
-
+            
+            if current_time1 < previous_time1:
                 fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = open_file(fname, "w+")
                 fh1.write(ausgang1_part)
@@ -82,15 +109,20 @@ def filesplit():
             else:
                 ausgang1_part += line
 
+            previous_time1 = current_time1
+
         elif line[0:1] == "2": #"2"
-            if oldline2[2:10] == line[2:10]:  #duplicate time for some reason
-                print ("FILTER OUT: Duplicate Time")
+
+            current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+
+            if previous_time2 == current_time2:  #duplicate time -> ignore so far
+                print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
                 continue
 
-            oldline2 = line
+            previousline2 = line
 
             line_counter2 += 1
-            if line[2:10] == "00:00:01" and line_counter2 > 1: #don't write when it just begun
+            if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
                 fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                 fh2 = open_file(fname, "w+")
                 fh2.write(ausgang2_part)
@@ -103,6 +135,15 @@ def filesplit():
                 line_counter2 = 0
             else:
                 ausgang2_part += line
+
+            previous_time2 = current_time2
+
+        else:
+            print "==============================================================="
+            print "SPEZ: " + line
+            print "==============================================================="
+
+
 
     if len(ausgang1_part) > 0:
           fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
@@ -192,15 +233,15 @@ wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#9
             g('set ytics nomirror;')
 
             g('set y2range [*:*];')
-            g('set y2label "Innerer Widerstand Ohm";')
+            g('set y2label "Innerer Widerstand mOhm";')
             g('set y2tics border;')
 
 
             g('set size 1.0,0.50;')
             g('set origin 0.0,0.0;')
 
-            g('plot wfile using 2:7 with lines title "RiOhm" axes x1y2 lw 1 lc rgbcolor "#aabbaa", \
-wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";')
+            g('plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000" , \
+wfile using 2:7 with lines title "Ri-mOhm" axes x1y2 lw 1 lc rgbcolor "#aabbaa";')
 
             g('set nomultiplot;')
 
@@ -231,6 +272,8 @@ class akkumatik_display:
             print "*********************"
             print "*** FileSplitting ***"
             print "*********************"
+            self.f.flush()
+            os.fsync(self.f)
             filesplit()
             print "*********************"
             print "***  Gnuplotting  ***"
@@ -264,7 +307,7 @@ class akkumatik_display:
         self.hbox.connect('expose-event', self.draw_pixbuf)
 
         self.label = gtk.Label()
-        self.label.modify_font(pango.FontDescription("sans 18"))
+        self.label.modify_font(pango.FontDescription("mono 18"))
 
         self.hbox.pack_start(self.label, True, False, 0)
         self.vbox = gtk.VBox()
@@ -291,7 +334,7 @@ class akkumatik_display:
             bytesize = serial.SEVENBITS,
             dsrdtr = True,
             rtscts = False,
-            timeout = 0.1,
+            timeout = 0, #0.2 worked nicely
             interCharTimeout = None
             )
 
@@ -306,8 +349,9 @@ class akkumatik_display:
         self.ser.open()
         self.ser.isOpen()
 
-        gobject.timeout_add(1, self.read_line) #1 is prinzipally enough -> readline waits.
-
+        gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
+                                                 # should be < 500, since every 500 new line
+                                                 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
             self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
@@ -327,34 +371,43 @@ class akkumatik_display:
         self.f.write(lin)
 
         daten = lin.split('\x7f')
-        if len(daten) < 17:
+        if len(daten) < 18:
             return True #ignore (defective?) line
 
         if daten[0] == "1":
-            ausgang = long(daten[0])
-            zeit = daten[1]
-            ladeV = long(daten[2])/1000.0
-            mA = long(daten[3])
-            mAh = long(daten[4])/1000.0
-            VersU = long(daten[5])
-            RiOhm = long(daten[6])
-            cBat = long(daten[7])
-            zellen = long(daten[8])
+            ausgang = long(daten[0]) #Ausgang
+            zeit = daten[1] #Stunden Minuten Sekunden
+            ladeV = long(daten[2])/1000.0 #Akkuspannung mV
+            mA = long(daten[3]) #Strom mA
+            mAh = long(daten[4])/1000.0 #Ladungsmenge mA
+            VersU = long(daten[5]) #Versorungsspannung mV
+            RimOhm = long(daten[6]) #akku-unnen mOhm
+            cBat = long(daten[7]) #Akkutemperatur
+            tmpzellen = str(long(daten[8])) #Zellenzahl bei Stop -> 'Fehlercode'
+            if long(tmpzellen) >= 50:
+                fcode = fehlercode[long(zellen) - 50]
+            else:
+                fcode = "--"
+                zellen = long(tmpzellen)
 
-            phase = phase_list[long(daten[9])]
 
-            zyklus = long(daten[10])
-            sp = long(daten[11])
-            W = long(daten[12])
-            Wh = long(daten[13])
-            #cKK = long(daten[14])
-            cKK = long(daten[17])
-            Balanced = long(daten[15])
+            phase = phase_list[long(daten[9])] #Ladephase 0-stop ...
+            zyklus = long(daten[10]) #Zyklus
+            sp = long(daten[11]) #Aktive Akkuspeicher
+            atyp = akku_typ[long(daten[12])] #Akkutyp
+            prg = amprogramm[long(daten[13])] #Programm
+            lart = ladeart[long(daten[14])] #Ladeart
+            strohmw = stromwahl[long(daten[15])] #stromwahl
+            stopm = stopmethode[long(daten[16])] #stromwahl
+            cKK = long(daten[17]) #KK Celsius
+            #balanced = long(daten[18]) #Einzelspellenspannung mVolt [18-x]
+            balanced = 0 #Einzelspellenspannung mVolt [18-x]
 
-            output ="%i%s%1i %6.3fV %s %6imA \n %8.3fAh Ri: %4i\n %4i°(B) %4i°(Kk) %4i Z" % (ausgang, phase[0:1], zyklus, ladeV, zeit, mA, mAh, RiOhm, cBat, cKK, zellen)
+            output ="%i%s%1i %5.3fV %5imA %s\n%5.3fAh Ri:%03i %2i°B %2i°KK %sx%s\n" % (ausgang, phase[0:1], zyklus, ladeV, mA, zeit, mAh, RimOhm, cBat, cKK, zellen, atyp)
 
-            output_tty ="Ausgang %1i,  Phase/Zyklus: %s/%1i %8.3fV %s %6imA %8.3fAh Ri Ohm: %4i\n %4i°(Batterie) %4i°(Kuehlkoerper) %4i Zellen" % (ausgang, phase, zyklus, ladeV, zeit, mA, mAh, RiOhm, cBat, cKK, zellen)
-            output_tty += "\nBalanced: %i | Watt: %i | Wh: %i | Spannung: %i\n\n" % (Balanced, W, Wh, sp)
+            output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%fV] [%imA] [%.3fAh] [Ri-mOhm: %i] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
+            output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stopmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stopm, fcode)
+            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, zellen, atyp, balanced, sp)
             #output = "1LL2 11.9V 4:44\n +2.20A5 +0.137mAh"
 
       #terminal output
