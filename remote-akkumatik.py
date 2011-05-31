@@ -10,10 +10,15 @@ import pango
 import gobject
 import os
 import Gnuplot, Gnuplot.funcutils
-#from subprocess import *
+import subprocess
+import time
+import shlex #command line splitting
+import thread
+
+#from asyncproc import Process
 
 #Konstanten - oder so
-phase_list = ["Stop", "Laden", "Laden", "3NA", "4NA", "5NA", "6NA", "7NA", "Entladen", "Entladen", "Pause", "11NA"] 
+phase_list = ["Stop", "L1aden", "L2aden", "L3aden", "4NA", "5NA", "6NA", "E7ntladen", "E8ntladen", "E9ntladen", "Pause", "11NA"] 
 akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
 amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
 ladeart = ["Konst", "Puls", "Reflex"]
@@ -254,8 +259,15 @@ wfile using 2:7 with lines title "Ri-mOhm" axes x1y2 lw 1 lc rgbcolor "#aabbaa";
             print "**************************************"
         else:
             continue
-    os.system("sleep 1") #sonst finded qiv (noch) nicht
-    os.system("/usr/local/bin/qiv " + qiv_files + " &")
+
+    time.sleep(1.8) #sonst finded qiv (noch) nichts allenfall
+
+    #hm.....
+    args = shlex.split(qiv_files)
+    args.sort()
+    arguments = ' '.join(str(n) for n in args)
+    thread.start_new_thread(os.system,('/usr/local/bin/qiv ' + arguments,))
+
 
 class akkumatik_display:
 
@@ -405,7 +417,7 @@ class akkumatik_display:
 
             output ="%i%s%1i %5.3fV %5imA %s\n%5.3fAh Ri:%03i %2i°B %2i°KK %sx%s\n" % (ausgang, phase[0:1], zyklus, ladeV, mA, zeit, mAh, RimOhm, cBat, cKK, zellen, atyp)
 
-            output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%fV] [%imA] [%.3fAh] [Ri-mOhm: %i] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
+            output_tty ="[Ausgang %i] [Phase/Zyklus: %s/%i] [%.3fV] [%imA] [%.3fAh] [Ri-mOhm: %i] [%s]\n" % (ausgang, phase, zyklus, ladeV, mA, mAh, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stopmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stopm, fcode)
             output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, zellen, atyp, balanced, sp)
             #output = "1LL2 11.9V 4:44\n +2.20A5 +0.137mAh"
