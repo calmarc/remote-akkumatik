@@ -59,6 +59,10 @@ def filesplit():
     current_time2 = 0
     previous_time2 = 0
 
+    print "*************************************************"
+    print "****             Serial-Splitting            ****"
+    print "****                                         ****"
+
     #TODO python like...
     os.system("cp '" + exe_dir + "/serial-akkumatik.dat' '" + exe_dir + "/.tmp'")
     os.system("rm " + exe_dir + "/Akku?-??.dat")
@@ -66,8 +70,8 @@ def filesplit():
     fhI = open_file(exe_dir + '/.tmp', "r")
 
     for line in fhI.readlines():
-        file_line += 1
 
+        file_line += 1
 
         #filter out useless lines
         #could also check for last thing is a newline ... hm.
@@ -86,8 +90,8 @@ def filesplit():
 
             current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
 
-            if previous_time1 == current_time1:  #duplicate time -> ignore so far
-                print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
+            if previous_time1 == current_time1:  #duplicate time -> ignore (so far)
+                #print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
                 continue
 
             previous_line1 = line
@@ -98,10 +102,8 @@ def filesplit():
                 fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = open_file(fname, "w+")
                 fh1.write(ausgang1_part)
-                print "*********************************************************************"
-                print "**** Generating: " + fname + " ****"
-                print "*********************************************************************"
                 fh1.close()
+                print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
                 file_zaehler1 += 1
                 ausgang1_part = line
                 line_counter1 = 0
@@ -125,10 +127,8 @@ def filesplit():
                 fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                 fh2 = open_file(fname, "w+")
                 fh2.write(ausgang2_part)
-                print "*********************************************************************"
-                print "**** Generating: " + fname + " ****"
-                print "*********************************************************************"
                 fh2.close()
+                print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
                 file_zaehler2 += 1
                 ausgang2_part = line
                 line_counter2 = 0
@@ -145,39 +145,37 @@ def filesplit():
 
 
     if len(ausgang1_part) > 0:
-          fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-          fh1 = open_file(fname, "w+")
-          fh1.write(ausgang1_part)
-          print "********************************************8************************"
-          print "**** Generating: " + fname + " ****"
-          print "*********************************************************************"
-          fh1.close()
+        fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+        fh1 = open_file(fname, "w+")
+        fh1.write(ausgang1_part)
+        fh1.close()
+        print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
     if len(ausgang2_part) > 0:
-          fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-          fh2 = open_file(fname, "w+")
-          print "*********************************************************************"
-          print "**** Generating: " + fname + " ****"
-          print "*********************************************************************"
-          fh2.write(ausgang2_part)
-          fh2.close()
+        fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+        fh2 = open_file(fname, "w+")
+        fh2.write(ausgang2_part)
+        print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
 
     #close files
     fhI.close()
+
+
     os.system("rm '" + exe_dir + "/.tmp'")
 
 def gnuplot():
 
-    g = Gnuplot.Gnuplot(debug=1)
+    g = Gnuplot.Gnuplot(debug=0)
 
     path = exe_dir
     qiv_files = ""
     dirList=os.listdir(path)
+    dirList.sort()
+    print "*************************************************"
+    print "****             (Gnu-)Plotting              ****"
+    print "****                                         ****"
     for fname in dirList:
         if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
             qiv_files += exe_dir + "/" + fname[:-4] + ".png "
-            print "********************************"
-            print "**** Plotting: " + fname + " ****"
-            print "********************************"
 
             #g('set terminal wxt')
             g('set terminal png size 1280, 1024;')
@@ -245,7 +243,7 @@ wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#2
             g('set ytics nomirror;')
 
             g('set y2range [*:*];')
-            g('set y2label "Innerer Widerstand mOhm";')
+            g('set y2label "Innerer Widerstand Ri (mOhm)";')
             g('set y2tics border;')
 
 
@@ -253,7 +251,7 @@ wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#2
             g('set origin 0.0,0.0;')
 
             g('plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000" , \
-wfile using 2:7 with lines title "Ri-mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";')
+wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";')
 
             g('set nomultiplot;')
 
@@ -261,20 +259,15 @@ wfile using 2:7 with lines title "Ri-mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";
             #    g('set output "' + arg + '.png"')
             #    g('replot"')
             g('reset')
-            print "**************************************"
-            print "**** Plot Generated: " + fname[:-4] + ".png ****"
-            print "**************************************"
+            print "**** Generated: " + "%24s" % (fname[-27:-4]) + ".png ****"
         else:
             continue
 
     time.sleep(1.8) #sonst finded qiv (noch) nichts allenfall
 
-    #hm.....
     args = shlex.split(qiv_files)
-    args.sort()
     arguments = ' '.join(str(n) for n in args)
     thread.start_new_thread(os.system,('/usr/local/bin/qiv ' + arguments,))
-
 
 class akkumatik_display:
 
@@ -288,15 +281,9 @@ class akkumatik_display:
 
     def buttoncb (self, widget, data=None):
         if data == "Chart":
-            print "*********************"
-            print "*** FileSplitting ***"
-            print "*********************"
             self.f.flush()
             os.fsync(self.f)
             filesplit()
-            print "*********************"
-            print "***  Gnuplotting  ***"
-            print "*********************"
             gnuplot()
 
         elif data == "Exit":
@@ -341,7 +328,6 @@ class akkumatik_display:
         self.vbox.pack_start(self.button2, True, True, 0)
 
 
-        self.window.show_all()
 
 
         self.ser = serial.Serial(
@@ -376,16 +362,23 @@ class akkumatik_display:
             self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
         self.i = 0
 
+
+        self.window.show_all() # after file-open (what is needed on plotting)...
+
         #finally begin collecting
         gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
                                                  # should be < 500, since every 500 new line
+    def output_data(output_tty, output):
+        #terminal output
+        sys.stdout.write (output_tty)
+        sys.stdout.flush()
+
+        #graphical output
+        self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
+        while gtk.events_pending():
+            gtk.main_iteration()
 
     def read_line(self):
-
-
-        #self.i +=1
-        #self.label.set_markup('<span foreground="#333333">' + str(self.i) + output + '</span>')
-        #return True
 
         global anzahl_zellen
 
@@ -417,38 +410,34 @@ class akkumatik_display:
             strohmw = stromwahl[long(daten[15])] #stromwahl
             stoppm = stoppmethode[long(daten[16])] #stromwahl
             cKK = long(daten[17]) #KK Celsius
-            #TODO
-            #balanced = long(daten[18]) #Einzelspellenspannung mVolt [18-x]
-            balanced = 0 #Einzelspellenspannung mVolt [18-x]
 
-            #• NLM    NiCd/NiMh Akku laden mit fest vorgegebener Ladungsmenge
-            #• NLx    NiCd/NiMh Akku laden mit automatischer Abschaltung
-            #     x=1 Phase 1, automatische Abschaltung noch gesperrt
-            #     x=2 Phase 2, automatische Abschaltung ist jetzt aktiv
-            #     x=3 Phase 3, Spannungsanstieg wird stärker
-            #     x=4 Phase 4, Spannungsanstieg wird schwächer
-            #     x=5 Phase 5, kein Spannungsanstieg, warte auf Delta-Peak
-            #• LLx    Lithiumakku laden
-            #• BLx    Blei-Akku laden
-            #• XLx    frei einstellbarer Akkutyp IUxx laden
-            #     x=1 Phase 1, Vorkonditionieren (erfolgt nur bei tiefentladenen Akkus)
-            #     x=2 Phase 2, Laden mit Konstantstrom, Spannung steigt an
-            #     x=3 Phase 3, Laden mit Konstantspannung, Strom wird reduziert
-            #     *   der Vorgang wird durch Balancer/Equalizer überwacht
-            # wohl: x=7 Phase 1 Entladen
-            # wohl: x=8 Phase 2 Entladen
-            # wohl: x=9 Phase 3 Entladen
-            #• x=10    xx* Entladeschlussspannung erreicht, weitere Entladung mit reduziertem Strom
+            cellmV = ""
+            for cell in daten[18:]:
+                cellmV += "[" + cell + ","
+            if cellmV != "":
+                cellmV = cellmV[:-1] + "]" #replace last ',' with ']'
 
-            if phase == 0: #dann 'Fehlercode' ...?
-                if tmpzellen >= 50:
+            if phase == 0: #dann 'Fehlercode' zwangsweise ...?
+                if tmpzellen >= 53: # FEHLER
+                    output_tty = fehlercode[tmpzellen - 50] + "\n\n"
+                    output = fehlercode[tmpzellen - 50]
+                    output_data(output_tty, output)
+                    return True
+
+                if tmpzellen >= 50: #'gute' codes
                     phasedesc = fehlercode[tmpzellen - 50]
                     ausgang = ""
                     ladeV = ""
-                    if tmpzellen >= 52:  #TODO hm.. when to show time...?
-                        zeit = ""
+
                 else:
                     phasedesc = "?????" # should never happen possibly
+
+            #• 51 VOLL   Ladevorgang wurde korrekt beendet, Akku ist voll geladen
+            #• 52 LEER   Entladevorgang wurde korrekt beendet, Akku ist leer
+            #• TODO: 52 od 51 + "x..." FERTIG Lipo-Lagerprogramm wurde korrekt beendet, Akku ist fertig zum Lagern
+            #• TODO: 52 od 51 + "x ": ? MENGE  Vorgang wurde durch eingestelltes Mengenlimit beendet
+            #• 50 STOP Vorgang wurde manuell (vorzeitig) beendet
+            #• FEHLER Vorgang wurde fehlerhaft beendet
 
             elif phase == 10:
                 phasedesc = "PAUSE"
@@ -463,34 +452,28 @@ class akkumatik_display:
 
                 phasedesc = atyp[0:1] + c + str(phase)
 
-
+            #terminal print
             output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stoppm, fcode)
-            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s] [Balanced: %i] [Akkuspeicher: %i]\n\n" % (cBat, cKK, anzahl_zellen, atyp, balanced, sp)
+            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s][Akkuspeicher: %i]" % (cBat, cKK, anzahl_zellen, atyp, sp)
+            if cellmV != "":
+                output_tty += "[Zellenspannung mV: %s]" %( cellmV)
+            output_tty += "\n\n"
 
-            #keine stunde dann Minunte:Sekunden, sonst Stunde:Minuten
+            #< stunde dann Minunte:Sekunden, sonst Stunde:Minuten
             if zeit[0:2] == "00":
                 zeit = zeit [3:]
             else:
                 zeit = zeit [:-3]
 
+            #label print
             output ="%s%s %s %s|Ri:%03i %2i°B \n%-7s   %+6.3fAh|%sx%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, anzahl_zellen, atyp, cKK)
 
-
-            #terminal output
-            sys.stdout.write (output_tty)
-            sys.stdout.flush()
-
-            #graphical output
-            self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
-            while gtk.events_pending():
-                gtk.main_iteration()
-
+        output_data(output_tty, output)
         return True
 
     def main(self):
         gtk.main()
-
 
 if __name__ == '__main__':
     displ = akkumatik_display()
