@@ -16,33 +16,32 @@ import shlex #command line splitting
 import thread
 import shutil
 
-#Konstanten - oder so TODO put into class
-picture_exe = '/usr/local/bin/qiv'
-akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
-amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
-ladeart = ["Konst", "Puls", "Reflex"]
-stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
-stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
-fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
-
-liporgb = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
-
-
-exe_dir = sys.path[0]
-
 class akkumatik_display:
+
+##########################################
+#Konstanten - oder so{{{
+##########################################
 
     file_block = False
     anzahl_zellen = 0
 
+    picture_exe = '/usr/local/bin/qiv'
+    akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
+    amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
+    ladeart = ["Konst", "Puls", "Reflex"]
+    stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
+    stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
+    fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
+    liporgb = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
+    exe_dir = sys.path[0]
 
-##########################################
+##########################################}}}
 #GnuPlotting stuff{{{
 ##########################################
 
+
     def lipo_gnuplot(self, line_a):
         """lipo gnuplot 2nd chart"""
-        global liporgb
         gpst = ""
 
         gpst += 'set nolabel;\n'
@@ -69,7 +68,7 @@ class akkumatik_display:
         gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
 
         for i in range(18, len(line_a) - 1):
-            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+liporgb[i-18]+'"'
+            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+self.liporgb[i-18]+'"'
         gpst += ';'
 
         return (gpst)
@@ -90,18 +89,17 @@ class akkumatik_display:
 
         g = Gnuplot.Gnuplot(debug=0)
 
-        path = exe_dir
         qiv_files = ""
-        dirList=os.listdir(path)
+        dirList=os.listdir(self.exe_dir)
         dirList.sort()
         print "*********************************************************************"
         print "****                       (Gnu-)Plotting                        ****"
         print "****                                                             ****"
         for fname in dirList:
             if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
-                qiv_files += exe_dir + "/" + fname[:-4] + ".png "
+                qiv_files += self.exe_dir + "/" + fname[:-4] + ".png "
 
-                f = self.open_file(exe_dir + "/" + fname, "r")
+                f = self.open_file(self.exe_dir + "/" + fname, "r")
                 while True: #ignore other than real data lines
                     l = f.readline()
                     if l[0] != "#":
@@ -130,7 +128,7 @@ class akkumatik_display:
 
                 #g('set terminal wxt')
                 g('set terminal png size 1280, 1024;')
-                g('set output "' + exe_dir + "/" + fname[:-4] + '.png"')
+                g('set output "' + self.exe_dir + "/" + fname[:-4] + '.png"')
 
                 g('set title "Akkumatik (Stefan Estner)";')
                 g('set xdata time;')
@@ -158,7 +156,7 @@ class akkumatik_display:
                 g('set size 1.0,0.45;')
                 g('set origin 0.0,0.5;')
 
-                g('wfile="' + exe_dir + "/" + fname + '";')
+                g('wfile="' + self.exe_dir + "/" + fname + '";')
 
                 g('set title "' + phase + ' (' + fname + ')";')
 
@@ -186,7 +184,7 @@ class akkumatik_display:
 
                 g('set nomultiplot;')
                 g('reset')
-                print "**** Generated: "+"%44s"%(exe_dir + "/" +fname[-27:-4])+".png ****"
+                print "**** Generated: "+"%44s"%(self.exe_dir + "/" +fname[-27:-4])+".png ****"
             else:
                 continue
 
@@ -194,9 +192,7 @@ class akkumatik_display:
 
         args = shlex.split(qiv_files)
         arguments = ' '.join(str(n) for n in args)
-        global picture_exe
-        thread.start_new_thread(os.system,(picture_exe+' '+arguments,))
-
+        thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
 
 ##########################################}}}
 #File handling stuff {{{
@@ -237,17 +233,17 @@ class akkumatik_display:
         print "****                       Serial-Splitting                      ****"
         print "****                                                             ****"
 
-        for file in os.listdir(exe_dir):
+        for file in os.listdir(self.exe_dir):
             if len(file) == 12 and file[0:4] == "Akku":
                 os.remove(file)
 
         self.file_block = True #stop getting more serial data
         self.f.close()
-        self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'r')
+        self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'r')
         for line in self.f.readlines():
             if self.file_block == True:
                 self.f.close()
-                self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'a') #reopen
+                self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'a') #reopen
                 self.file_block = False #allow further getting serial adding..
 
             file_line += 1
@@ -278,7 +274,7 @@ class akkumatik_display:
                 line_counter1 += 1
 
                 if current_time1 < previous_time1:
-                    fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                    fname = self.exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                     fh1 = self.open_file(fname, "w+")
                     fh1.write(ausgang1_part)
                     fh1.close()
@@ -303,7 +299,7 @@ class akkumatik_display:
 
                 line_counter2 += 1
                 if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
-                    fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                    fname = self.exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                     fh2 = self.open_file(fname, "w+")
                     fh2.write(ausgang2_part)
                     fh2.close()
@@ -322,13 +318,13 @@ class akkumatik_display:
                 print "==============================================================="
 
         if len(ausgang1_part) > 0:
-            fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+            fname = self.exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
             fh1 = self.open_file(fname, "w+")
             fh1.write(ausgang1_part)
             fh1.close()
             print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
         if len(ausgang2_part) > 0:
-            fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+            fname = self.exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
             fh2 = self.open_file(fname, "w+")
             fh2.write(ausgang2_part)
             print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
@@ -377,11 +373,11 @@ class akkumatik_display:
             phase = long(daten[9]) #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
-            atyp = akku_typ[long(daten[12])] #Akkutyp
-            prg = amprogramm[long(daten[13])] #Programm
-            lart = ladeart[long(daten[14])] #Ladeart
-            strohmw = stromwahl[long(daten[15])] #stromwahl
-            stoppm = stoppmethode[long(daten[16])] #stromwahl
+            atyp = self.akku_typ[long(daten[12])] #Akkutyp
+            prg = self.amprogramm[long(daten[13])] #Programm
+            lart = self.ladeart[long(daten[14])] #Ladeart
+            strohmw = self.stromwahl[long(daten[15])] #stromwahl
+            stoppm = self.stoppmethode[long(daten[16])] #stromwahl
             cKK = long(daten[17]) #KK Celsius
 
             cellmV = ""
@@ -397,13 +393,13 @@ class akkumatik_display:
 
             if phase == 0: #dann 'Fehlercode' zwangsweise ...?
                 if tmp_zellen >= 54: # FEHLER
-                    output_tty = fehlercode[tmp_zellen - 50] + "\n\n"
-                    output = fehlercode[tmp_zellen - 50]
+                    output_tty = self.fehlercode[tmp_zellen - 50] + "\n\n"
+                    output = self.fehlercode[tmp_zellen - 50]
                     self.output_data(output_tty, output)
                     return True
 
                 if tmp_zellen >= 50: #'gute' codes
-                    phasedesc = "%-11s" % (fehlercode[tmp_zellen - 50])
+                    phasedesc = "%-11s" % (self.fehlercode[tmp_zellen - 50])
                     ausgang = ""
                     ladeV = ""
 
@@ -480,7 +476,7 @@ class akkumatik_display:
 
 
     def draw_pixbuf(self, widget, event):
-        path = exe_dir + '/bilder/Display.jpg'
+        path = self.exe_dir + '/bilder/Display.jpg'
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
         widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
 
@@ -556,20 +552,20 @@ class akkumatik_display:
         self.ser.isOpen()
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-            self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'a')
+            self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
         elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-            self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'w+')
         else:
             raw_input("Press key to continue with *new* data-collecting (else Ctrl-D)")
-            self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
 
         #finally begin collecting
         gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
 
-#}}}
 if __name__ == '__main__':
     displ = akkumatik_display()
     displ.main()
+#}}}
