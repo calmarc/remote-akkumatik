@@ -196,9 +196,9 @@ def else_gnuplot():
     gpst = ""
     gpst += 'set y2range [*:*];\n'
     gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
-    pgst += 'set y2tics border;\n'
+    gpst += 'set y2tics border;\n'
 
-    gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000" , \n\
+    gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
                 wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
     return gpst
 
