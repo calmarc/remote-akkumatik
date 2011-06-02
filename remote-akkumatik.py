@@ -14,16 +14,16 @@ import subprocess
 import time
 import shlex #command line splitting
 import thread
-
-#from asyncproc import Process
+import shutil
 
 #Konstanten - oder so
+picture_exe = '/usr/local/bin/qiv'
 akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
 amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
 ladeart = ["Konst", "Puls", "Reflex"]
 stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
 stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
-fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
+fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
 
 liporgb = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
@@ -31,283 +31,301 @@ anzahl_zellen = 0
 
 exe_dir = sys.path[0]
 
-def open_file(file_name, mode):
-    """Open a file."""
-    try:
-        the_file = open(file_name, mode)
-    except(IOError), e:
-        print "Unable to open the file", file_name, "Ending program.\n", e
-        raw_input("\n\nPress the enter key to exit.")
-        sys.exit()
-    else:
-        return the_file
-
-def filesplit():
-    file_line = 0
-    line_counter1 = 0
-    line_counter2 = 0
-    oldline = ""
-    file_zaehler1 = 1
-    file_zaehler2 = 1
-    flag1 = False
-    flag2 = False
-    ausgang1_part = ""
-    ausgang2_part = ""
-    previous_line1 = ""
-    previousline2 = ""
-    current_time1 = 0
-    previous_time1 = 0
-    current_time2 = 0
-    previous_time2 = 0
-
-    print "*************************************************"
-    print "****             Serial-Splitting            ****"
-    print "****                                         ****"
-
-    #TODO python like...
-    os.system("cp '" + exe_dir + "/serial-akkumatik.dat' '" + exe_dir + "/.tmp'")
-    os.system("rm " + exe_dir + "/Akku?-??.dat")
-    os.system("rm " + exe_dir + "/Akku?-??.png")
-    fhI = open_file(exe_dir + '/.tmp', "r")
-
-    for line in fhI.readlines():
-
-        file_line += 1
-
-        #filter out useless lines
-        #could also check for last thing is a newline ... hm.
-        #TODO: won't work when some spezial line got printed
-        if len(previous_line1) > len(line) and previous_line1 > 0:
-            continue #probably last broken line
-
-        if line[2:10] == "00:00:00": #not begun yet
-            continue
-
-        #if line[11:16] == "00000": #no volt lines
-          #print ("FILTER OUT: Volt has Zero value")
-          #continue
-
-        if line[0:1] == "1":
-
-            current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
-
-            if previous_time1 == current_time1:  #duplicate time -> ignore (so far)
-                #print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
-                continue
-
-            previous_line1 = line
-
-            line_counter1 += 1
-
-            if current_time1 < previous_time1:
-                fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-                fh1 = open_file(fname, "w+")
-                fh1.write(ausgang1_part)
-                fh1.close()
-                print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
-                file_zaehler1 += 1
-                ausgang1_part = line
-                line_counter1 = 0
-            else:
-                ausgang1_part += line
-
-            previous_time1 = current_time1
-
-        elif line[0:1] == "2": #"2"
-
-            current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
-
-            if previous_time2 == current_time2:  #duplicate time -> ignore so far
-                print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
-                continue
-
-            previousline2 = line
-
-            line_counter2 += 1
-            if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
-                fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-                fh2 = open_file(fname, "w+")
-                fh2.write(ausgang2_part)
-                fh2.close()
-                print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
-                file_zaehler2 += 1
-                ausgang2_part = line
-                line_counter2 = 0
-            else:
-                ausgang2_part += line
-
-            previous_time2 = current_time2
-
-        else:
-            print "==============================================================="
-            print "SPEZ: " + line
-            print "==============================================================="
-
-
-
-    if len(ausgang1_part) > 0:
-        fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-        fh1 = open_file(fname, "w+")
-        fh1.write(ausgang1_part)
-        fh1.close()
-        print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
-    if len(ausgang2_part) > 0:
-        fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-        fh2 = open_file(fname, "w+")
-        fh2.write(ausgang2_part)
-        print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
-
-    #close files
-    fhI.close()
-
-
-    os.system("rm '" + exe_dir + "/.tmp'")
-
-def lipo_gnuplot(line_a):
-    global liporgb
-    gpst = ""
-
-    gpst += 'set nolabel;\n'
-    gpst += 'set ylabel "mVolt Zellen (Avg)"\n'
-    gpst += 'set yrange [3000:4250];\n'
-    gpst += 'set ytics nomirror;\n'
-
-    gpst += 'set y2range [-16:16];\n'
-    gpst += 'set y2label "Balancer Delta";\n'
-    gpst += 'set y2tics 4;\n'
-    gpst += 'set my2tics 4;\n'
-
-    gpst += "plot "
-
-    avg_string = "("
-    x = 0
-    for i in range(18, len(line_a) - 1):
-        avg_string += "$"+str(i+1)+"+"
-        x += 1
-    avg_string = avg_string[0:-1] + ")/" + str(x)
-
-    for i in range(18, len(line_a) - 1):
-        gpst += 'wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title " Zelle '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+liporgb[i-18]+'",'
-
-    gpst += 'wfile using 2:('+avg_string+') with lines title "Average mV" lw 2 lc rgbcolor "#ff3333";'
-    return (gpst)
-
-def else_gnuplot():
-    gpst = ""
-    gpst += 'set y2range [*:*];\n'
-    gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
-    gpst += 'set y2tics border;\n'
-
-    gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
-                wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
-    return gpst
-
-def gnuplot():
-
-    g = Gnuplot.Gnuplot(debug=1)
-
-    path = exe_dir
-    qiv_files = ""
-    dirList=os.listdir(path)
-    dirList.sort()
-    print "*************************************************"
-    print "****             (Gnu-)Plotting              ****"
-    print "****                                         ****"
-    for fname in dirList:
-        if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
-            qiv_files += exe_dir + "/" + fname[:-4] + ".png "
-
-            f = open_file(exe_dir + "/" + fname, "r")
-            while True: #ignore other than real data lines
-                l = f.readline()
-                if l[0] != "#":
-                    break
-
-            f.close()
-            line_a = l.split("\x7f")
-            phasenr = long(line_a[9])
-            if phasenr >= 1 and phasenr <= 5:
-                phase = "LADEN"
-            elif phasenr >= 7 and phasenr < 9:
-                phase = "ENTLADEN"
-            elif phasenr == 10:
-                phase = "PAUSE (Entladespannung erreicht)"
-            elif phasenr == 0:
-                phase = "STOP (Erhaltungladung)"
-            else:
-                phase = "Unbekannte Phase <"+str(phasenr)+"> (oder so)"
-
-            atyp = long(line_a[12])
-
-            #g('set terminal wxt')
-            g('set terminal png size 1280, 1024;')
-            g('set output "' + exe_dir + "/" + fname[:-4] + '.png"')
-
-            g('set title "Akkumatik (Stefan Estner)";')
-            g('set xdata time;')
-            g("set datafile separator '\x7f';")
-            g('set timefmt "%H:%M:%S";')
-            g('set grid')
-
-            #set bmargin 5
-            g('set lmargin 10')
-            g('set rmargin 10')
-            #set tmargin 5
-            g('set multiplot;')
-
-            g('set key box')
-            g('set ylabel "Laden mA / Kapazitaet mAh"')
-            g('set ytics nomirror;')
-
-            g('set y2range [-10:70];')
-            g('set y2label "Grad Celsius";')
-            g('set y2tics border;')
-
-            g('set nolabel;')
-            g('set xtics axis;')
-
-            g('set size 1.0,0.45;')
-            g('set origin 0.0,0.5;')
-
-            g('wfile="' + exe_dir + "/" + fname + '";')
-
-            g('set title "' + phase + ' (' + fname + ')";')
-
-            g('plot \
-                wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
-                wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
-                wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
-                wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#222222";')
-
-
-            g('set nolabel;')
-            g('set notitle;')
-
-            g('set ylabel "mVolt Akku"')
-            g('set yrange [*:*];')
-            g('set ytics nomirror;')
-
-            g('set size 1.0,0.45;')
-            g('set origin 0.0,0.0;')
-
-            if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
-                g(lipo_gnuplot(line_a))
-            else:
-                g(else_gnuplot())
-
-            g('set nomultiplot;')
-            g('reset')
-            print "**** Generated: "+"%24s"%(fname[-27:-4])+".png ****"
-        else:
-            continue
-
-    time.sleep(1.8) #sonst finded qiv (noch) nichts allenfall
-
-    args = shlex.split(qiv_files)
-    arguments = ' '.join(str(n) for n in args)
-    thread.start_new_thread(os.system,('/usr/local/bin/qiv '+arguments,))
 
 class akkumatik_display:
+
+    def open_file(self, file_name, mode):
+        """Open a file."""
+        try:
+            the_file = open(file_name, mode)
+        except(IOError), e:
+            print "Unable to open the file", file_name, "Ending program.\n", e
+            raw_input("\n\nPress the enter key to exit.")
+            sys.exit()
+        else:
+            return the_file
+
+
+    def filesplit(self, fh):
+        file_line = 0
+        line_counter1 = 0
+        line_counter2 = 0
+        oldline = ""
+        file_zaehler1 = 1
+        file_zaehler2 = 1
+        flag1 = False
+        flag2 = False
+        ausgang1_part = ""
+        ausgang2_part = ""
+        previous_line1 = ""
+        previousline2 = ""
+        current_time1 = 0
+        previous_time1 = 0
+        current_time2 = 0
+        previous_time2 = 0
+
+        print "*********************************************************************"
+        print "****                       Serial-Splitting                      ****"
+        print "****                                                             ****"
+
+        for file in os.listdir(exe_dir):
+            if len(file) == 12 and file[0:4] == "Akku":
+                os.remove(file)
+
+        #TODO won't work on windoof probably (and it's not good anyway)
+        shutil.copy(exe_dir + "/serial-akkumatik.dat", exe_dir + "/.tmp")
+
+        #pos = fh.tell()
+
+        #tmpf = os.tmpfile()
+
+        fhI = self.open_file(exe_dir + '/.tmp', "r")
+
+        for line in fhI.readlines():
+
+            file_line += 1
+
+            #filter out useless lines
+            #could also check for last thing is a newline ... hm.
+            #TODO: won't work when some spezial line got printed
+            if len(previous_line1) > len(line) and previous_line1 > 0:
+                continue #probably last broken line
+
+            if line[2:10] == "00:00:00": #not begun yet
+                continue
+
+            #if line[11:16] == "00000": #no volt lines
+              #print ("FILTER OUT: Volt has Zero value")
+              #continue
+
+            if line[0:1] == "1":
+
+                current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+
+                if previous_time1 == current_time1:  #duplicate time -> ignore (so far)
+                    #print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
+                    continue
+
+                previous_line1 = line
+
+                line_counter1 += 1
+
+                if current_time1 < previous_time1:
+                    fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                    fh1 = self.open_file(fname, "w+")
+                    fh1.write(ausgang1_part)
+                    fh1.close()
+                    print "**** Generated: " + "%48s" % (fname[-47:]) + " ****"
+                    file_zaehler1 += 1
+                    ausgang1_part = line
+                    line_counter1 = 0
+                else:
+                    ausgang1_part += line
+
+                previous_time1 = current_time1
+
+            elif line[0:1] == "2": #"2"
+
+                current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+
+                if previous_time2 == current_time2:  #duplicate time -> ignore so far
+                    print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
+                    continue
+
+                previousline2 = line
+
+                line_counter2 += 1
+                if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
+                    fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                    fh2 = self.open_file(fname, "w+")
+                    fh2.write(ausgang2_part)
+                    fh2.close()
+                    print "**** Generated: " + "%48s" % (fname[-47:]) + " ****"
+                    file_zaehler2 += 1
+                    ausgang2_part = line
+                    line_counter2 = 0
+                else:
+                    ausgang2_part += line
+
+                previous_time2 = current_time2
+
+            else:
+                print "==============================================================="
+                print "SPEZ: " + line
+                print "==============================================================="
+
+
+
+        if len(ausgang1_part) > 0:
+            fname = exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+            fh1 = self.open_file(fname, "w+")
+            fh1.write(ausgang1_part)
+            fh1.close()
+            print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
+        if len(ausgang2_part) > 0:
+            fname = exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+            fh2 = self.open_file(fname, "w+")
+            fh2.write(ausgang2_part)
+            print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
+
+        #close files
+        fhI.close()
+
+        os.remove(exe_dir + "/.tmp")
+
+    def lipo_gnuplot(self, line_a):
+        global liporgb
+        gpst = ""
+
+        gpst += 'set nolabel;\n'
+        gpst += 'set ylabel "mVolt Zellen (Avg)"\n'
+        gpst += 'set yrange [2992:4208];\n'
+        gpst += 'set ytics nomirror;\n'
+
+        #set autoscale {<axes>{|min|max|fixmin|fixmax|fix} | fix | keepfix}
+        #gpst += 'set autoscale {y{|min|max|fixmin|fixmax|fix} | fix | keepfix}
+        gpst += 'set y2range [-30:30];\n'
+        gpst += 'set y2label "Balancer ∆";\n'
+        gpst += 'set y2tics 4;\n'
+        gpst += 'set my2tics 4;\n'
+
+        gpst += "plot "
+
+        avg_string = "("
+        x = 0
+        for i in range(18, len(line_a) - 1):
+            avg_string += "$"+str(i+1)+"+"
+            x += 1
+        avg_string = avg_string[0:-1] + ")/" + str(x)
+
+        gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
+
+        for i in range(18, len(line_a) - 1):
+            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+liporgb[i-18]+'"'
+        gpst += ';'
+
+        return (gpst)
+
+    def else_gnuplot(self,):
+        gpst = ""
+        gpst += 'set y2range [*:*];\n'
+        gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
+        gpst += 'set y2tics border;\n'
+
+        gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
+                    wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
+        return gpst
+
+    def gnuplot(self):
+
+        g = Gnuplot.Gnuplot(debug=0)
+
+        path = exe_dir
+        qiv_files = ""
+        dirList=os.listdir(path)
+        dirList.sort()
+        print "*********************************************************************"
+        print "****                       (Gnu-)Plotting                        ****"
+        print "****                                                             ****"
+        for fname in dirList:
+            if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
+                qiv_files += exe_dir + "/" + fname[:-4] + ".png "
+
+                f = self.open_file(exe_dir + "/" + fname, "r")
+                while True: #ignore other than real data lines
+                    l = f.readline()
+                    if l[0] != "#":
+                        break
+
+                f.close()
+                line_a = l.split("\x7f")
+                phasenr = long(line_a[9])
+                if phasenr >= 1 and phasenr <= 5:
+                    phase = "LADEN"
+                    g('set yrange [0:*];')
+                elif phasenr >= 7 and phasenr < 9:
+                    phase = "ENTLADEN"
+                    g('set yrange [*:0];')
+                elif phasenr == 10:
+                    phase = "PAUSE (Entladespannung erreicht)"
+                    g('set yrange [*:*];')
+                elif phasenr == 0:
+                    phase = "STOP (Erhaltungladung)"
+                    g('set yrange [*:*];')
+                else:
+                    phase = "Unbekannte Phase <"+str(phasenr)+"> (oder so)"
+                    g('set yrange [*:*];')
+
+                atyp = long(line_a[12])
+
+                #g('set terminal wxt')
+                g('set terminal png size 1280, 1024;')
+                g('set output "' + exe_dir + "/" + fname[:-4] + '.png"')
+
+                g('set title "Akkumatik (Stefan Estner)";')
+                g('set xdata time;')
+                g("set datafile separator '\x7f';")
+                g('set timefmt "%H:%M:%S";')
+                g('set grid')
+
+                #set bmargin 5
+                g('set lmargin 10')
+                g('set rmargin 10')
+                #set tmargin 5
+                g('set multiplot;')
+
+                g('set key box')
+                g('set ylabel "Laden mA / Kapazitaet mAh"')
+                g('set ytics nomirror;')
+
+                g('set y2range [-10:70];')
+                g('set y2label "Grad Celsius";')
+                g('set y2tics border;')
+
+                g('set nolabel;')
+                g('set xtics axis;')
+
+                g('set size 1.0,0.45;')
+                g('set origin 0.0,0.5;')
+
+                g('wfile="' + exe_dir + "/" + fname + '";')
+
+                g('set title "' + phase + ' (' + fname + ')";')
+
+                g('plot \
+                    wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
+                    wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
+                    wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
+                    wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#222222";')
+
+
+                g('set nolabel;')
+                g('set notitle;')
+
+                g('set ylabel "mVolt Akku"')
+                g('set yrange [*:*];')
+                g('set ytics nomirror;')
+
+                g('set size 1.0,0.45;')
+                g('set origin 0.0,0.0;')
+
+                if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
+                    g(self.lipo_gnuplot(line_a))
+                else:
+                    g(self.else_gnuplot())
+
+                g('set nomultiplot;')
+                g('reset')
+                print "**** Generated: "+"%44s"%(exe_dir + "/" +fname[-27:-4])+".png ****"
+            else:
+                continue
+
+        time.sleep(1.8) #sonst finded qiv (noch) nichts allenfall
+
+        args = shlex.split(qiv_files)
+        arguments = ' '.join(str(n) for n in args)
+        global picture_exe
+        thread.start_new_thread(os.system,(picture_exe+' '+arguments,))
 
     def delete_event(self, widget, event, data=None):
     # Change FALSE to TRUE and the main window will not be destroyed
@@ -321,8 +339,8 @@ class akkumatik_display:
         if data == "Chart":
             self.f.flush()
             os.fsync(self.f)
-            filesplit()
-            gnuplot()
+            self.filesplit(self.f)
+            self.gnuplot()
 
         elif data == "Exit":
             gtk.main_quit()
@@ -393,13 +411,13 @@ class akkumatik_display:
         self.ser.isOpen()
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-            self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'a')
+            self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
         elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-            self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
         else:
             raw_input("Press key to continue with *new* data-collecting (else Ctrl-D)")
-            self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
 
@@ -432,8 +450,12 @@ class akkumatik_display:
             zeit = daten[1] #Stunden Minuten Sekunden
             ladeV = long(daten[2])/1000.0 #Akkuspannung mV
             ladeV = "%6.3fV" % (ladeV) #format into string
-            ampere = long(daten[3])/1000.0 #Strom A
-            ampere = "%+.2fA" % (ampere)
+            ampere = long(daten[3]) #Strom A
+            if ampere >= 1000 or ampere <= -1000:
+                ampere = "%+.2fA" % (ampere/1000.0)
+            else:
+                ampere = "%imA" % (ampere)
+
             Ah = long(daten[4])/1000.0 #Ladungsmenge Ah
             VersU = long(daten[5]) #Versorungsspannung mV
             RimOhm = long(daten[6]) #akku-unnen mOhm
@@ -464,7 +486,7 @@ class akkumatik_display:
 
 
             if phase == 0: #dann 'Fehlercode' zwangsweise ...?
-                if tmp_zellen >= 53: # FEHLER
+                if tmp_zellen >= 54: # FEHLER
                     output_tty = fehlercode[tmp_zellen - 50] + "\n\n"
                     output = fehlercode[tmp_zellen - 50]
                     self.output_data(output_tty, output)
@@ -501,7 +523,7 @@ class akkumatik_display:
             #terminal print
             output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, strohmw, stoppm)
-            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s][Akkuspeicher: %i]" % (cBat, cKK, anzahl_zellen, atyp, sp)
+            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s][Akkuspeicher: %i]\n" % (cBat, cKK, anzahl_zellen, atyp, sp)
             if cellmV != "":
                 output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
             output_tty += "\n\n"
