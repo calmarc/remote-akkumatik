@@ -51,7 +51,8 @@ class akkumatik_display:
 
         #set autoscale {<axes>{|min|max|fixmin|fixmax|fix} | fix | keepfix}
         #gpst += 'set autoscale {y{|min|max|fixmin|fixmax|fix} | fix | keepfix}
-        gpst += 'set y2range [-30:30];\n'
+
+        gpst += 'set y2range [-32:32];\n'
         gpst += 'set y2label "Balancer ∆";\n'
         gpst += 'set y2tics 4;\n'
         gpst += 'set my2tics 4;\n'
@@ -108,6 +109,7 @@ class akkumatik_display:
                 f.close()
                 line_a = l.split("\x7f")
                 phasenr = long(line_a[9])
+                #TODO better titel (phase)....
                 if phasenr >= 1 and phasenr <= 5:
                     phase = "LADEN"
                     g('set yrange [0:*];')
@@ -126,7 +128,37 @@ class akkumatik_display:
 
                 atyp = long(line_a[12])
 
-                #g('set terminal wxt')
+                # does not really work so far...{{{
+                ##################################################
+                #dummy plot for enhancing balance skale if needed.
+                ##################################################
+                #if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
+                    #g('wfile="' + self.exe_dir + "/" + fname + '";')
+                    #g('set xdata time;')
+                    #g("set datafile separator '\x7f';")
+                    #g('set timefmt "%H:%M:%S";')
+
+                    #g('set terminal unknown;')
+
+                    #gpst = "plot "
+                    #avg_string = "("
+                    #x = 0
+                    #for i in range(18, len(line_a) - 1):
+                        #avg_string += "$"+str(i+1)+"+"
+                        #x += 1
+                    #avg_string = avg_string[0:-1] + ")/" + str(x)
+
+                    #for i in range(18, len(line_a) - 1):
+                        #gpst += 'wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+'),'
+                    #gpst = gpst[:-1]+';'
+
+
+                    #g(gpst)
+                    #print gpst
+                    #g('bmin=GPVAL_DATA_Y_MIN;')
+                    #g('bmax=GPVAL_DATA_Y_MAX;')
+
+                ##################################################}}}
                 g('set terminal png size 1280, 1024;')
                 g('set output "' + self.exe_dir + "/" + fname[:-4] + '.png"')
 
@@ -140,6 +172,7 @@ class akkumatik_display:
                 g('set lmargin 10')
                 g('set rmargin 10')
                 #set tmargin 5
+
                 g('set multiplot;')
 
                 g('set key box')
@@ -156,9 +189,10 @@ class akkumatik_display:
                 g('set size 1.0,0.45;')
                 g('set origin 0.0,0.5;')
 
-                g('wfile="' + self.exe_dir + "/" + fname + '";')
 
+                g('wfile="' + self.exe_dir + "/" + fname + '";')
                 g('set title "' + phase + ' (' + fname + ')";')
+
 
                 g('plot \
                     wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
@@ -188,8 +222,7 @@ class akkumatik_display:
             else:
                 continue
 
-        time.sleep(1.8) #sonst finded qiv (noch) nichts allenfall
-
+        time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
         args = shlex.split(qiv_files)
         arguments = ' '.join(str(n) for n in args)
         thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
