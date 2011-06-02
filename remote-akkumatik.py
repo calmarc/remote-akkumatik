@@ -25,6 +25,7 @@ stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
 stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
 fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
 
+liporgb = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
 anzahl_zellen = 0
 
@@ -162,9 +163,48 @@ def filesplit():
 
     os.system("rm '" + exe_dir + "/.tmp'")
 
+def lipo_gnuplot(line_a):
+    global liporgb
+    gpst = ""
+
+    gpst += 'set nolabel;\n'
+    gpst += 'set ylabel "mVolt Zellen (Avg)"\n'
+    gpst += 'set yrange [3000:4250];\n'
+    gpst += 'set ytics nomirror;\n'
+
+    gpst += 'set y2range [-16:16];\n'
+    gpst += 'set y2label "Balancer Delta";\n'
+    gpst += 'set y2tics 4;\n'
+    gpst += 'set my2tics 4;\n'
+
+    gpst += "plot "
+
+    avg_string = "("
+    x = 0
+    for i in range(18, len(line_a) - 1):
+        avg_string += "$"+str(i+1)+"+"
+        x += 1
+    avg_string = avg_string[0:-1] + ")/" + str(x)
+
+    for i in range(18, len(line_a) - 1):
+        gpst += 'wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title " Zelle '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+liporgb[i-18]+'",'
+
+    gpst += 'wfile using 2:('+avg_string+') with lines title "Average mV" lw 2 lc rgbcolor "#ff3333";'
+    return (gpst)
+
+def else_gnuplot():
+    gpst = ""
+    gpst += 'set y2range [*:*];\n'
+    gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
+    pgst += 'set y2tics border;\n'
+
+    gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000" , \n\
+                wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
+    return gpst
+
 def gnuplot():
 
-    g = Gnuplot.Gnuplot(debug=0)
+    g = Gnuplot.Gnuplot(debug=1)
 
     path = exe_dir
     qiv_files = ""
@@ -176,6 +216,28 @@ def gnuplot():
     for fname in dirList:
         if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
             qiv_files += exe_dir + "/" + fname[:-4] + ".png "
+
+            f = open_file(exe_dir + "/" + fname, "r")
+            while True: #ignore other than real data lines
+                l = f.readline()
+                if l[0] != "#":
+                    break
+
+            f.close()
+            line_a = l.split("\x7f")
+            phasenr = long(line_a[9])
+            if phasenr >= 1 and phasenr <= 5:
+                phase = "LADEN"
+            elif phasenr >= 7 and phasenr < 9:
+                phase = "ENTLADEN"
+            elif phasenr == 10:
+                phase = "PAUSE (Entladespannung erreicht)"
+            elif phasenr == 0:
+                phase = "STOP (Erhaltungladung)"
+            else:
+                phase = "Unbekannte Phase <"+str(phasenr)+"> (oder so)"
+
+            atyp = long(line_a[12])
 
             #g('set terminal wxt')
             g('set terminal png size 1280, 1024;')
@@ -204,62 +266,38 @@ def gnuplot():
             g('set nolabel;')
             g('set xtics axis;')
 
-            g('set size 1.0,0.50;')
-
+            g('set size 1.0,0.45;')
             g('set origin 0.0,0.5;')
+
             g('wfile="' + exe_dir + "/" + fname + '";')
-
-            f = open_file(exe_dir + "/" + fname, "r")
-            l = f.readline()
-            f.close()
-
-            phasenr = long((l.split("\x7f"))[9])
-
-            if phasenr >= 1 and phasenr <= 5:
-                phase = "LADEN"
-            elif phasenr >= 7 and phasenr < 9:
-                phase = "ENTLADEN"
-            elif phasenr == 10:
-                phase = "PAUSE (Entladespannung erreicht)"
-            elif phasenr == 0:
-                phase = "STOP (Erhaltungladung)"
-            else:
-                phase = "Unbekannte Phase (oder so)"
 
             g('set title "' + phase + ' (' + fname + ')";')
 
             g('plot \
-wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
-wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
-wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
-wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#222222";')
+                wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
+                wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
+                wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
+                wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#222222";')
 
 
             g('set nolabel;')
             g('set notitle;')
 
             g('set ylabel "mVolt Akku"')
-            g('set yrange [0:*];')
+            g('set yrange [*:*];')
             g('set ytics nomirror;')
 
-            g('set y2range [*:*];')
-            g('set y2label "Innerer Widerstand Ri (mOhm)";')
-            g('set y2tics border;')
-
-
-            g('set size 1.0,0.50;')
+            g('set size 1.0,0.45;')
             g('set origin 0.0,0.0;')
 
-            g('plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000" , \
-wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";')
+            if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
+                g(lipo_gnuplot(line_a))
+            else:
+                g(else_gnuplot())
 
             g('set nomultiplot;')
-
-            #    g('set terminal png;')
-            #    g('set output "' + arg + '.png"')
-            #    g('replot"')
             g('reset')
-            print "**** Generated: " + "%24s" % (fname[-27:-4]) + ".png ****"
+            print "**** Generated: "+"%24s"%(fname[-27:-4])+".png ****"
         else:
             continue
 
@@ -267,7 +305,7 @@ wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";')
 
     args = shlex.split(qiv_files)
     arguments = ' '.join(str(n) for n in args)
-    thread.start_new_thread(os.system,('/usr/local/bin/qiv ' + arguments,))
+    thread.start_new_thread(os.system,('/usr/local/bin/qiv '+arguments,))
 
 class akkumatik_display:
 
@@ -315,10 +353,10 @@ class akkumatik_display:
         self.label = gtk.Label()
         self.label.modify_font(pango.FontDescription("mono 22"))
 
-        self.hbox.pack_start(self.label, True, False, 0)
+        self.hbox.pack_start(self.label, False, False, 50)
         self.vbox = gtk.VBox()
 
-        self.hbox.pack_start(self.vbox, False, False, 0)
+        self.hbox.pack_end(self.vbox, False, False, 0)
 
         self.button1 = gtk.Button("Chart")
         self.button1.connect("clicked", self.buttoncb, "Chart")
@@ -357,18 +395,18 @@ class akkumatik_display:
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
             self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
-        else:
-            raw_input("Press key to continue with new data-collectin (else Ctrl-D)")
+        elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
             self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
-        self.i = 0
-
+        else:
+            raw_input("Press key to continue with *new* data-collecting (else Ctrl-D)")
+            self.f = open_file(exe_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
 
         #finally begin collecting
         gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
                                                  # should be < 500, since every 500 new line
-    def output_data(output_tty, output):
+    def output_data(self, output_tty, output):
         #terminal output
         sys.stdout.write (output_tty)
         sys.stdout.flush()
@@ -400,7 +438,10 @@ class akkumatik_display:
             VersU = long(daten[5]) #Versorungsspannung mV
             RimOhm = long(daten[6]) #akku-unnen mOhm
             cBat = long(daten[7]) #Akkutemperatur
-            tmpzellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+            tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+            if tmp_zellen <= 50:
+                anzahl_zellen = tmp_zellen
+
             phase = long(daten[9]) #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
@@ -412,20 +453,25 @@ class akkumatik_display:
             cKK = long(daten[17]) #KK Celsius
 
             cellmV = ""
-            for cell in daten[18:]:
-                cellmV += "[" + cell + ","
-            if cellmV != "":
-                cellmV = cellmV[:-1] + "]" #replace last ',' with ']'
+            tmp_a = []
+            for cell in daten[18:-1]:
+                cellmV += " " + cell + " "
+                tmp_a.append(long(cell))
+
+            balance_delta = -1
+            if len(tmp_a) > 0:
+                balance_delta = max(tmp_a) - min(tmp_a)
+
 
             if phase == 0: #dann 'Fehlercode' zwangsweise ...?
-                if tmpzellen >= 53: # FEHLER
-                    output_tty = fehlercode[tmpzellen - 50] + "\n\n"
-                    output = fehlercode[tmpzellen - 50]
-                    output_data(output_tty, output)
+                if tmp_zellen >= 53: # FEHLER
+                    output_tty = fehlercode[tmp_zellen - 50] + "\n\n"
+                    output = fehlercode[tmp_zellen - 50]
+                    self.output_data(output_tty, output)
                     return True
 
-                if tmpzellen >= 50: #'gute' codes
-                    phasedesc = fehlercode[tmpzellen - 50]
+                if tmp_zellen >= 50: #'gute' codes
+                    phasedesc = "%-11s" % (fehlercode[tmp_zellen - 50])
                     ausgang = ""
                     ladeV = ""
 
@@ -454,10 +500,10 @@ class akkumatik_display:
 
             #terminal print
             output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
-            output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s] [Fcode: %s]\n" % (prg, lart, strohmw, stoppm, fcode)
+            output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, strohmw, stoppm)
             output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s][Akkuspeicher: %i]" % (cBat, cKK, anzahl_zellen, atyp, sp)
             if cellmV != "":
-                output_tty += "[Zellenspannung mV: %s]" %( cellmV)
+                output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
             output_tty += "\n\n"
 
             #< stunde dann Minunte:Sekunden, sonst Stunde:Minuten
@@ -467,9 +513,15 @@ class akkumatik_display:
                 zeit = zeit [:-3]
 
             #label print
-            output ="%s%s %s %s|Ri:%03i %2i°B \n%-7s   %+6.3fAh|%sx%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, anzahl_zellen, atyp, cKK)
+            RimOhm = "Ri:%03i" % (RimOhm)
+            #TODO:  more elgegant...
+            if len(daten) > 18:
+                RimOhm = "∆%2imV " % (balance_delta)
 
-        output_data(output_tty, output)
+            output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%sx%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, anzahl_zellen, atyp, cKK)
+
+            self.output_data(output_tty, output)
+
         return True
 
     def main(self):
