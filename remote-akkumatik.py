@@ -576,10 +576,10 @@ class akkumatik_display:
         elif data == "Ausg":
             if self.gewaehlter_ausgang == 1: #toggle ausgang
                 self.gewaehlter_ausgang = 2
-                self.label_ausgang.set_text("2")
+                self.label_ausgang.set_text("Ausg: 2")
             else:
                 self.gewaehlter_ausgang = 1
-                self.label_ausgang.set_text("1")
+                self.label_ausgang.set_text("Ausg: 1")
 
     def main(self):
         gtk.main()
@@ -614,8 +614,8 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(792,168)
-        self.window.set_default_size(792,168)
+        self.window.set_size_request(812,168)
+        self.window.set_default_size(812,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", self.delete_event)
@@ -635,20 +635,22 @@ class akkumatik_display:
 
         self.hbox.pack_end(self.vbox, False, False, 0)
 
-        self.button1 = gtk.Button("Chart")
-        self.button1.connect("clicked", self.buttoncb, "Chart")
-        self.vbox.pack_start(self.button1, True, True, 0)
-        self.button2 = gtk.Button("Exit")
-        self.button2.connect("clicked", self.buttoncb, "Exit")
-        self.vbox.pack_start(self.button2, True, True, 0)
-
         self.button_ausg = gtk.Button(None, None)
         self.hbox = gtk.HBox()
-        self.label_ausgang = gtk.Label(str(self.gewaehlter_ausgang))
+        self.label_ausgang = gtk.Label("Ausg: "+str(self.gewaehlter_ausgang))
         self.button_ausg.add(self.hbox)
+        self.button_ausg.set_alignment(0.9,0.9)
         self.hbox.pack_start(self.label_ausgang, True, True, 0)
         self.button_ausg.connect("clicked", self.buttoncb, "Ausg")
-        self.vbox.pack_start(self.button_ausg, True, True, 0)
+        self.vbox.pack_start(self.button_ausg, False, True, 0)
+
+        self.button1 = gtk.Button("Chart")
+        self.button1.connect("clicked", self.buttoncb, "Chart")
+        self.vbox.pack_start(self.button1, False, True, 0)
+        self.button2 = gtk.Button("Exit")
+        self.button2.connect("clicked", self.buttoncb, "Exit")
+        self.vbox.pack_end(self.button2, False, True, 0)
+
 
 
         self.ser = serial.Serial(
