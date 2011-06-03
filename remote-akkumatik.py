@@ -1,21 +1,26 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import serial
+import os
 import sys
+
+import shutil
+import shlex #command line splitting
+import tempfile
+
+import time
+import subprocess
+import thread
+
 import pygtk
 pygtk.require('2.0')
 import gtk
 import pango
 import gobject
-import os
+
 import Gnuplot, Gnuplot.funcutils
-import subprocess
-import time
-import shlex #command line splitting
-import thread
-import shutil
-import tempfile
+import serial
+
 
 class akkumatik_display:
 
@@ -107,7 +112,7 @@ class akkumatik_display:
                 avg += long(line_a[i])
                 div += 1
             avg /= float(div)
-                
+
             index=17
             for val in line_a[18:-1]: # get min and max
                 index += 1
@@ -141,10 +146,6 @@ class akkumatik_display:
                 qiv_files += self.tmp_dir + "/" + fname[:-4] + ".png "
 
                 f = self.open_file(self.tmp_dir + "/" + fname, "r")
-                #scan for balance values over normal liit
-                rangeval = self.get_balancer_range(f)
-
-                f.seek(0)
                 while True: #ignore other than real data lines
                     l = f.readline()
                     if l[0] != "#":
@@ -152,6 +153,13 @@ class akkumatik_display:
                 f.close()
                 line_a = l.split("\x7f")
                 phasenr = long(line_a[9])
+                atyp = long(line_a[12])
+
+                if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer
+                    f = self.open_file(self.tmp_dir + "/" + fname, "r")
+                    rangeval = self.get_balancer_range(f)
+                    f.close()
+
                 #TODO better titel (phase)....
                 if phasenr >= 1 and phasenr <= 5:
                     phase = "LADEN"
@@ -169,7 +177,7 @@ class akkumatik_display:
                     phase = "Unbekannte Phase <"+str(phasenr)+"> (oder so)"
                     g('set yrange [*:*];')
 
-                atyp = long(line_a[12])
+
 
                 # does not really work so far...{{{
                 ##################################################
@@ -250,7 +258,7 @@ class akkumatik_display:
                 g('set size 1.0,0.45;')
                 g('set origin 0.0,0.0;')
 
-                if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
+                if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer
                     g(self.lipo_gnuplot(line_a, rangeval))
                 else:
                     g(self.else_gnuplot())
@@ -403,7 +411,7 @@ class akkumatik_display:
             print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
 
 ##########################################}}}
-#Serial stuff{{{
+#Serial + output stuff{{{
 ##########################################
 
     def read_line(self):
@@ -516,7 +524,7 @@ class akkumatik_display:
             #label print
             RimOhm = "Ri:%03i" % (RimOhm)
             #TODO:  more elgegant...
-            if len(daten) > 18:
+            if len(daten) > 19:
                 RimOhm = "∆%2imV " % (balance_delta)
 
             output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%sx%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen, atyp, cKK)
