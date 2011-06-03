@@ -29,7 +29,7 @@ class akkumatik_display:
 ##########################################
 
     file_block = False
-    anzahl_zellen = 0
+    anzahl_zellen = [0,0,0] # first zero is not used, only position 1 and 2
     gewaehlter_ausgang = 1
     exe_dir = ""
     tmp_dir = ""
@@ -81,13 +81,31 @@ class akkumatik_display:
 
         return (gpst)
 
-    def else_gnuplot(self,):
+    def else_gnuplot(self):
         """other than lipo gnuplot 2nd chart"""
 
         gpst = ""
 
-        gpst +=  'set ylabel "mVolt Akku"\n'
+        gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(self.anzahl_zellen[self.gewaehlter_ausgang])+' Zellen)"\n'
         gpst +=  'set yrange [*:*];\n'
+        gpst +=  'set ytics nomirror;\n'
+
+        #gpst += 'set y2range [*:*];\n'
+        #gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
+        #gpst += 'set y2tics border;\n'
+
+        #TODO mOhm onlin on Ni.. akkus
+        gpst += 'plot wfile using 2:($3/'+str(self.anzahl_zellen[self.gewaehlter_ausgang])+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
+                    wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
+        return gpst
+
+    def nixx_gnuplot(self):
+        """NiCd and NiMh gnuplot 2nd chart"""
+
+        gpst = ""
+
+        gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(self.anzahl_zellen[self.gewaehlter_ausgang])+' Zellen)"\n'
+        gpst +=  'set yrange [600:1700];\n'
         gpst +=  'set ytics nomirror;\n'
 
         gpst += 'set y2range [*:*];\n'
@@ -95,7 +113,7 @@ class akkumatik_display:
         gpst += 'set y2tics border;\n'
 
         #TODO mOhm onlin on Ni.. akkus
-        gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
+        gpst += 'plot wfile using 2:($3/'+str(self.anzahl_zellen[self.gewaehlter_ausgang])+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
                     wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
         return gpst
 
@@ -261,6 +279,8 @@ class akkumatik_display:
 
                 if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer
                     g(self.lipo_gnuplot(line_a, rangeval))
+                elif atyp == 0 or atyp == 1:
+                    g(self.nixx_gnuplot())
                 else:
                     g(self.else_gnuplot())
 
@@ -451,7 +471,7 @@ class akkumatik_display:
             cBat = long(daten[7]) #Akkutemperatur
             tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
             if tmp_zellen <= 50:
-                self.anzahl_zellen = tmp_zellen
+                self.anzahl_zellen[long(ausgang)] = tmp_zellen
 
             phase = long(daten[9]) #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
@@ -497,8 +517,7 @@ class akkumatik_display:
             #• FEHLER Vorgang wurde fehlerhaft beendet
 
             elif phase == 10:
-                phasedesc = "PAUSE"
-                ausgang = ""
+                phasedesc = " PAUSE    "
                 ladeV = ""
             else:
                 if phase >= 1 and phase <= 5:
@@ -512,7 +531,7 @@ class akkumatik_display:
             #terminal print
             output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, strohmw, stoppm)
-            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%s x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen, atyp, sp)
+            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%i x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen[long(ausgang)], atyp, sp)
             if cellmV != "":
                 output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
             output_tty += "\n\n"
@@ -529,7 +548,7 @@ class akkumatik_display:
             if len(daten) > 19:
                 RimOhm = "∆%2imV " % (balance_delta)
 
-            output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%sx%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen, atyp, cKK)
+            output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%ix%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen[long(ausgang)], atyp, cKK)
 
             self.output_data(output_tty, output)
 
@@ -557,8 +576,10 @@ class akkumatik_display:
         elif data == "Ausg":
             if self.gewaehlter_ausgang == 1: #toggle ausgang
                 self.gewaehlter_ausgang = 2
+                self.label_ausgang.set_text("2")
             else:
                 self.gewaehlter_ausgang = 1
+                self.label_ausgang.set_text("1")
 
     def main(self):
         gtk.main()
@@ -620,7 +641,12 @@ class akkumatik_display:
         self.button2 = gtk.Button("Exit")
         self.button2.connect("clicked", self.buttoncb, "Exit")
         self.vbox.pack_start(self.button2, True, True, 0)
-        self.button_ausg = gtk.Button("")
+
+        self.button_ausg = gtk.Button(None, None)
+        self.hbox = gtk.HBox()
+        self.label_ausgang = gtk.Label(str(self.gewaehlter_ausgang))
+        self.button_ausg.add(self.hbox)
+        self.hbox.pack_start(self.label_ausgang, True, True, 0)
         self.button_ausg.connect("clicked", self.buttoncb, "Ausg")
         self.vbox.pack_start(self.button_ausg, True, True, 0)
 
