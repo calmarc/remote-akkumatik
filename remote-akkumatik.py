@@ -25,6 +25,8 @@ class akkumatik_display:
 
     file_block = False
     anzahl_zellen = 0
+    exe_dir = ""
+    tmp_dir = ""
 
     picture_exe = '/usr/local/bin/qiv'
     akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
@@ -129,16 +131,16 @@ class akkumatik_display:
         g = Gnuplot.Gnuplot(debug=0)
 
         qiv_files = ""
-        dirList=os.listdir(self.exe_dir)
+        dirList=os.listdir(self.tmp_dir)
         dirList.sort()
         print "*********************************************************************"
         print "****                       (Gnu-)Plotting                        ****"
         print "****                                                             ****"
         for fname in dirList:
             if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
-                qiv_files += self.exe_dir + "/" + fname[:-4] + ".png "
+                qiv_files += self.tmp_dir + "/" + fname[:-4] + ".png "
 
-                f = self.open_file(self.exe_dir + "/" + fname, "r")
+                f = self.open_file(self.tmp_dir + "/" + fname, "r")
                 #scan for balance values over normal liit
                 rangeval = self.get_balancer_range(f)
 
@@ -201,7 +203,7 @@ class akkumatik_display:
 
                 ##################################################}}}
                 g('set terminal png size 1280, 1024;')
-                g('set output "' + self.exe_dir + "/" + fname[:-4] + '.png"')
+                g('set output "' + self.tmp_dir + "/" + fname[:-4] + '.png"')
 
                 g('set title "Akkumatik (Stefan Estner)";')
                 g('set xdata time;')
@@ -231,7 +233,7 @@ class akkumatik_display:
                 g('set origin 0.0,0.5;')
 
 
-                g('wfile="' + self.exe_dir + "/" + fname + '";')
+                g('wfile="' + self.tmp_dir + "/" + fname + '";')
                 g('set title "' + phase + ' (' + fname + ')";')
 
 
@@ -255,7 +257,7 @@ class akkumatik_display:
 
                 g('set nomultiplot;')
                 g('reset')
-                print "**** Generated: "+"%44s"%(self.exe_dir + "/" +fname[-27:-4])+".png ****"
+                print "**** Generated: "+"%44s"%(self.tmp_dir + "/" +fname[-27:-4])+".png ****"
             else:
                 continue
 
@@ -282,7 +284,7 @@ class akkumatik_display:
 
 
     def filesplit(self, fh):
-        """Create tmp file and create according files for gnuplot"""
+        """Create files for gnuplot"""
         file_line = 0
         line_counter1 = 0
         line_counter2 = 0
@@ -304,17 +306,17 @@ class akkumatik_display:
         print "****                       Serial-Splitting                      ****"
         print "****                                                             ****"
 
-        for file in os.listdir(self.exe_dir):
+        for file in os.listdir(self.tmp_dir):
             if len(file) == 12 and file[0:4] == "Akku":
-                os.remove(file)
+                os.remove(self.tmp_dir + "/" + file)
 
         self.file_block = True #stop getting more serial data
         self.f.close()
-        self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'r')
+        self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'r')
         for line in self.f.readlines():
             if self.file_block == True:
                 self.f.close()
-                self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'a') #reopen
+                self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a') #reopen
                 self.file_block = False #allow further getting serial adding..
 
             file_line += 1
@@ -345,7 +347,7 @@ class akkumatik_display:
                 line_counter1 += 1
 
                 if current_time1 < previous_time1:
-                    fname = self.exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                    fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                     fh1 = self.open_file(fname, "w+")
                     fh1.write(ausgang1_part)
                     fh1.close()
@@ -370,7 +372,7 @@ class akkumatik_display:
 
                 line_counter2 += 1
                 if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
-                    fname = self.exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                    fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                     fh2 = self.open_file(fname, "w+")
                     fh2.write(ausgang2_part)
                     fh2.close()
@@ -389,13 +391,13 @@ class akkumatik_display:
                 print "==============================================================="
 
         if len(ausgang1_part) > 0:
-            fname = self.exe_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+            fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
             fh1 = self.open_file(fname, "w+")
             fh1.write(ausgang1_part)
             fh1.close()
             print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
         if len(ausgang2_part) > 0:
-            fname = self.exe_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+            fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
             fh2 = self.open_file(fname, "w+")
             fh2.write(ausgang2_part)
             print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
@@ -567,15 +569,11 @@ class akkumatik_display:
 
     def __init__(self):
 
+        self.exe_dir = sys.path[0]
 
-        exe_dir = sys.path[0]
-
-        print tempfile.gettempdir()
-        print tempfile.gettempdir()
-        print tempfile.gettempdir()
-        print tempfile.gettempdir()
-        print tempfile.gettempdir()
-        print tempfile.gettempdir()
+        self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
+        if not os.path.isdir(self.tmp_dir):
+            os.mkdir(self.tmp_dir)
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
@@ -633,13 +631,13 @@ class akkumatik_display:
         self.ser.isOpen()
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-            self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'a')
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a')
             print "CONTINUE: Appending to file"
         elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-            self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
         else:
             raw_input("Press key to continue with *new* data-collecting (else Ctrl-D)")
-            self.f = self.open_file(self.exe_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
 
