@@ -40,7 +40,7 @@ class akkumatik_display:
 ##########################################
 
 
-    def lipo_gnuplot(self, line_a):
+    def lipo_gnuplot(self, line_a, rangeval):
         """lipo gnuplot 2nd chart"""
         gpst = ""
 
@@ -49,10 +49,9 @@ class akkumatik_display:
         gpst += 'set yrange [2992:4208];\n'
         gpst += 'set ytics nomirror;\n'
 
-        #set autoscale {<axes>{|min|max|fixmin|fixmax|fix} | fix | keepfix}
         #gpst += 'set autoscale {y{|min|max|fixmin|fixmax|fix} | fix | keepfix}
 
-        gpst += 'set y2range [-32:32];\n'
+        gpst += 'set y2range ['+str(-1*rangeval)+':'+str(rangeval)+'];\n'
         gpst += 'set y2label "Balancer ∆";\n'
         gpst += 'set y2tics 4;\n'
         gpst += 'set my2tics 4;\n'
@@ -76,14 +75,53 @@ class akkumatik_display:
 
     def else_gnuplot(self,):
         """other than lipo gnuplot 2nd chart"""
+
         gpst = ""
+
+        gpst +=  'set ylabel "mVolt Akku"\n'
+        gpst +=  'set yrange [*:*];\n'
+        gpst +=  'set ytics nomirror;\n'
+
         gpst += 'set y2range [*:*];\n'
         gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
         gpst += 'set y2tics border;\n'
 
+        #TODO mOhm onlin on Ni.. akkus
         gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
                     wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
         return gpst
+
+    def get_balancer_range(self, f):
+        bmin = 0
+        bmax = 0
+        for  l in f.readlines():
+            if l[0] == "#":
+                continue
+
+            line_a = l.split("\x7f")
+            avg = 0
+            div = 0.0
+            for i in range(18, len(line_a) - 1): #average
+                avg += long(line_a[i])
+                div += 1
+            avg /= float(div)
+                
+            index=17
+            for val in line_a[18:-1]: # get min and max
+                index += 1
+                if (long(val) - avg) < bmin:
+                    bmin = long(val) - avg
+                elif (long(val) - avg) > bmax:
+                    bmax = long(val) - avg
+
+            if abs(bmin) > bmax: # get hicher of limits
+                rangeval = abs(bmin)
+            else:
+                rangeval = bmax
+
+            if rangeval < 12:  # set range-limit minimum to 12   
+                rangeval = 12
+        return rangeval
 
     def gnuplot(self):
         """Create charts"""
@@ -101,6 +139,10 @@ class akkumatik_display:
                 qiv_files += self.exe_dir + "/" + fname[:-4] + ".png "
 
                 f = self.open_file(self.exe_dir + "/" + fname, "r")
+                #scan for balance values over normal liit
+                rangeval = self.get_balancer_range(f)
+
+                f.seek(0)
                 while True: #ignore other than real data lines
                     l = f.readline()
                     if l[0] != "#":
@@ -204,15 +246,11 @@ class akkumatik_display:
                 g('set nolabel;')
                 g('set notitle;')
 
-                g('set ylabel "mVolt Akku"')
-                g('set yrange [*:*];')
-                g('set ytics nomirror;')
-
                 g('set size 1.0,0.45;')
                 g('set origin 0.0,0.0;')
 
                 if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
-                    g(self.lipo_gnuplot(line_a))
+                    g(self.lipo_gnuplot(line_a, rangeval))
                 else:
                     g(self.else_gnuplot())
 
