@@ -25,11 +25,12 @@ import serial
 class akkumatik_display:
 
 ##########################################
-#Konstanten - oder so{{{
+#Class Variablesn und Konstanten (oder so){{{
 ##########################################
 
     file_block = False
     anzahl_zellen = 0
+    gewaehlter_ausgang = 1
     exe_dir = ""
     tmp_dir = ""
 
@@ -142,7 +143,7 @@ class akkumatik_display:
         print "****                       (Gnu-)Plotting                        ****"
         print "****                                                             ****"
         for fname in dirList:
-            if fname[0:4] == "Akku" and fname[5] == "-" and fname [8:12] == ".dat":
+            if fname[0:4] == "Akku" and fname[4:6] == str(self.gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
                 qiv_files += self.tmp_dir + "/" + fname[:-4] + ".png "
 
                 f = self.open_file(self.tmp_dir + "/" + fname, "r")
@@ -432,7 +433,8 @@ class akkumatik_display:
         if len(daten) < 18:
             return True #ignore (defective?) line
 
-        if daten[0] == "1":
+        if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
+                or (daten[0] == "2" and self.gewaehlter_ausgang == 2):
             ausgang = str(long(daten[0])) #Ausgang
             zeit = daten[1] #Stunden Minuten Sekunden
             ladeV = long(daten[2])/1000.0 #Akkuspannung mV
@@ -552,6 +554,12 @@ class akkumatik_display:
         elif data == "Exit":
             gtk.main_quit()
 
+        elif data == "Ausg":
+            if self.gewaehlter_ausgang == 1: #toggle ausgang
+                self.gewaehlter_ausgang = 2
+            else:
+                self.gewaehlter_ausgang = 1
+
     def main(self):
         gtk.main()
 
@@ -612,6 +620,9 @@ class akkumatik_display:
         self.button2 = gtk.Button("Exit")
         self.button2.connect("clicked", self.buttoncb, "Exit")
         self.vbox.pack_start(self.button2, True, True, 0)
+        self.button_ausg = gtk.Button("")
+        self.button_ausg.connect("clicked", self.buttoncb, "Ausg")
+        self.vbox.pack_start(self.button_ausg, True, True, 0)
 
 
         self.ser = serial.Serial(
