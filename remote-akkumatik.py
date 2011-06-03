@@ -15,6 +15,7 @@ import time
 import shlex #command line splitting
 import thread
 import shutil
+import tempfile
 
 class akkumatik_display:
 
@@ -33,7 +34,6 @@ class akkumatik_display:
     stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
     fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
     liporgb = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
-    exe_dir = sys.path[0]
 
 ##########################################}}}
 #GnuPlotting stuff{{{
@@ -147,7 +147,6 @@ class akkumatik_display:
                     l = f.readline()
                     if l[0] != "#":
                         break
-
                 f.close()
                 line_a = l.split("\x7f")
                 phasenr = long(line_a[9])
@@ -264,6 +263,7 @@ class akkumatik_display:
         args = shlex.split(qiv_files)
         arguments = ' '.join(str(n) for n in args)
         thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
+
 
 ##########################################}}}
 #File handling stuff {{{
@@ -566,6 +566,16 @@ class akkumatik_display:
 ##########################################
 
     def __init__(self):
+
+
+        exe_dir = sys.path[0]
+
+        print tempfile.gettempdir()
+        print tempfile.gettempdir()
+        print tempfile.gettempdir()
+        print tempfile.gettempdir()
+        print tempfile.gettempdir()
+        print tempfile.gettempdir()
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
