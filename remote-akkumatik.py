@@ -29,7 +29,7 @@ class akkumatik_display:
 ##########################################
 
     file_block = False
-    anzahl_zellen = [0,1,1] # first zero is not used, only position 1 and 2
+    anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
     gewaehlter_ausgang = 1
     exe_dir = ""
     tmp_dir = ""
@@ -105,15 +105,20 @@ class akkumatik_display:
         gpst = ""
 
         gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(self.anzahl_zellen[self.gewaehlter_ausgang])+' Zellen)"\n'
-        gpst +=  'set yrange [600:1700];\n'
         gpst +=  'set ytics nomirror;\n'
 
         gpst += 'set y2range [*:*];\n'
         gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
         gpst += 'set y2tics border;\n'
 
-        #TODO mOhm onlin on Ni.. akkus
-        gpst += 'plot wfile using 2:($3/'+str(self.anzahl_zellen[self.gewaehlter_ausgang])+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
+        if self.anzahl_zellen[self.gewaehlter_ausgang] == 0: #e.g on restarts + anz-zellen >=50 (errorstuff)
+            gpst +=  'set yrange [*:*];\n'
+            divisor = "1"
+        else:
+            gpst +=  'set yrange [600:1700];\n'
+            divisor = str(self.anzahl_zellen[self.gewaehlter_ausgang])
+
+        gpst += 'plot wfile using 2:($3/'+divisor+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
                     wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
         return gpst
 
