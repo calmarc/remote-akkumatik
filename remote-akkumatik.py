@@ -94,9 +94,7 @@ class akkumatik_display:
         #gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
         #gpst += 'set y2tics border;\n'
 
-        #TODO mOhm onlin on Ni.. akkus
-        gpst += 'plot wfile using 2:($3/'+str(self.anzahl_zellen[self.gewaehlter_ausgang])+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
-                    wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
+        gpst += 'plot wfile using 2:($3/'+str(self.anzahl_zellen[self.gewaehlter_ausgang])+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";'
         return gpst
 
     def nixx_gnuplot(self):
@@ -368,6 +366,7 @@ class akkumatik_display:
               #print ("FILTER OUT: Volt has Zero value")
               #continue
 
+            #TODO fails when there is some command ackknowledge string...
             if line[0:1] == "1":
 
                 current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
@@ -467,14 +466,15 @@ class akkumatik_display:
 
         daten = lin.split('\xff')
 
-        #TODO remove the akkumatik acknowledge string on ausgang or so.
+        #TODO print some 'command is OK' thing when is is akkmatiks' acknowledge thing
 
         if len(daten) < 18:
             return True #ignore (defective?) line
 
-        if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
-                or (daten[0] == "2" and self.gewaehlter_ausgang == 2):
-            ausgang = str(long(daten[0])) #Ausgang
+        #-1:0 - remove potential command return thing
+        if (daten[-1:] == "1" and self.gewaehlter_ausgang == 1) \
+                or (daten[-1:] == "2" and self.gewaehlter_ausgang == 2):
+            ausgang = str(long(daten[-1:])) #Ausgang
             zeit = daten[1] #Stunden Minuten Sekunden
             ladeV = long(daten[2])/1000.0 #Akkuspannung mV
             ladeV = "%6.3fV" % (ladeV) #format into string
