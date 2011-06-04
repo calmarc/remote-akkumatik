@@ -29,7 +29,7 @@ class akkumatik_display:
 ##########################################
 
     file_block = False
-    anzahl_zellen = [0,0,0] # first zero is not used, only position 1 and 2
+    anzahl_zellen = [0,1,1] # first zero is not used, only position 1 and 2
     gewaehlter_ausgang = 1
     exe_dir = ""
     tmp_dir = ""
@@ -470,7 +470,7 @@ class akkumatik_display:
             RimOhm = long(daten[6]) #akku-unnen mOhm
             cBat = long(daten[7]) #Akkutemperatur
             tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
-            if tmp_zellen <= 50:
+            if tmp_zellen < 50:
                 self.anzahl_zellen[long(ausgang)] = tmp_zellen
 
             phase = long(daten[9]) #Ladephase 0-stop ...
