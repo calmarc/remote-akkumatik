@@ -529,9 +529,9 @@ class akkumatik_display:
                 phasedesc = atyp[0:1] + c + str(phase)
 
             #terminal print
-            output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
+            output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (self.gewaehlter_ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
             output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, strohmw, stoppm)
-            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%i x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen[long(ausgang)], atyp, sp)
+            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%i x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen[long(self.gewaehlter_ausgang)], atyp, sp)
             if cellmV != "":
                 output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
             output_tty += "\n\n"
@@ -548,7 +548,7 @@ class akkumatik_display:
             if len(daten) > 19:
                 RimOhm = "∆%2imV " % (balance_delta)
 
-            output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%ix%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen[long(ausgang)], atyp, cKK)
+            output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%ix%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cKK)
 
             self.output_data(output_tty, output)
 
