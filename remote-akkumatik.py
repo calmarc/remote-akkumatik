@@ -35,7 +35,7 @@ class akkumatik_display:
     tmp_dir = ""
 
     picture_exe = '/usr/local/bin/qiv'
-    akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIO", "LiPo", "LiFe", "Uixx"]
+    akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
     amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
     ladeart = ["Konst", "Puls", "Reflex"]
     stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
@@ -129,7 +129,7 @@ class akkumatik_display:
             if l[0] == "#":
                 continue
 
-            line_a = l.split("\x7f")
+            line_a = l.split("\xff")
             avg = 0
             div = 0.0
             for i in range(18, len(line_a) - 1): #average
@@ -175,7 +175,7 @@ class akkumatik_display:
                     if l[0] != "#":
                         break
                 f.close()
-                line_a = l.split("\x7f")
+                line_a = l.split("\xff")
                 phasenr = long(line_a[9])
                 atyp = long(line_a[12])
 
@@ -210,7 +210,7 @@ class akkumatik_display:
                 #if atyp == 5 and len(line_a) > 18: #lipo -> Balancer graph TODO what when no balancer
                     #g('wfile="' + self.exe_dir + "/" + fname + '";')
                     #g('set xdata time;')
-                    #g("set datafile separator '\x7f';")
+                    #g("set datafile separator '\xff';")
                     #g('set timefmt "%H:%M:%S";')
 
                     #g('set terminal unknown;')
@@ -239,7 +239,7 @@ class akkumatik_display:
 
                 g('set title "Akkumatik (Stefan Estner)";')
                 g('set xdata time;')
-                g("set datafile separator '\x7f';")
+                g("set datafile separator '\xff';")
                 g('set timefmt "%H:%M:%S";')
                 g('set grid')
 
@@ -440,6 +440,16 @@ class akkumatik_display:
 #Serial + output stuff{{{
 ##########################################
 
+    def akkumatik_command(self, hex_string):
+        checksum = 2
+        for x in hex_string:
+            checksum ^= int("3"+x, 16)
+
+        checksum ^= 64 #dummy checksum byte itself to checksum...
+        self.ser.write(chr(2) + hex_string + chr(checksum) + chr(3))
+        #print(chr(2) + string + chr(checksum) + chr(3))
+
+
     def read_line(self):
         """Read serial data (called via interval via gobject.timeout_add)"""
 
@@ -452,9 +462,13 @@ class akkumatik_display:
             return True
 
         lin = self.ser.readline()
+
         self.f.write(lin)
 
-        daten = lin.split('\x7f')
+        daten = lin.split('\xff')
+
+        #TODO remove the akkumatik acknowledge string on ausgang or so.
+
         if len(daten) < 18:
             return True #ignore (defective?) line
 
@@ -585,6 +599,35 @@ class akkumatik_display:
             else:
                 self.gewaehlter_ausgang = 1
                 self.label_ausgang.set_text("Ausg: 1")
+        elif data == "Start":
+            if self.gewaehlter_ausgang == 1: #toggle ausgang
+                self.akkumatik_command("44")
+            else:
+                self.akkumatik_command("48")
+
+        elif data == "Stop":
+            if self.gewaehlter_ausgang == 1: #toggle ausgang
+                self.akkumatik_command("41")
+            else:
+                self.akkumatik_command("42")
+
+        elif data == "Test":
+
+                hex_str = "31"          #Kommando       //  0    1    2  ......
+                hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
+                hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
+                hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
+                hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
+                hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
+                hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
+                #hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
+                hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
+                hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
+                hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
+                hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
+                hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
+
+                self.akkumatik_command(hex_str)
 
     def main(self):
         gtk.main()
@@ -619,8 +662,8 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(812,168)
-        self.window.set_default_size(812,168)
+        self.window.set_size_request(872,168)
+        self.window.set_default_size(872,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", self.delete_event)
@@ -649,6 +692,18 @@ class akkumatik_display:
         self.button_ausg.connect("clicked", self.buttoncb, "Ausg")
         self.vbox.pack_start(self.button_ausg, False, True, 0)
 
+        self.hbox = gtk.HBox()
+        self.vbox.pack_start(self.hbox, True, True, 0)
+
+        self.button_start = gtk.Button("Start")
+        self.button_start.connect("clicked", self.buttoncb, "Start")
+        self.hbox.pack_start(self.button_start, False, True, 0)
+
+        self.button_stop = gtk.Button("Stop")
+        self.button_stop.connect("clicked", self.buttoncb, "Stop")
+        self.hbox.pack_end(self.button_stop, False, True, 0)
+
+
         self.button1 = gtk.Button("Chart")
         self.button1.connect("clicked", self.buttoncb, "Chart")
         self.vbox.pack_start(self.button1, False, True, 0)
@@ -656,6 +711,9 @@ class akkumatik_display:
         self.button2.connect("clicked", self.buttoncb, "Exit")
         self.vbox.pack_end(self.button2, False, True, 0)
 
+        self.button_test = gtk.Button("Test")
+        self.button_test.connect("clicked", self.buttoncb, "Test")
+        self.vbox.pack_end(self.button_test, False, True, 0)
 
 
         self.ser = serial.Serial(
@@ -663,11 +721,10 @@ class akkumatik_display:
             baudrate = 9600,
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,
-            #bytesize=serial.EIGHTBITS, #geht nicht irgendwie
-            bytesize = serial.SEVENBITS,
+            bytesize=serial.EIGHTBITS,
             dsrdtr = True,
             rtscts = False,
-            timeout = 0, #0.2 worked nicely
+            timeout = 0.1, #some tuning around with that value possibly
             interCharTimeout = None
             )
 
@@ -689,12 +746,13 @@ class akkumatik_display:
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
         else:
             raw_input("Press key to continue with *new* data-collecting (else Ctrl-D)")
+            time.sleep(0.5)
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
 
         #finally begin collecting
-        gobject.timeout_add(490, self.read_line) # too low - means long blocking on ser.readline
+        gobject.timeout_add(400, self.read_line) # some tuning around with that value possibly
 
 if __name__ == '__main__':
     displ = akkumatik_display()
