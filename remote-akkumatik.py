@@ -420,6 +420,16 @@ class akkumatik_display:
 #Serial + output stuff{{{
 ##########################################
 
+    def output_data(self, output_tty, output):
+        #terminal output
+        sys.stdout.write (output_tty)
+        sys.stdout.flush()
+
+        #graphical output
+        self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
+        while gtk.events_pending():
+            gtk.main_iteration()
+
     def akkumatik_command(self, hex_string):
         checksum = 2
         for x in hex_string:
@@ -551,104 +561,11 @@ class akkumatik_display:
         return True
 
 ##########################################}}}
-#GTK Stuff {{{
+#main {{{
 ##########################################
-    def delete_event(self, widget, event, data=None):
-    # Change FALSE to TRUE and the main window will not be destroyed
-    # with a "delete_event".
-        return False
-
-    def destroy(self, widget, data=None):
-        gtk.main_quit()
-
-    def buttoncb (self, widget, data=None):
-        if data == "Chart":
-            self.filesplit(self.f)
-            self.gnuplot()
-
-        elif data == "Exit":
-            gtk.main_quit()
-
-        elif data == "Ausg":
-            if self.gewaehlter_ausgang == 1: #toggle ausgang
-                self.gewaehlter_ausgang = 2
-                self.label_ausgang.set_text("Ausg: 2")
-            else:
-                self.gewaehlter_ausgang = 1
-                self.label_ausgang.set_text("Ausg: 1")
-        elif data == "Start":
-            if self.gewaehlter_ausgang == 1: #toggle ausgang
-                self.akkumatik_command("44")
-            else:
-                self.akkumatik_command("48")
-
-        elif data == "Stop":
-            if self.gewaehlter_ausgang == 1: #toggle ausgang
-                self.akkumatik_command("41")
-            else:
-                self.akkumatik_command("42")
-
-        elif data == "Test":
-
-                #hex_str = "31"          #Kommando       //  0    1    2  ......
-                #hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
-                #hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
-                #hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
-                #hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
-                #hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
-                #hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
-                ##hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
-                #hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
-                #hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
-                #hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
-                #hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
-                #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
-
-                #self.akkumatik_command(hex_str)
-            self.dialog = gtk.Dialog("Akkumatik Settings",\
-                    self.window,\
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
-                    gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-            button_xy = gtk.Button("Reset")
-            self.dialog.action_area.pack_start(button_xy, True, True, 0)
-            button_xy.show()
-
-            label = gtk.Label("Batteie Typ")
-            self.dialog.vbox.pack_start(label, True, True, 0)
-            label.show()
-
-            combobox = gtk.combo_box_new_text()
-            combobox.append_text("NiCa")
-            combobox.prepend_text("NiMh")
-            combobox.insert_text(1, "LiPo")
-            combobox.show()
-
-            self.dialog.vbox.pack_start(combobox, True, True, 0)
-
-            self.dialog.run()
-            self.dialog.destroy()
-
-            #self.dialog.show()
 
     def main(self):
         gtk.main()
-
-
-    def draw_pixbuf(self, widget, event):
-        path = self.exe_dir + '/bilder/Display.jpg'
-        pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
-
-    def output_data(self, output_tty, output):
-        #terminal output
-        sys.stdout.write (output_tty)
-        sys.stdout.flush()
-
-        #graphical output
-        self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
-        while gtk.events_pending():
-            gtk.main_iteration()
 
 ##########################################}}}
 #INIT{{{
@@ -657,15 +574,8 @@ class akkumatik_display:
     def __init__(self):
 
         ##########################################
-        #Class Variablesn und Konstanten (oder so){{{
+        #Konstanten {{{
         ##########################################
-        self.file_block = False
-        self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
-        self.gewaehlter_ausgang = 1
-        self.exe_dir = sys.path[0]
-        self.tmp_dir = ""
-        self.picture_exe = '/usr/local/bin/qiv'
-
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
         self.LADEART = ["Konst", "Puls", "Reflex"]
@@ -674,11 +584,103 @@ class akkumatik_display:
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
         self.LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
-
-
+        ##########################################
+        #Class Variablen
+        ##########################################
+        self.file_block = False
+        self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
+        self.gewaehlter_ausgang = 1
+        self.exe_dir = sys.path[0]
         self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
         if not os.path.isdir(self.tmp_dir):
             os.mkdir(self.tmp_dir)
+
+        self.picture_exe = '/usr/local/bin/qiv'
+
+        ##########################################}}}
+        #GTK Stuff {{{
+        ##########################################
+
+        def delete_event(widget, event, data=None):
+            return False
+
+        def destroy(widget, data=None):
+            gtk.main_quit()
+
+        def buttoncb (widget, data=None):
+            if data == "Chart":
+                self.filesplit(self.f)
+                self.gnuplot()
+
+            elif data == "Exit":
+                gtk.main_quit()
+
+            elif data == "Ausg":
+                if self.gewaehlter_ausgang == 1: #toggle ausgang
+                    self.gewaehlter_ausgang = 2
+                    self.label_ausgang.set_text("Ausg: 2")
+                else:
+                    self.gewaehlter_ausgang = 1
+                    self.label_ausgang.set_text("Ausg: 1")
+            elif data == "Start":
+                if self.gewaehlter_ausgang == 1: #toggle ausgang
+                    self.akkumatik_command("44")
+                else:
+                    self.akkumatik_command("48")
+
+            elif data == "Stop":
+                if self.gewaehlter_ausgang == 1: #toggle ausgang
+                    self.akkumatik_command("41")
+                else:
+                    self.akkumatik_command("42")
+
+            elif data == "Test":
+
+                    #hex_str = "31"          #Kommando       //  0    1    2  ......
+                    #hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
+                    #hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
+                    #hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
+                    #hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
+                    #hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
+                    #hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
+                    ##hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
+                    #hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
+                    #hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
+                    #hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
+                    #hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
+                    #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
+
+                    #self.akkumatik_command(hex_str)
+                self.dialog = gtk.Dialog("Akkumatik Settings",\
+                        self.window,\
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+                button_xy = gtk.Button("Reset")
+                self.dialog.action_area.pack_start(button_xy, True, True, 0)
+                button_xy.show()
+
+                label = gtk.Label("Batteie Typ")
+                self.dialog.vbox.pack_start(label, True, True, 0)
+                label.show()
+
+                combobox = gtk.combo_box_new_text()
+                combobox.append_text("NiCa")
+                combobox.prepend_text("NiMh")
+                combobox.insert_text(1, "LiPo")
+                combobox.show()
+
+                self.dialog.vbox.pack_start(combobox, True, True, 0)
+
+                self.dialog.run()
+                self.dialog.destroy()
+
+                #self.dialog.show()
+
+        def draw_pixbuf(widget, event):
+            path = self.exe_dir + '/bilder/Display.jpg'
+            pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+            widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
@@ -686,14 +688,14 @@ class akkumatik_display:
         self.window.set_default_size(872,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
-        self.window.connect("delete_event", self.delete_event)
-        self.window.connect("destroy", self.destroy)
+        self.window.connect("delete_event", delete_event)
+        self.window.connect("destroy", destroy)
         self.window.set_border_width(10)
 
 
         hbox = gtk.HBox()
         self.window.add(hbox)
-        hbox.connect('expose-event', self.draw_pixbuf)
+        hbox.connect('expose-event', draw_pixbuf)
 
         label = gtk.Label()
         label.modify_font(pango.FontDescription("mono 22"))
@@ -709,7 +711,7 @@ class akkumatik_display:
         button_ausg.add(hbox)
         button_ausg.set_alignment(0.9,0.9)
         hbox.pack_start(label_ausgang, True, True, 0)
-        button_ausg.connect("clicked", self.buttoncb, "Ausg")
+        button_ausg.connect("clicked", buttoncb, "Ausg")
         vbox.pack_start(button_ausg, False, True, 0)
 
         radio_button = gtk.RadioButton(group=None, label=None)
@@ -719,23 +721,23 @@ class akkumatik_display:
         vbox.pack_start(hbox, True, True, 0)
 
         button_start = gtk.Button("Start")
-        button_start.connect("clicked", self.buttoncb, "Start")
+        button_start.connect("clicked", buttoncb, "Start")
         hbox.pack_start(button_start, False, True, 0)
 
         button_stop = gtk.Button("Stop")
-        button_stop.connect("clicked", self.buttoncb, "Stop")
+        button_stop.connect("clicked", buttoncb, "Stop")
         hbox.pack_end(button_stop, False, True, 0)
 
 
         button1 = gtk.Button("Chart")
-        button1.connect("clicked", self.buttoncb, "Chart")
+        button1.connect("clicked", buttoncb, "Chart")
         vbox.pack_start(button1, False, True, 0)
         button2 = gtk.Button("Exit")
-        button2.connect("clicked", self.buttoncb, "Exit")
+        button2.connect("clicked", buttoncb, "Exit")
         vbox.pack_end(button2, False, True, 0)
 
         button_test = gtk.Button("Test")
-        button_test.connect("clicked", self.buttoncb, "Test")
+        button_test.connect("clicked", buttoncb, "Test")
         vbox.pack_end(button_test, False, True, 0)
 
 
@@ -748,16 +750,8 @@ class akkumatik_display:
             dsrdtr = True,
             rtscts = False,
             timeout = 0.1, #some tuning around with that value possibly
-            interCharTimeout = None
-            )
+            interCharTimeout = None)
 
-#        self.ser = serial.Serial(
-#            port='/dev/ttyS0',
-#            baudrate=9600,
-#            parity=serial.PARITY_ODD,
-#            stopbits=serial.STOPBITS_TWO,
-#            bytesize=serial.SEVENBITS
-#            )
 
         self.ser.open()
         self.ser.isOpen()
