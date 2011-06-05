@@ -628,20 +628,31 @@ class akkumatik_display:
                 #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
 
                 #self.akkumatik_command(hex_str)
-            self.dialog = gtk.Dialog("My dialog",\
+            self.dialog = gtk.Dialog("Akkumatik Settings",\
                     self.window,\
                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
                     (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
                     gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-            self.button_xy = gtk.Button(None, None)
-            self.dialog.action_area.pack_start(self.button_xy, True, True, 0)
-            self.button_xy.show()
+            button_xy = gtk.Button("Reset")
+            self.dialog.action_area.pack_start(button_xy, True, True, 0)
+            button_xy.show()
 
-            label = gtk.Label("Dialogs are groovy")
+            label = gtk.Label("Batteie Typ")
             self.dialog.vbox.pack_start(label, True, True, 0)
             label.show()
 
-            self.dialog.show()
+            combobox = gtk.combo_box_new_text()
+            combobox.append_text("NiCa")
+            combobox.prepend_text("NiMh")
+            combobox.insert_text(1, "LiPo")
+            combobox.show()
+
+            self.dialog.vbox.pack_start(combobox, True, True, 0)
+
+            self.dialog.run()
+            self.dialog.destroy()
+
+            #self.dialog.show()
 
     def main(self):
         gtk.main()
