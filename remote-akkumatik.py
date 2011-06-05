@@ -23,11 +23,35 @@ import serial
 
 
 class akkumatik_display:
+##########################################}}}
+#Divers stuff{{{
+##########################################
+
+    def get_pos_hex(self, string, konst_arr):
+
+        position = konst_arr.index(string)
+        string = "%02x" % (position)
+        #Well, just return %02i would work too on values <10 what is 'always' the case
+        final_str = ""
+        for c in string:
+            final_str += chr(int("30", 16) + int(c, 16))
+        return final_str
+
+    def get_16bit_hex(self, integer):
+        #TODO maybe possible without going over those hex manipulations?
+        #integer to hex
+        string = "%04x" % (integer)
+        #switch around hi and low byte
+        string = string[2:] + string[0:2]
+        # add 0x30 (48) to those hex-digits and add that finally to the string
+        final_str = ""
+        for c in string:
+            final_str += chr(int("30", 16) + int(c, 16))
+        return final_str
 
 ##########################################}}}
 #GnuPlotting stuff{{{
 ##########################################
-
 
     def lipo_gnuplot(self, line_a, rangeval):
         """lipo gnuplot 2nd chart"""
@@ -430,15 +454,16 @@ class akkumatik_display:
         while gtk.events_pending():
             gtk.main_iteration()
 
-    def akkumatik_command(self, hex_string):
+    def akkumatik_command(self, string):
+
         checksum = 2
-        for x in hex_string:
-            checksum ^= int("3"+x, 16)
+        for x in string:
+            checksum ^= ord(x)
 
         checksum ^= 64 #dummy checksum byte itself to checksum...
-        self.ser.write(chr(2) + hex_string + chr(checksum) + chr(3))
-        #print(chr(2) + string + chr(checksum) + chr(3))
 
+        print(chr(2) + string + chr(checksum) + chr(3))
+        self.ser.write(chr(2) + string + chr(checksum) + chr(3))
 
     def read_line(self):
         """Read serial data (called via interval via gobject.timeout_add)"""
@@ -449,6 +474,7 @@ class akkumatik_display:
 
         lin = self.ser.readline()
 
+        #TODO how about filter stuff out here already?
         self.f.write(lin)
 
         daten = lin.split('\xff')
@@ -458,10 +484,18 @@ class akkumatik_display:
         if len(daten) < 18:
             return True #ignore (defective?) line
 
+        if len(daten[0]) > 1:
+            print "*******************"
+            print "Commando Akzeptiert"
+            print daten[0]
+            print "*******************"
+
+            daten[0] = daten[0][-1:]
+
         #-1:0 - remove potential command return thing
-        if (daten[-1:] == "1" and self.gewaehlter_ausgang == 1) \
-                or (daten[-1:] == "2" and self.gewaehlter_ausgang == 2):
-            ausgang = str(long(daten[-1:])) #Ausgang
+        if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
+                or (daten[0] == "2" and self.gewaehlter_ausgang == 2):
+            ausgang = str(long(daten[0][-1:])) #Ausgang
             zeit = daten[1] #Stunden Minuten Sekunden
             ladeV = long(daten[2])/1000.0 #Akkuspannung mV
             ladeV = "%6.3fV" % (ladeV) #format into string
@@ -576,7 +610,7 @@ class akkumatik_display:
         ##########################################
         #Konstanten
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
-        self.AMPROGRAMM = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
+        self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
         self.LADEART = ["Konst", "Puls", "Reflex"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
@@ -630,22 +664,6 @@ class akkumatik_display:
 
             elif data == "Akku_Settings":
 
-                    #hex_str = "31"          #Kommando       //  0    1    2  ......
-                    #hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
-                    #hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
-                    #hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
-                    #hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
-                    #hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
-                    #hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
-                    ##hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
-                    #hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
-                    #hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
-                    #hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
-                    #hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
-                    #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
-
-                    #self.akkumatik_command(hex_str)
-
                 self.dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
                         + str(self.gewaehlter_ausgang), self.window,\
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
@@ -674,6 +692,7 @@ class akkumatik_display:
                 cb_atyp = gtk.combo_box_new_text()
                 for item in self.AKKU_TYP:
                     cb_atyp.append_text(item)
+                cb_atyp.set_active(0)
                 cb_atyp.show()
                 vbox.pack_start(cb_atyp, True, True, 0)
 
@@ -683,6 +702,7 @@ class akkumatik_display:
                 cb_prog = gtk.combo_box_new_text()
                 for item in self.AMPROGRAMM:
                     cb_prog.append_text(item)
+                cb_prog.set_active(0)
                 cb_prog.show()
                 vbox.pack_start(cb_prog, True, True, 0)
 
@@ -692,17 +712,19 @@ class akkumatik_display:
                 cb_lart = gtk.combo_box_new_text()
                 for item in self.LADEART:
                     cb_lart.append_text(item)
+                cb_lart.set_active(0)
                 cb_lart.show()
                 vbox.pack_start(cb_lart, True, True, 0)
 
                 label = gtk.Label("Stromwahl")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                cb_stomw = gtk.combo_box_new_text()
+                cb_stromw = gtk.combo_box_new_text()
                 for item in self.STROMWAHL:
-                    cb_stomw.append_text(item)
-                cb_stomw.show()
-                vbox.pack_start(cb_stomw, True, True, 0)
+                    cb_stromw.append_text(item)
+                cb_stromw.set_active(0)
+                cb_stromw.show()
+                vbox.pack_start(cb_stromw, True, True, 0)
 
                 label = gtk.Label("Stoppmethode")
                 vbox.pack_start(label, True, True, 0)
@@ -710,6 +732,7 @@ class akkumatik_display:
                 cb_stoppm = gtk.combo_box_new_text()
                 for item in self.STOPPMETHODE:
                     cb_stoppm.append_text(item)
+                cb_stoppm.set_active(0)
                 cb_stoppm.show()
                 vbox.pack_start(cb_stoppm, True, True, 0)
 
@@ -738,7 +761,7 @@ class akkumatik_display:
                 label = gtk.Label("Kapazität mAh")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                adj = gtk.Adjustment(2000, 0.0, 9999, 25, 25, 0.0)
+                adj = gtk.Adjustment(2000, 0.0, 99999, 25, 25, 0.0)
                 sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
                 sp_kapazitaet.set_wrap(False)
                 sp_kapazitaet.set_numeric(True)
@@ -766,6 +789,16 @@ class akkumatik_display:
                 vbox.pack_start(sp_entladelimit, False, True, 0)
                 sp_entladelimit.show()
 
+                label = gtk.Label("Menge")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                adj = gtk.Adjustment(0, 0.0, 99999, 25, 25, 0.0)
+                sp_menge = gtk.SpinButton(adj, 1.0, 0)
+                sp_menge.set_wrap(False)
+                sp_menge.set_numeric(True)
+                vbox.pack_start(sp_menge, False, True, 0)
+                sp_menge.show()
+
                 label = gtk.Label("Zyklen")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
@@ -781,17 +814,38 @@ class akkumatik_display:
                 self.dialog.destroy()
 
                 if retval == -3: #OK got pressed
-                    print cb_stoppm.get_active_text()
-                    print cb_atyp.get_active_text()
-                    print cb_lart.get_active_text()
-                    print cb_stomw.get_active_text()
-                    print cb_prog.get_active_text()
+                    hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
+                    hex_str += self.get_pos_hex(cb_atyp.get_active_text(),self.AKKU_TYP)
+                    hex_str += self.get_pos_hex(cb_prog.get_active_text(),self.AMPROGRAMM)
+                    hex_str += self.get_pos_hex(cb_lart.get_active_text(),self.LADEART)
+                    hex_str += self.get_pos_hex(cb_stromw.get_active_text(),self.STROMWAHL)
+                    hex_str += self.get_pos_hex(cb_stoppm.get_active_text(),self.STOPPMETHODE)
 
-                    print sp_zyklen.get_value()
-                    print sp_kapazitaet.get_value()
-                    print sp_ladelimit.get_value()
-                    print sp_entladelimit.get_value()
-                    print sp_anzzellen.get_value()
+                    hex_str += self.get_16bit_hex(int(sp_anzzellen.get_value()))
+                    hex_str += self.get_16bit_hex(int(sp_kapazitaet.get_value()))
+                    hex_str += self.get_16bit_hex(int(sp_ladelimit.get_value()))
+                    hex_str += self.get_16bit_hex(int(sp_entladelimit.get_value()))
+                    hex_str += self.get_16bit_hex(int(sp_menge.get_value()))
+                    hex_str += self.get_16bit_hex(int(sp_zyklen.get_value()))
+
+                    #hex_str = "31"          #Kommando       //  0    1    2  ......
+                    #hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
+                    #hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
+                    #hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
+                    #hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
+                    #hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
+                    #hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
+                    ##hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
+                    #hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
+                    #hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
+                    #hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
+                    #hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
+                    #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
+
+                    print hex_str
+                    print hex_str
+                    print hex_str
+                    self.akkumatik_command(hex_str)
 
         def draw_pixbuf(widget, event):
             path = self.exe_dir + '/bilder/Display.jpg'
@@ -800,8 +854,8 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(872,168)
-        self.window.set_default_size(872,168)
+        self.window.set_size_request(832,168)
+        self.window.set_default_size(832,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", delete_event)
@@ -814,10 +868,10 @@ class akkumatik_display:
         hbox.connect('expose-event', draw_pixbuf)
 
         # akkumatik display label
-        label = gtk.Label()
-        label.modify_font(pango.FontDescription("mono 22"))
+        self.label = gtk.Label()
+        self.label.modify_font(pango.FontDescription("mono 22"))
 
-        hbox.pack_start(label, False, False, 50)
+        hbox.pack_start(self.label, False, False, 50)
         
         #vbox for buttons
         vbox = gtk.VBox()
