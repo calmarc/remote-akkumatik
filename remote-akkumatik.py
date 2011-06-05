@@ -33,15 +33,15 @@ class akkumatik_display:
     gewaehlter_ausgang = 1
     exe_dir = ""
     tmp_dir = ""
-
     picture_exe = '/usr/local/bin/qiv'
-    akku_typ = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
-    amprogramm = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
-    ladeart = ["Konst", "Puls", "Reflex"]
-    stromwahl = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
-    stoppmethode = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
-    fehlercode = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
-    liporgb = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
+
+    AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
+    AMPROGRAMM = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
+    LADEART = ["Konst", "Puls", "Reflex"]
+    STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
+    STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
+    FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
+    LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
 ##########################################}}}
 #GnuPlotting stuff{{{
@@ -76,7 +76,7 @@ class akkumatik_display:
         gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
 
         for i in range(18, len(line_a) - 1):
-            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+self.liporgb[i-18]+'"'
+            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+self.LIPORGB[i-18]+'"'
         gpst += ';'
 
         return (gpst)
@@ -495,11 +495,11 @@ class akkumatik_display:
             phase = long(daten[9]) #Ladephase 0-stop ...
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
-            atyp = self.akku_typ[long(daten[12])] #Akkutyp
-            prg = self.amprogramm[long(daten[13])] #Programm
-            lart = self.ladeart[long(daten[14])] #Ladeart
-            strohmw = self.stromwahl[long(daten[15])] #stromwahl
-            stoppm = self.stoppmethode[long(daten[16])] #stromwahl
+            atyp = self.AKKU_TYP[long(daten[12])] #Akkutyp
+            prg = self.AMPROGRAMM[long(daten[13])] #Programm
+            lart = self.LADEART[long(daten[14])] #Ladeart
+            strohmw = self.STROMWAHL[long(daten[15])] #stromwahl
+            stoppm = self.STOPPMETHODE[long(daten[16])] #stromwahl
             cKK = long(daten[17]) #KK Celsius
 
             cellmV = ""
@@ -515,13 +515,13 @@ class akkumatik_display:
 
             if phase == 0: #dann 'Fehlercode' zwangsweise ...?
                 if tmp_zellen >= 54: # FEHLER
-                    output_tty = self.fehlercode[tmp_zellen - 50] + "\n\n"
-                    output = self.fehlercode[tmp_zellen - 50]
+                    output_tty = self.FEHLERCODE[tmp_zellen - 50] + "\n\n"
+                    output = self.FEHLERCODE[tmp_zellen - 50]
                     self.output_data(output_tty, output)
                     return True
 
                 if tmp_zellen >= 50: #'gute' codes
-                    phasedesc = "%-11s" % (self.fehlercode[tmp_zellen - 50])
+                    phasedesc = "%-11s" % (self.FEHLERCODE[tmp_zellen - 50])
                     ausgang = ""
                     ladeV = ""
 
