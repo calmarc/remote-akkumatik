@@ -583,7 +583,7 @@ class akkumatik_display:
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
         self.LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
-        ##########################################}}}
+        ##########################################
         #Class Variablen
         self.file_block = False
         self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
@@ -595,7 +595,7 @@ class akkumatik_display:
 
         self.picture_exe = '/usr/local/bin/qiv'
 
-        ##########################################}}}
+        ##########################################
         #GTK Stuff
         def delete_event(widget, event, data=None):
             return False
@@ -645,28 +645,153 @@ class akkumatik_display:
                     #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
 
                     #self.akkumatik_command(hex_str)
+
                 self.dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
                         + str(self.gewaehlter_ausgang), self.window,\
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
                         gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
 
-                label = gtk.Label("Batteie Typ")
-                self.dialog.vbox.pack_start(label, True, True, 0)
+                #hbox over the whole dialog
+                hbox = gtk.HBox(False, 0)
+                self.dialog.vbox.pack_start(hbox, True, True, 0)
+                hbox.show()
+
+                #frame 1 (vbox)
+                frame = gtk.Frame(None)
+                hbox.pack_start(frame, True, True, 0)
+                
+                vbox = gtk.VBox(False, 0)
+                vbox.set_border_width(5)
+                frame.add(vbox)
+                frame.show()
+                vbox.show()
+
+                #stuff into frame (vbox)
+                label = gtk.Label("Batterie Typ")
+                vbox.pack_start(label, True, True, 0)
                 label.show()
+                cb_atyp = gtk.combo_box_new_text()
+                for item in self.AKKU_TYP:
+                    cb_atyp.append_text(item)
+                cb_atyp.show()
+                vbox.pack_start(cb_atyp, True, True, 0)
 
-                combobox = gtk.combo_box_new_text()
-                combobox.append_text("NiCa")
-                combobox.prepend_text("NiMh")
-                combobox.insert_text(1, "LiPo")
-                combobox.show()
+                label = gtk.Label("Programm")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                cb_prog = gtk.combo_box_new_text()
+                for item in self.AMPROGRAMM:
+                    cb_prog.append_text(item)
+                cb_prog.show()
+                vbox.pack_start(cb_prog, True, True, 0)
 
-                self.dialog.vbox.pack_start(combobox, True, True, 0)
+                label = gtk.Label("Ladeart")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                cb_lart = gtk.combo_box_new_text()
+                for item in self.LADEART:
+                    cb_lart.append_text(item)
+                cb_lart.show()
+                vbox.pack_start(cb_lart, True, True, 0)
 
-                self.dialog.run()
+                label = gtk.Label("Stromwahl")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                cb_stomw = gtk.combo_box_new_text()
+                for item in self.STROMWAHL:
+                    cb_stomw.append_text(item)
+                cb_stomw.show()
+                vbox.pack_start(cb_stomw, True, True, 0)
+
+                label = gtk.Label("Stoppmethode")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                cb_stoppm = gtk.combo_box_new_text()
+                for item in self.STOPPMETHODE:
+                    cb_stoppm.append_text(item)
+                cb_stoppm.show()
+                vbox.pack_start(cb_stoppm, True, True, 0)
+
+
+                #frame 2 (vbox)
+                frame = gtk.Frame(None)
+                hbox.pack_start(frame, True, True, 0)
+                
+                vbox = gtk.VBox(False, 0)
+                vbox.set_border_width(5)
+                frame.add(vbox)
+                frame.show()
+                vbox.show()
+
+                #stuff into frame (vbox)
+                label = gtk.Label("Zellen Anzahl")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                adj = gtk.Adjustment(0, 0, 30, 1, 1, 0.0)
+                sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
+                sp_anzzellen.set_wrap(False)
+                sp_anzzellen.set_numeric(True)
+                vbox.pack_start(sp_anzzellen, False, True, 0)
+                sp_anzzellen.show()
+
+                label = gtk.Label("Kapazität mAh")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                adj = gtk.Adjustment(2000, 0.0, 9999, 25, 25, 0.0)
+                sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
+                sp_kapazitaet.set_wrap(False)
+                sp_kapazitaet.set_numeric(True)
+                #sp_kapazitaet.set_size_request(55, -1)
+                vbox.pack_start(sp_kapazitaet, False, True, 0)
+                sp_kapazitaet.show()
+
+                label = gtk.Label("Lade Limit mA")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                adj = gtk.Adjustment(0, 0.0, 9999, 25, 25, 0.0)
+                sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
+                sp_ladelimit.set_wrap(False)
+                sp_ladelimit.set_numeric(True)
+                vbox.pack_start(sp_ladelimit, False, True, 0)
+                sp_ladelimit.show()
+
+                label = gtk.Label("Entlade Limit mA")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                adj = gtk.Adjustment(0, 0.0, 9999, 25, 25, 0.0)
+                sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
+                sp_entladelimit.set_wrap(False)
+                sp_entladelimit.set_numeric(True)
+                vbox.pack_start(sp_entladelimit, False, True, 0)
+                sp_entladelimit.show()
+
+                label = gtk.Label("Zyklen")
+                vbox.pack_start(label, True, True, 0)
+                label.show()
+                adj = gtk.Adjustment(1, 1, 10, 1, 1, 0.0)
+                sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
+                sp_zyklen.set_wrap(False)
+                sp_zyklen.set_numeric(True)
+                vbox.pack_start(sp_zyklen, False, True, 0)
+                sp_zyklen.show()
+
+                # run the dialog
+                retval = self.dialog.run()
                 self.dialog.destroy()
 
-                #self.dialog.show()
+                if retval == -3: #OK got pressed
+                    print cb_stoppm.get_active_text()
+                    print cb_atyp.get_active_text()
+                    print cb_lart.get_active_text()
+                    print cb_stomw.get_active_text()
+                    print cb_prog.get_active_text()
+
+                    print sp_zyklen.get_value()
+                    print sp_kapazitaet.get_value()
+                    print sp_ladelimit.get_value()
+                    print sp_entladelimit.get_value()
+                    print sp_anzzellen.get_value()
 
         def draw_pixbuf(widget, event):
             path = self.exe_dir + '/bilder/Display.jpg'
@@ -746,7 +871,7 @@ class akkumatik_display:
         button.connect("clicked", buttoncb, "Akku_Settings")
         vbox.pack_end(button, False, True, 0)
 
-        ##########################################}}}
+        ##########################################
         #Serial
         self.ser = serial.Serial(
             port='/dev/ttyS0',
