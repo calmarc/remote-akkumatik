@@ -613,21 +613,35 @@ class akkumatik_display:
 
         elif data == "Test":
 
-                hex_str = "31"          #Kommando       //  0    1    2  ......
-                hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
-                hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
-                hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
-                hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
-                hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
-                hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
-                #hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
-                hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
-                hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
-                hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
-                hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
-                hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
+                #hex_str = "31"          #Kommando       //  0    1    2  ......
+                #hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
+                #hex_str += "04"         #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
+                #hex_str += "02"         #u08 lade_mode  // KONST, PULS, REFLEX
+                #hex_str += "00"         #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
+                #hex_str += "04"         #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
+                #hex_str += "0800" #0008 #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
+                ##hex_str += "a406" #06a4 -> 1700  #u16 capacity   // [mAh] max. FFFFh
+                #hex_str += "0807" #0708 -> 1800  #u16 capacity   // [mAh] max. FFFFh
+                #hex_str += "0000"       #u16 i_lade     // [mA] max. 8000 bzw. 2600
+                #hex_str += "0000"       #u16 i_entl     // [mA] max. 5000
+                #hex_str += "0000"       #u16 menge      // [mAh] max. FFFFh
+                #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
 
-                self.akkumatik_command(hex_str)
+                #self.akkumatik_command(hex_str)
+            self.dialog = gtk.Dialog("My dialog",\
+                    self.window,\
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+                    gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+            self.button_xy = gtk.Button(None, None)
+            self.dialog.action_area.pack_start(self.button_xy, True, True, 0)
+            self.button_xy.show()
+
+            label = gtk.Label("Dialogs are groovy")
+            self.dialog.vbox.pack_start(label, True, True, 0)
+            label.show()
+
+            self.dialog.show()
 
     def main(self):
         gtk.main()
