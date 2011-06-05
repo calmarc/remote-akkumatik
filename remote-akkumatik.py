@@ -574,8 +574,7 @@ class akkumatik_display:
     def __init__(self):
 
         ##########################################
-        #Konstanten {{{
-        ##########################################
+        #Konstanten
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
         self.LADEART = ["Konst", "Puls", "Reflex"]
@@ -584,9 +583,8 @@ class akkumatik_display:
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
         self.LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
-        ##########################################
+        ##########################################}}}
         #Class Variablen
-        ##########################################
         self.file_block = False
         self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
         self.gewaehlter_ausgang = 1
@@ -598,9 +596,7 @@ class akkumatik_display:
         self.picture_exe = '/usr/local/bin/qiv'
 
         ##########################################}}}
-        #GTK Stuff {{{
-        ##########################################
-
+        #GTK Stuff
         def delete_event(widget, event, data=None):
             return False
 
@@ -618,10 +614,8 @@ class akkumatik_display:
             elif data == "Ausg":
                 if self.gewaehlter_ausgang == 1: #toggle ausgang
                     self.gewaehlter_ausgang = 2
-                    self.label_ausgang.set_text("Ausg: 2")
                 else:
                     self.gewaehlter_ausgang = 1
-                    self.label_ausgang.set_text("Ausg: 1")
             elif data == "Start":
                 if self.gewaehlter_ausgang == 1: #toggle ausgang
                     self.akkumatik_command("44")
@@ -634,7 +628,7 @@ class akkumatik_display:
                 else:
                     self.akkumatik_command("42")
 
-            elif data == "Test":
+            elif data == "Akku_Settings":
 
                     #hex_str = "31"          #Kommando       //  0    1    2  ......
                     #hex_str += "00"         #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
@@ -651,14 +645,11 @@ class akkumatik_display:
                     #hex_str += "0300" #(3)  #u16 zyklenzahl // 0...9
 
                     #self.akkumatik_command(hex_str)
-                self.dialog = gtk.Dialog("Akkumatik Settings",\
-                        self.window,\
+                self.dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
+                        + str(self.gewaehlter_ausgang), self.window,\
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
                         gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-                button_xy = gtk.Button("Reset")
-                self.dialog.action_area.pack_start(button_xy, True, True, 0)
-                button_xy.show()
 
                 label = gtk.Label("Batteie Typ")
                 self.dialog.vbox.pack_start(label, True, True, 0)
@@ -692,55 +683,71 @@ class akkumatik_display:
         self.window.connect("destroy", destroy)
         self.window.set_border_width(10)
 
-
+        # overall hbox
         hbox = gtk.HBox()
         self.window.add(hbox)
         hbox.connect('expose-event', draw_pixbuf)
 
+        # akkumatik display label
         label = gtk.Label()
         label.modify_font(pango.FontDescription("mono 22"))
 
         hbox.pack_start(label, False, False, 50)
+        
+        #vbox for buttons
         vbox = gtk.VBox()
-
         hbox.pack_end(vbox, False, False, 0)
 
-        button_ausg = gtk.Button(None, None)
+        #label_ausgang = gtk.Label("<1 Ausgang 2> "+str(self.gewaehlter_ausgang))
+        #vbox.pack_start(label_ausgang, False, True, 0)
+
+        # hbox for radios
         hbox = gtk.HBox()
-        label_ausgang = gtk.Label("Ausg: "+str(self.gewaehlter_ausgang))
-        button_ausg.add(hbox)
-        button_ausg.set_alignment(0.9,0.9)
+        vbox.pack_start(hbox, False, False, 0)
+
+        # TODO nicht wirklich toll diese Radios
+        r1button = gtk.RadioButton(None, None)
+        r1button.connect("toggled", buttoncb , "Ausg")
+        hbox.pack_start(r1button, True, True, 0)
+
+        label_ausgang = gtk.Label("1 - 2")
         hbox.pack_start(label_ausgang, True, True, 0)
-        button_ausg.connect("clicked", buttoncb, "Ausg")
-        vbox.pack_start(button_ausg, False, True, 0)
 
-        radio_button = gtk.RadioButton(group=None, label=None)
-        #TODO
+        r2button = gtk.RadioButton(r1button, None)
+        hbox.pack_start(r2button, True, True, 0)
 
+        if self.gewaehlter_ausgang == 1:
+            r1button.set_active(True)
+        else:
+            r2button.set_active(True)
+        
+        #hbox fuer 'start/stop'
         hbox = gtk.HBox()
         vbox.pack_start(hbox, True, True, 0)
 
-        button_start = gtk.Button("Start")
-        button_start.connect("clicked", buttoncb, "Start")
-        hbox.pack_start(button_start, False, True, 0)
+        button = gtk.Button("Start")
+        button.connect("clicked", buttoncb, "Start")
+        hbox.pack_start(button, False, True, 0)
 
-        button_stop = gtk.Button("Stop")
-        button_stop.connect("clicked", buttoncb, "Stop")
-        hbox.pack_end(button_stop, False, True, 0)
-
-
-        button1 = gtk.Button("Chart")
-        button1.connect("clicked", buttoncb, "Chart")
-        vbox.pack_start(button1, False, True, 0)
-        button2 = gtk.Button("Exit")
-        button2.connect("clicked", buttoncb, "Exit")
-        vbox.pack_end(button2, False, True, 0)
-
-        button_test = gtk.Button("Test")
-        button_test.connect("clicked", buttoncb, "Test")
-        vbox.pack_end(button_test, False, True, 0)
+        button = gtk.Button("Stop")
+        button.connect("clicked", buttoncb, "Stop")
+        hbox.pack_end(button, False, True, 0)
 
 
+        button = gtk.Button("Chart")
+        button.connect("clicked", buttoncb, "Chart")
+        vbox.pack_start(button, False, True, 0)
+
+        button = gtk.Button("Exit")
+        button.connect("clicked", buttoncb, "Exit")
+        vbox.pack_end(button, False, True, 0)
+
+        button = gtk.Button("Akku Para")
+        button.connect("clicked", buttoncb, "Akku_Settings")
+        vbox.pack_end(button, False, True, 0)
+
+        ##########################################}}}
+        #Serial
         self.ser = serial.Serial(
             port='/dev/ttyS0',
             baudrate = 9600,
