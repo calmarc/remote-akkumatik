@@ -24,25 +24,6 @@ import serial
 
 class akkumatik_display:
 
-##########################################
-#Class Variablesn und Konstanten (oder so){{{
-##########################################
-
-    file_block = False
-    anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
-    gewaehlter_ausgang = 1
-    exe_dir = ""
-    tmp_dir = ""
-    picture_exe = '/usr/local/bin/qiv'
-
-    AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
-    AMPROGRAMM = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
-    LADEART = ["Konst", "Puls", "Reflex"]
-    STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
-    STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
-    FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
-    LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
-
 ##########################################}}}
 #GnuPlotting stuff{{{
 ##########################################
@@ -453,11 +434,7 @@ class akkumatik_display:
         """Read serial data (called via interval via gobject.timeout_add)"""
 
         if self.file_block == True:
-            print "**********************Blocked serial input adding"
-            print "**********************Blocked serial input adding"
-            print "**********************Blocked serial input adding"
-            print "**********************Blocked serial input adding"
-            print "**********************Blocked serial input adding"
+            print "********************** Blocked serial input adding"
             return True
 
         lin = self.ser.readline()
@@ -679,7 +656,25 @@ class akkumatik_display:
 
     def __init__(self):
 
+        ##########################################
+        #Class Variablesn und Konstanten (oder so){{{
+        ##########################################
+        self.file_block = False
+        self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
+        self.gewaehlter_ausgang = 1
         self.exe_dir = sys.path[0]
+        self.tmp_dir = ""
+        self.picture_exe = '/usr/local/bin/qiv'
+
+        self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
+        self.AMPROGRAMM = ["Lade", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
+        self.LADEART = ["Konst", "Puls", "Reflex"]
+        self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
+        self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
+        self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
+        self.LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
+
+
 
         self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
         if not os.path.isdir(self.tmp_dir):
@@ -696,49 +691,52 @@ class akkumatik_display:
         self.window.set_border_width(10)
 
 
-        self.hbox = gtk.HBox()
-        self.window.add(self.hbox)
-        self.hbox.connect('expose-event', self.draw_pixbuf)
+        hbox = gtk.HBox()
+        self.window.add(hbox)
+        hbox.connect('expose-event', self.draw_pixbuf)
 
-        self.label = gtk.Label()
-        self.label.modify_font(pango.FontDescription("mono 22"))
+        label = gtk.Label()
+        label.modify_font(pango.FontDescription("mono 22"))
 
-        self.hbox.pack_start(self.label, False, False, 50)
-        self.vbox = gtk.VBox()
+        hbox.pack_start(label, False, False, 50)
+        vbox = gtk.VBox()
 
-        self.hbox.pack_end(self.vbox, False, False, 0)
+        hbox.pack_end(vbox, False, False, 0)
 
-        self.button_ausg = gtk.Button(None, None)
-        self.hbox = gtk.HBox()
-        self.label_ausgang = gtk.Label("Ausg: "+str(self.gewaehlter_ausgang))
-        self.button_ausg.add(self.hbox)
-        self.button_ausg.set_alignment(0.9,0.9)
-        self.hbox.pack_start(self.label_ausgang, True, True, 0)
-        self.button_ausg.connect("clicked", self.buttoncb, "Ausg")
-        self.vbox.pack_start(self.button_ausg, False, True, 0)
+        button_ausg = gtk.Button(None, None)
+        hbox = gtk.HBox()
+        label_ausgang = gtk.Label("Ausg: "+str(self.gewaehlter_ausgang))
+        button_ausg.add(hbox)
+        button_ausg.set_alignment(0.9,0.9)
+        hbox.pack_start(label_ausgang, True, True, 0)
+        button_ausg.connect("clicked", self.buttoncb, "Ausg")
+        vbox.pack_start(button_ausg, False, True, 0)
 
-        self.hbox = gtk.HBox()
-        self.vbox.pack_start(self.hbox, True, True, 0)
+        radio_button = gtk.RadioButton(group=None, label=None)
+        #TODO
 
-        self.button_start = gtk.Button("Start")
-        self.button_start.connect("clicked", self.buttoncb, "Start")
-        self.hbox.pack_start(self.button_start, False, True, 0)
+        hbox = gtk.HBox()
+        vbox.pack_start(hbox, True, True, 0)
 
-        self.button_stop = gtk.Button("Stop")
-        self.button_stop.connect("clicked", self.buttoncb, "Stop")
-        self.hbox.pack_end(self.button_stop, False, True, 0)
+        button_start = gtk.Button("Start")
+        button_start.connect("clicked", self.buttoncb, "Start")
+        hbox.pack_start(button_start, False, True, 0)
+
+        button_stop = gtk.Button("Stop")
+        button_stop.connect("clicked", self.buttoncb, "Stop")
+        hbox.pack_end(button_stop, False, True, 0)
 
 
-        self.button1 = gtk.Button("Chart")
-        self.button1.connect("clicked", self.buttoncb, "Chart")
-        self.vbox.pack_start(self.button1, False, True, 0)
-        self.button2 = gtk.Button("Exit")
-        self.button2.connect("clicked", self.buttoncb, "Exit")
-        self.vbox.pack_end(self.button2, False, True, 0)
+        button1 = gtk.Button("Chart")
+        button1.connect("clicked", self.buttoncb, "Chart")
+        vbox.pack_start(button1, False, True, 0)
+        button2 = gtk.Button("Exit")
+        button2.connect("clicked", self.buttoncb, "Exit")
+        vbox.pack_end(button2, False, True, 0)
 
-        self.button_test = gtk.Button("Test")
-        self.button_test.connect("clicked", self.buttoncb, "Test")
-        self.vbox.pack_end(self.button_test, False, True, 0)
+        button_test = gtk.Button("Test")
+        button_test.connect("clicked", self.buttoncb, "Test")
+        vbox.pack_end(button_test, False, True, 0)
 
 
         self.ser = serial.Serial(
