@@ -678,6 +678,7 @@ class akkumatik_display:
         if not os.path.isdir(self.tmp_dir):
             os.mkdir(self.tmp_dir)
 
+        #TODO not hardcoded :P
         self.picture_exe = '/usr/local/bin/qiv'
 
         #}}}
@@ -1010,6 +1011,7 @@ class akkumatik_display:
         ##########################################
         #Serial{{{
         self.ser = serial.Serial(
+            #TODO not hardcoded
             port='/dev/ttyS0',
             baudrate = 9600,
             parity = serial.PARITY_NONE,
