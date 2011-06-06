@@ -38,7 +38,6 @@ class akkumatik_display:
         return final_str
 
     def get_16bit_hex(self, integer):
-        #TODO maybe possible without going over those hex manipulations?
         #integer to hex
         string = "%04x" % (integer)
         #switch around hi and low byte
@@ -182,26 +181,37 @@ class akkumatik_display:
                 phasenr = long(line_a[9])
                 atyp = long(line_a[12])
 
-                if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer
+                #titel stuff
+                atyp_str = self.AKKU_TYP[long(daten[12])] #Akkutyp
+                prg = self.AMPROGRAMM[long(daten[13])] #Programm
+                lart = self.LADEART[long(daten[14])] #Ladeart
+                stromw = self.STROMWAHL[long(daten[15])] #stromwahl
+                stoppm = self.STOPPMETHODE[long(daten[16])] #stromwahl
+                #Stop >= 50?
+                anz_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+
+                titel_plus = "("+str(anz_zellen)+", "+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+")"
+
+                if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
                     f = self.open_file(self.tmp_dir + "/" + fname, "r")
                     rangeval = self.get_balancer_range(f)
                     f.close()
 
-                #TODO better titel (phase)....
+                #TODO better titel (titel)....
                 if phasenr >= 1 and phasenr <= 5:
-                    phase = "LADEN"
+                    titel = "LADEN" + titel_plus
                     g('set yrange [0:*];')
                 elif phasenr >= 7 and phasenr < 9:
-                    phase = "ENTLADEN"
+                    titel = "ENTLADEN" + titel_plus
                     g('set yrange [*:0];')
                 elif phasenr == 10:
-                    phase = "PAUSE (Entladespannung erreicht)"
+                    titel = "PAUSE - Entladespannung erreicht" + titel_plus
                     g('set yrange [*:*];')
                 elif phasenr == 0:
-                    phase = "STOP (Erhaltungladung)"
+                    titel = "STOP (Erhaltungladung)" + titel_plus
                     g('set yrange [*:*];')
                 else:
-                    phase = "Unbekannte Phase <"+str(phasenr)+"> (oder so)"
+                    titel = "Unbekannte Phase <"+str(phasenr)+">" + titel_plus
                     g('set yrange [*:*];')
 
 
@@ -237,7 +247,7 @@ class akkumatik_display:
 
 
                 g('wfile="' + self.tmp_dir + "/" + fname + '";')
-                g('set title "' + phase + ' (' + fname + ')";')
+                g('set title "' + titel + ' (' + fname + ')";')
 
 
                 g('plot \
