@@ -50,7 +50,7 @@ class akkumatik_display:
         return final_str
 
     def command_thread(self, tname, com_str):
-        self.threadlock.acquire() #TODO make it how it should be instead of that here...
+        self.threadlock.acquire() #TODO make it how it *should be* instead of that here...
 
         if self.command_abort == True: #skip on further soon to arrive commands
             print "********************************************************************"
@@ -145,7 +145,7 @@ class akkumatik_display:
         return gpst
 
     def nixx_gnuplot(self):
-        """NiCd and NiMh gnuplot 2nd chart"""
+        """NiCd and NiMH gnuplot 2nd chart"""
 
         gpst = ""
 
@@ -233,22 +233,22 @@ class akkumatik_display:
                 #Stop >= 50?
                 anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
 
-                titel_plus = "("+str(anz_zellen)+", "+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+")"
+                titel_plus = " ["+str(anz_zellen)+"x"+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+"] - "
+                titel_little = " ["+str(anz_zellen)+"x"+atyp_str+"] - "
 
                 if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
                     f = self.open_file(self.tmp_dir + "/" + fname, "r")
                     rangeval = self.get_balancer_range(f)
                     f.close()
 
-                #TODO better titel (titel)....
                 if phasenr >= 1 and phasenr <= 5:
                     titel = "LADEN" + titel_plus
                     g('set yrange [0:*];')
                 elif phasenr >= 7 and phasenr < 9:
-                    titel = "ENTLADEN" + titel_plus
+                    titel = "ENTLADEN" + titel_little
                     g('set yrange [*:0];')
                 elif phasenr == 10:
-                    titel = "PAUSE - Entladespannung erreicht" + titel_plus
+                    titel = "PAUSE - Entladespannung erreicht" + titel_little
                     g('set yrange [*:*];')
                 elif phasenr == 0:
                     titel = "STOP (Erhaltungladung)" + titel_plus
@@ -261,7 +261,6 @@ class akkumatik_display:
                 g('set terminal png size 1280, 1024;')
                 g('set output "' + self.tmp_dir + "/" + fname[:-4] + '.png"')
 
-                g('set title "Akkumatik (Stefan Estner)";')
                 g('set xdata time;')
                 g("set datafile separator '\xff';")
                 g('set timefmt "%H:%M:%S";')
@@ -290,7 +289,7 @@ class akkumatik_display:
 
 
                 g('wfile="' + self.tmp_dir + "/" + fname + '";')
-                g('set title "' + titel + ' (' + fname + ')";')
+                g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
                 g('plot \
@@ -381,7 +380,7 @@ class akkumatik_display:
 
             #filter out useless lines
             #could also check for last thing is a newline ... hm.
-            #TODO: won't work when some spezial line got printed
+            #TODO: won't work when some spezial line got printed "^#..."
 
             if line[0:2] == "A1": #remove command-acknowledged string
                 line = line [5:]
@@ -489,7 +488,7 @@ class akkumatik_display:
         lin = self.ser.readline()
 
         #TODO how about filter stuff out here already?
-        #     would also fix some howto on serial splitting (remove potential ^A125 )
+        #     would also fix some howto on serial splitting
         self.f.write(lin)
 
         daten = lin.split('\xff')
@@ -525,6 +524,13 @@ class akkumatik_display:
                 self.anzahl_zellen[long(ausgang)] = tmp_zellen
 
             phase = long(daten[9]) #Ladephase 0-stop ...
+            if phase == 0:
+                self.button_start.set_sensitive(True)
+                self.button_stop.set_sensitive(False)
+            else:
+                self.button_start.set_sensitive(False)
+                self.button_stop.set_sensitive(True)
+
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
 
@@ -610,7 +616,7 @@ class akkumatik_display:
             if len(daten) > 19:
                 RimOhm = "∆%2imV " % (balance_delta)
 
-            output ="%s%s %s %s|%s %2i°B \n%-7s   %+6.3fAh|%ix%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cKK)
+            output ="%s%s %s %s %s %2i°B \n%-7s   %+6.3fAh %ix%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cKK)
 
             self.output_data(output_tty, output)
 
@@ -647,9 +653,11 @@ class akkumatik_display:
         self.command_abort = False #indicates missed commands - skip next ones
         self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
 
-        #TODO entweter laufenden programm (wobei das sendet ja erst nach start) oder
-        #     halt unabhaengit die dialog dinger speichern
-        #     alternativ ok = starten! dann sollte das ganze synchronisiert sein...
+        #     Entweter laufenden programm (wobei das sendet ja erst nach start) oder
+        #     halt unabhaengig die dialog dinger speichern
+        #     Alternativ ok = starten! dann sollte das ganze synchronisiert sein...
+        #
+        #     ^^^^ (Was jetzt auch der Fal ist......)
         #
         # wird ueberschrieben vom laufenden programm
         self.atyp = [0,0,0]
@@ -658,7 +666,6 @@ class akkumatik_display:
         self.stromw = [0,0,0]
         self.stoppm = [0,0,0]
         # gespeichert vom dialog
-        self.anz_zell = [0,0,0]
         self.kapazitaet =  [0,0,0]
         self.ladelimit =  [0,0,0]
         self.entladelimit =  [0,0,0]
@@ -693,8 +700,12 @@ class akkumatik_display:
             elif data == "Ausg":
                 if self.gewaehlter_ausgang == 1: #toggle ausgang
                     self.gewaehlter_ausgang = 2
+                    self.button_start.set_sensitive(False)
+                    self.button_stop.set_sensitive(False)
                 else:
                     self.gewaehlter_ausgang = 1
+                    self.button_start.set_sensitive(False)
+                    self.button_stop.set_sensitive(False)
             elif data == "Start":
                 self.command_abort = False #reset
                 if self.gewaehlter_ausgang == 1: #toggle ausgang
@@ -709,7 +720,7 @@ class akkumatik_display:
                 else:
                     self.akkumatik_command("42")
 
-            elif data == "Akku_Settings":
+            elif data == "Akku_Settings": #{{{
 
                 self.dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
                         + str(self.gewaehlter_ausgang), self.window,\
@@ -794,16 +805,10 @@ class akkumatik_display:
                 frame.show()
                 vbox.show()
 
-                #stuff into frame (vbox)
-                if self.anz_zell[self.gewaehlter_ausgang] == 0:
-                    zellen = self.anzahl_zellen[self.gewaehlter_ausgang]
-                else:
-                    zellen = self.anz_zell[self.gewaehlter_ausgang]
-
                 label = gtk.Label("Zellen Anzahl")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                adj = gtk.Adjustment(zellen, 0, 30, 1, 1, 0.0)
+                adj = gtk.Adjustment(self.anzahl_zellen[self.gewaehlter_ausgang], 0, 30, 1, 1, 0.0)
                 sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
                 sp_anzzellen.set_wrap(False)
                 sp_anzzellen.set_numeric(True)
@@ -880,7 +885,6 @@ class akkumatik_display:
                     hex_str += self.get_16bit_hex(int(sp_menge.get_value()))
                     hex_str += self.get_16bit_hex(int(sp_zyklen.get_value()))
 
-                    self.anz_zell[self.gewaehlter_ausgang] = int(sp_anzzellen.get_value())
                     self.kapazitaet[self.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
                     self.ladelimit[self.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
                     self.entladelimit[self.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
@@ -900,33 +904,6 @@ class akkumatik_display:
                     #u16 menge      // [mAh] max. FFFFh
                     #u16 zyklenzahl // 0...9
 
-                    #x_str = "Typ: "
-                    #x_str += self.get_pos_hex(cb_atyp.get_active_text(),self.AKKU_TYP)
-                    #x_str += " | Prog: "
-                    #x_str += self.get_pos_hex(cb_prog.get_active_text(),self.AMPROGRAMM)
-                    #x_str += " | Lart: "
-                    #x_str += self.get_pos_hex(cb_lart.get_active_text(),self.LADEART)
-                    #x_str += " | Stromw: "
-                    #x_str += self.get_pos_hex(cb_stromw.get_active_text(),self.STROMWAHL)
-                    #x_str += " | Stoppm: "
-                    #x_str += self.get_pos_hex(cb_stoppm.get_active_text(),self.STOPPMETHODE)
-
-                    #x_str += " | anzZ: "
-                    #x_str += self.get_16bit_hex(int(sp_anzzellen.get_value()))
-                    #x_str += " | kapa: "
-                    #x_str += self.get_16bit_hex(int(sp_kapazitaet.get_value()))
-                    #x_str += " | limit: "
-                    #x_str += self.get_16bit_hex(int(sp_ladelimit.get_value()))
-                    #x_str += " | I ent: "
-                    #x_str += self.get_16bit_hex(int(sp_entladelimit.get_value()))
-                    #x_str += " | I lad: "
-                    #x_str += self.get_16bit_hex(int(sp_menge.get_value()))
-                    #x_str += " | Zykl: "
-                    #x_str += self.get_16bit_hex(int(sp_zyklen.get_value()))
-                    #print x_str
-                    #print x_str
-
-
                     self.command_abort = False #reset
                     if self.gewaehlter_ausgang == 1: #toggle ausgang
                         self.akkumatik_command("41")
@@ -944,6 +921,7 @@ class akkumatik_display:
                     else:
                         self.akkumatik_command("48")
 
+        #}}}
         def draw_pixbuf(widget, event):
             path = self.exe_dir + '/bilder/Display.jpg'
             pixbuf = gtk.gdk.pixbuf_new_from_file(path)
@@ -951,8 +929,8 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(832,168)
-        self.window.set_default_size(832,168)
+        self.window.set_size_request(852,168)
+        self.window.set_default_size(852,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", delete_event)
@@ -1001,26 +979,32 @@ class akkumatik_display:
         hbox = gtk.HBox()
         vbox.pack_start(hbox, True, True, 0)
 
-        button = gtk.Button("Start")
-        button.connect("clicked", buttoncb, "Start")
-        hbox.pack_start(button, False, True, 0)
+        self.button_start = gtk.Button("Start")
+        self.button_start.connect("clicked", buttoncb, "Start")
+        hbox.pack_start(self.button_start, False, True, 0)
+        self.button_start.set_sensitive(False)
 
-        button = gtk.Button("Stop")
-        button.connect("clicked", buttoncb, "Stop")
-        hbox.pack_end(button, False, True, 0)
+        self.button_stop = gtk.Button("Stop")
+        self.button_stop.connect("clicked", buttoncb, "Stop")
+        hbox.pack_end(self.button_stop, False, True, 0)
+        self.button_stop.set_sensitive(False)
 
+        vbox.pack_start(gtk.HSeparator(), False, True, 5)
+
+        button = gtk.Button("Akku Para")
+        button.connect("clicked", buttoncb, "Akku_Settings")
+        vbox.pack_start(button, False, True, 0)
 
         button = gtk.Button("Chart")
         button.connect("clicked", buttoncb, "Chart")
         vbox.pack_start(button, False, True, 0)
 
         button = gtk.Button("Exit")
+        button.set_size_request(98,20)
         button.connect("clicked", buttoncb, "Exit")
         vbox.pack_end(button, False, True, 0)
 
-        button = gtk.Button("Akku Para")
-        button.connect("clicked", buttoncb, "Akku_Settings")
-        vbox.pack_end(button, False, True, 0)
+        vbox.pack_end(gtk.HSeparator(), False, True, 5)
 
         #}}}
         ##########################################
