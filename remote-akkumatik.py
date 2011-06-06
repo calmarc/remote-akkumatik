@@ -12,6 +12,7 @@ import time
 import subprocess
 import thread
 
+
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -47,6 +48,48 @@ class akkumatik_display:
         for c in string:
             final_str += chr(int("30", 16) + int(c, 16))
         return final_str
+
+    def command_thread(self, tname, com_str):
+        self.threadlock.acquire() #TODO make it how it should be instead of that here...
+
+        if self.command_abort == True: #skip on further soon to arrive commands
+            print "********************************************************************"
+            print "***  Kommando <%s> wird nicht gesendet da vorheriges fehlschlug  ***" % (com_str)
+            print "********************************************************************"
+            self.threadlock.release()
+            return
+
+        self.command_wait = True
+        self.ser.write(com_str)
+
+        ok = False
+        i=0
+        while i < 10:
+            time.sleep(0.2)
+            i += 1
+            if self.command_wait == False: #put on True before sending. - here waiting for False
+                ok = True
+                break
+
+        if ok == False:
+            print "********************************************************************"
+            print "***  Kommando <%s> kam *nicht* an  ***" % (com_str)
+            print "********************************************************************"
+            self.command_abort = True #skip on further soon to arrive commands
+        self.threadlock.release()
+
+    def akkumatik_command(self, string):
+
+        checksum = 2
+        for x in string:
+            checksum ^= ord(x)
+
+        checksum ^= 64 #dummy checksum byte itself to checksum...
+
+        #try:
+        thread.start_new_thread(self.command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3)))
+        #except:
+        #    print "Error: unable to start thread"
 
 ##########################################}}}
 #GnuPlotting stuff{{{
@@ -182,13 +225,13 @@ class akkumatik_display:
                 atyp = long(line_a[12])
 
                 #titel stuff
-                atyp_str = self.AKKU_TYP[long(daten[12])] #Akkutyp
-                prg = self.AMPROGRAMM[long(daten[13])] #Programm
-                lart = self.LADEART[long(daten[14])] #Ladeart
-                stromw = self.STROMWAHL[long(daten[15])] #stromwahl
-                stoppm = self.STOPPMETHODE[long(daten[16])] #stromwahl
+                atyp_str = self.AKKU_TYP[long(line_a[12])] #Akkutyp
+                prg = self.AMPROGRAMM[long(line_a[13])] #Programm
+                lart = self.LADEART[long(line_a[14])] #Ladeart
+                stromw = self.STROMWAHL[long(line_a[15])] #stromwahl
+                stoppm = self.STOPPMETHODE[long(line_a[16])] #stromwahl
                 #Stop >= 50?
-                anz_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+                anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
 
                 titel_plus = "("+str(anz_zellen)+", "+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+")"
 
@@ -339,6 +382,10 @@ class akkumatik_display:
             #filter out useless lines
             #could also check for last thing is a newline ... hm.
             #TODO: won't work when some spezial line got printed
+
+            if line[0:2] == "A1": #remove command-acknowledged string
+                line = line [5:]
+
             if len(previous_line1) > len(line) and previous_line1 > 0:
                 continue #probably last broken line
 
@@ -349,7 +396,6 @@ class akkumatik_display:
               #print ("FILTER OUT: Volt has Zero value")
               #continue
 
-            #TODO fails when there is some command ackknowledge string...
             if line[0:1] == "1":
 
                 current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
@@ -432,14 +478,6 @@ class akkumatik_display:
         while gtk.events_pending():
             gtk.main_iteration()
 
-    def akkumatik_command(self, string):
-
-        checksum = 2
-        for x in string:
-            checksum ^= ord(x)
-
-        checksum ^= 64 #dummy checksum byte itself to checksum...
-        self.ser.write(chr(2) + string + chr(checksum) + chr(3))
 
     def read_line(self):
         """Read serial data (called via interval via gobject.timeout_add)"""
@@ -461,11 +499,9 @@ class akkumatik_display:
             return True #ignore (defective?) line
 
         if len(daten[0]) > 1:
+            self.command_wait = False # Kommando kam an
+            print daten[0]
             daten[0] = daten[0][-1:]
-            #print "*******************"
-            #print "Commando Akzeptiert"
-            #print daten[0]
-            #print "*******************"
 
         #-1:0 - remove potential command return thing
         if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
@@ -594,7 +630,7 @@ class akkumatik_display:
     def __init__(self):
 
         ##########################################
-        #Konstanten
+        #Konstanten{{{
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
         self.LADEART = ["Konst", "Puls", "Reflex"]
@@ -605,8 +641,10 @@ class akkumatik_display:
 
         ##########################################
         #Class Variablen
+        self.threadlock = thread.allocate_lock()
         self.file_block = False
-        # um den fehlercode zu ueberbruecken
+        self.command_wait = False # threads are waiting when True on command acknowledge text
+        self.command_abort = False #indicates missed commands - skip next ones
         self.anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
 
         #TODO entweter laufenden programm (wobei das sendet ja erst nach start) oder
@@ -635,8 +673,9 @@ class akkumatik_display:
 
         self.picture_exe = '/usr/local/bin/qiv'
 
+        #}}}
         ##########################################
-        #GTK Stuff
+        #GTK Stuff{{{
         def delete_event(widget, event, data=None):
             return False
 
@@ -657,12 +696,14 @@ class akkumatik_display:
                 else:
                     self.gewaehlter_ausgang = 1
             elif data == "Start":
+                self.command_abort = False #reset
                 if self.gewaehlter_ausgang == 1: #toggle ausgang
                     self.akkumatik_command("44")
                 else:
                     self.akkumatik_command("48")
 
             elif data == "Stop":
+                self.command_abort = False #reset
                 if self.gewaehlter_ausgang == 1: #toggle ausgang
                     self.akkumatik_command("41")
                 else:
@@ -673,8 +714,8 @@ class akkumatik_display:
                 self.dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
                         + str(self.gewaehlter_ausgang), self.window,\
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
-                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+                self.dialog.add_button("Start Ausgang %i" % (self.gewaehlter_ausgang), -3)
 
                 #hbox over the whole dialog
                 hbox = gtk.HBox(False, 0)
@@ -754,10 +795,15 @@ class akkumatik_display:
                 vbox.show()
 
                 #stuff into frame (vbox)
+                if self.anz_zell[self.gewaehlter_ausgang] == 0:
+                    zellen = self.anzahl_zellen[self.gewaehlter_ausgang]
+                else:
+                    zellen = self.anz_zell[self.gewaehlter_ausgang]
+
                 label = gtk.Label("Zellen Anzahl")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                adj = gtk.Adjustment(self.anz_zell[self.gewaehlter_ausgang], 0, 30, 1, 1, 0.0)
+                adj = gtk.Adjustment(zellen, 0, 30, 1, 1, 0.0)
                 sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
                 sp_anzzellen.set_wrap(False)
                 sp_anzzellen.set_numeric(True)
@@ -880,8 +926,23 @@ class akkumatik_display:
                     #print x_str
                     #print x_str
 
-                    print hex_str
+
+                    self.command_abort = False #reset
+                    if self.gewaehlter_ausgang == 1: #toggle ausgang
+                        self.akkumatik_command("41")
+                    else:
+                        self.akkumatik_command("42")
+
+                    time.sleep(0.6) #needs somehow, else the threads gets out of order possibly
+
                     self.akkumatik_command(hex_str)
+
+                    time.sleep(0.6) #needs somehow, else the threads gets out of order possibly
+
+                    if self.gewaehlter_ausgang == 1: #toggle ausgang
+                        self.akkumatik_command("44")
+                    else:
+                        self.akkumatik_command("48")
 
         def draw_pixbuf(widget, event):
             path = self.exe_dir + '/bilder/Display.jpg'
@@ -961,8 +1022,9 @@ class akkumatik_display:
         button.connect("clicked", buttoncb, "Akku_Settings")
         vbox.pack_end(button, False, True, 0)
 
+        #}}}
         ##########################################
-        #Serial
+        #Serial{{{
         self.ser = serial.Serial(
             port='/dev/ttyS0',
             baudrate = 9600,
