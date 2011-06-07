@@ -232,9 +232,13 @@ class akkumatik_display:
                 stoppm = self.STOPPMETHODE[long(line_a[16])] #stromwahl
                 #Stop >= 50?
                 anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+                if anz_zellen >= 40: # not really needed there in the title anyway.
+                    anz_z_str = ""
+                else:
+                    anz_z_str = str(anz_zellen) + "x"
 
-                titel_plus = " ["+str(anz_zellen)+"x"+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+"] - "
-                titel_little = " ["+str(anz_zellen)+"x"+atyp_str+"] - "
+                titel_plus = " ["+anz_z_str+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+"] - "
+                titel_little = " ["+anz_z_str+atyp_str+"] - "
 
                 if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
                     f = self.open_file(self.tmp_dir + "/" + fname, "r")
@@ -256,7 +260,6 @@ class akkumatik_display:
                 else:
                     titel = "Unbekannte Phase <"+str(phasenr)+">" + titel_plus
                     g('set yrange [*:*];')
-
 
                 g('set terminal png size 1280, 1024;')
                 g('set output "' + self.tmp_dir + "/" + fname[:-4] + '.png"')
@@ -426,7 +429,7 @@ class akkumatik_display:
                 current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
 
                 if previous_time2 == current_time2:  #duplicate time -> ignore so far
-                    print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
+                    #print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
                     continue
 
                 previousline2 = line
@@ -469,8 +472,8 @@ class akkumatik_display:
 
     def output_data(self, output_tty, output):
         #terminal output
-        sys.stdout.write (output_tty)
-        sys.stdout.flush()
+        #sys.stdout.write (output_tty)
+        #sys.stdout.flush()
 
         #graphical output
         self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
@@ -499,8 +502,7 @@ class akkumatik_display:
 
         if len(daten[0]) > 1:
             self.command_wait = False # Kommando kam an
-            print daten[0]
-            daten[0] = daten[0][-1:]
+            daten[0] = daten[0][-1:] #last digit only (Ausgang)
 
         #-1:0 - remove potential command return thing
         if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
@@ -561,10 +563,14 @@ class akkumatik_display:
             if len(tmp_a) > 0:
                 balance_delta = max(tmp_a) - min(tmp_a)
 
+            output_tty = "" # need tty out put needed really
+                            # vial akku para almost everthing is there
+                            # besides of single cell on lipo.... but there
+                            # the charts might help
 
             if phase == 0: #dann 'Fehlercode' zwangsweise ...?
                 if tmp_zellen >= 54: # FEHLER
-                    output_tty = self.FEHLERCODE[tmp_zellen - 50] + "\n\n"
+                    #output_tty = self.FEHLERCODE[tmp_zellen - 50] + "\n\n"
                     output = self.FEHLERCODE[tmp_zellen - 50]
                     self.output_data(output_tty, output)
                     return True
@@ -597,12 +603,12 @@ class akkumatik_display:
                 phasedesc = atyp[0:1] + c + str(phase)
 
             #terminal print
-            output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (self.gewaehlter_ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
-            output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, stromw, stoppm)
-            output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%i x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, sp)
-            if cellmV != "":
-                output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
-            output_tty += "\n\n"
+            #output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (self.gewaehlter_ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
+            #output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, stromw, stoppm)
+            #output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%i x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, sp)
+            #if cellmV != "":
+            #    output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
+            #output_tty += "\n\n"
 
             #< stunde dann Minunte:Sekunden, sonst Stunde:Minuten
             if zeit[0:2] == "00":
