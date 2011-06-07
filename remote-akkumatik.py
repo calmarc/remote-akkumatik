@@ -53,9 +53,8 @@ class akkumatik_display:
         self.threadlock.acquire() #TODO make it how it *should be* instead of that here...
 
         if self.command_abort == True: #skip on further soon to arrive commands
-            print "********************************************************************"
-            print "***  Kommando <%s> wird nicht gesendet da vorheriges fehlschlug  ***" % (com_str)
-            print "********************************************************************"
+            print "\n* [Kommando] *******************************************************"
+            print "Kommando <%s> wird nicht gesendet da vorheriges fehlschlug" % (com_str)
             self.threadlock.release()
             return
 
@@ -72,9 +71,8 @@ class akkumatik_display:
                 break
 
         if ok == False:
-            print "********************************************************************"
-            print "***  Kommando <%s> kam *nicht* an  ***" % (com_str)
-            print "********************************************************************"
+            print "\n* [Kommando] *******************************************************"
+            print "Kommando <%s> kam *nicht* an" % (com_str)
             self.command_abort = True #skip on further soon to arrive commands
         self.threadlock.release()
 
@@ -207,9 +205,7 @@ class akkumatik_display:
         qiv_files = ""
         dirList=os.listdir(self.tmp_dir)
         dirList.sort()
-        print "*********************************************************************"
-        print "****                       (Gnu-)Plotting                        ****"
-        print "****                                                             ****"
+        print "\n* [Gnu-Plotting] ****************************************************"
         for fname in dirList:
             if fname[0:4] == "Akku" and fname[4:6] == str(self.gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
                 qiv_files += self.chart_dir + "/" + fname[:-4] + ".png "
@@ -317,7 +313,7 @@ class akkumatik_display:
 
                 g('set nomultiplot;')
                 g('reset')
-                print "**** Generated: "+"%44s"%(self.chart_dir + "/" +fname[-27:-4])+".png ****"
+                print "Generated:  "+"%44s"%(self.chart_dir + "/" +fname[-27:-4])+".png"
             else:
                 continue
 
@@ -363,9 +359,7 @@ class akkumatik_display:
         current_time2 = 0
         previous_time2 = 0
 
-        print "*********************************************************************"
-        print "****                       Serial-Splitting                      ****"
-        print "****                                                             ****"
+        print "\n* [Serial Splitting] ************************************************"
 
         for file in os.listdir(self.tmp_dir):
             if len(file) == 12 and file[0:4] == "Akku":
@@ -376,7 +370,7 @@ class akkumatik_display:
 
         if os.path.getsize(self.tmp_dir + '/serial-akkumatik.dat') < 10:
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a') #reopen
-            print "**** Not sufficient Serial Data avaiable"
+            print "Not sufficient Serial Data avaiable"
             self.file_block = False
             return
 
@@ -425,7 +419,7 @@ class akkumatik_display:
                     fh1 = self.open_file(fname, "w+")
                     fh1.write(ausgang1_part)
                     fh1.close()
-                    print "**** Generated: " + "%48s" % (fname[-47:]) + " ****"
+                    print "Generated:  " + "%48s" % (fname[-47:])
                     file_zaehler1 += 1
                     ausgang1_part = line
                     line_counter1 = 0
@@ -450,7 +444,7 @@ class akkumatik_display:
                     fh2 = self.open_file(fname, "w+")
                     fh2.write(ausgang2_part)
                     fh2.close()
-                    print "**** Generated: " + "%48s" % (fname[-47:]) + " ****"
+                    print "Generated:  " + "%48s" % (fname[-47:])
                     file_zaehler2 += 1
                     ausgang2_part = line
                     line_counter2 = 0
@@ -460,27 +454,26 @@ class akkumatik_display:
                 previous_time2 = current_time2
 
             else:
-                print "==============================================================="
+                print "\n= [Spez Line...] ============================================================"
                 print "SPEZ: " + line
-                print "==============================================================="
 
         if len(ausgang1_part) > 0:
             fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
             fh1 = self.open_file(fname, "w+")
             fh1.write(ausgang1_part)
             fh1.close()
-            print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
+            print "Generated: " + "%28s" % (fname[-27:])
         if len(ausgang2_part) > 0:
             fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
             fh2 = self.open_file(fname, "w+")
             fh2.write(ausgang2_part)
-            print "**** Generated: " + "%28s" % (fname[-27:]) + " ****"
+            print "Generated: " + "%28s" % (fname[-27:])
 
 ##########################################}}}
 #Serial + output stuff{{{
 ##########################################
 
-    def output_data(self, output_tty, output, output2):
+    def output_data(self, output, output2):
         #terminal output
         #sys.stdout.write (output_tty)
         #sys.stdout.flush()
@@ -496,7 +489,7 @@ class akkumatik_display:
         """Read serial data (called via interval via gobject.timeout_add)"""
 
         if self.file_block == True:
-            print "********************** Blocked serial input adding"
+            print "* [Debug] ********************* Blocked serial input adding"
             return True
 
         lin = self.ser.readline()
@@ -578,16 +571,10 @@ class akkumatik_display:
             if len(tmp_a) > 0:
                 balance_delta = max(tmp_a) - min(tmp_a)
 
-            output_tty = "" # need tty out put needed really
-                            # vial akku para almost everthing is there
-                            # besides of single cell on lipo.... but there
-                            # the charts might help
-
             if phase == 0: #dann 'Fehlercode' zwangsweise ...?
                 if tmp_zellen >= 54: # FEHLER
-                    #output_tty = self.FEHLERCODE[tmp_zellen - 50] + "\n\n"
                     output = self.FEHLERCODE[tmp_zellen - 50]
-                    self.output_data(output_tty, output)
+                    self.output_data(output, "")
                     return True
 
                 if tmp_zellen >= 50: #'gute' codes
@@ -617,14 +604,6 @@ class akkumatik_display:
 
                 phasedesc = atyp[0:1] + c + str(phase)
 
-            #terminal print
-            #output_tty ="[Ausgang %s] [Phase/Zyklus: %s/%i] [%s] [%s] [%.3fAh] [Ri: %imOhm] [%s]\n" % (self.gewaehlter_ausgang, phasedesc, zyklus, ladeV, ampere, Ah, RimOhm, zeit)
-            #output_tty += "[Programm: %s] [Ladeart %s] [Stromwahl: %s] [Stoppmethode %s]\n" % (prg, lart, stromw, stoppm)
-            #output_tty += "[%i°(Batterie)] [%i°(Kuehlkoerper)] [%i x %s][Akkuspeicher: %i]\n" % (cBat, cKK, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, sp)
-            #if cellmV != "":
-            #    output_tty += "[Zellenspannung mV: %s | Delta: %imV ]" %( cellmV, balance_delta)
-            #output_tty += "\n\n"
-
             #< stunde dann Minunte:Sekunden, sonst Stunde:Minuten
             if zeit[0:2] == "00":
                 zeit = zeit [3:]
@@ -642,14 +621,9 @@ class akkumatik_display:
             output2 ="%ix%s %2i° %s Z:%1i/%i\n" % (self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cBat, RimOhm_BalDelta, zyklus, self.zyklen[self.gewaehlter_ausgang])
             output2 +="%s %s %s %s\n" % (prg, lart, stromw, stoppm)
             output2 +="Kap:%imAh ILa:%imA IEn:%imA\n" % (self.kapazitaet[self.gewaehlter_ausgang], self.ladelimit[self.gewaehlter_ausgang], self.entladelimit[self.gewaehlter_ausgang])
-            output2 +="Menge:%imAh Ver-U:%5.2fV %2i°KK\n" % (self.menge[self.gewaehlter_ausgang], VersU, cKK)
+            output2 +="Menge:%imAh VerU:%5.2fV %2i°KK\n" % (self.menge[self.gewaehlter_ausgang], VersU, cKK)
 
-            self.output_data(output_tty, output, output2)
-
-        #self.kapazitaet[self.gewaehlter_ausgang]
-        #self.ladelimit[self.gewaehlter_ausgang]
-        #self.entladelimit[self.gewaehlter_ausgang]
-        #self.menge[self.gewaehlter_ausgang]
+            self.output_data(output, output2)
 
         return True
 
@@ -691,7 +665,6 @@ class akkumatik_display:
         #     ^^^^ (Was jetzt auch der Fal ist......)
         #
         # wird ueberschrieben vom laufenden programm
-        # TODO not string?
         self.atyp = [0,0,0]
         self.prg = [0,0,0]
         self.lart = [0,0,0]
@@ -733,10 +706,9 @@ class akkumatik_display:
 
         print "* [ Config ] ***********************************"
         print "Picture viewer: %s" % (self.picture_exe)
-        print "Serial Port: %s" % (self.serial_port)
-        print "Chart Path: %s" % (self.chart_dir)
-        print "Tmp Path: %s" % (self.tmp_dir)
-        print "************************************************"
+        print "Serial Port:    %s" % (self.serial_port)
+        print "Chart Path:     %s" % (self.chart_dir)
+        print "Tmp Path:       %s" % (self.tmp_dir)
 
         if not os.path.isdir(self.tmp_dir):
             try:
@@ -953,6 +925,9 @@ class akkumatik_display:
                 retval = self.dialog.run()
                 self.dialog.destroy()
 
+                if int(sp_menge.get_value()) > int(sp_kapazitaet.get_value()):
+                    print "* [Achtung] *******************************************************************************"
+                    print "Lademenge ist groesser als die Kapazitaet - Akkumatik wird das vielleicht nicht akzeptieren"
                 if retval == -3: #OK got pressed
                     hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
                     hex_str += self.get_pos_hex(cb_atyp.get_active_text(),self.AKKU_TYP)
@@ -1036,12 +1011,10 @@ class akkumatik_display:
         hbox.pack_start(align, False, False, 0)
 
         self.label2 = gtk.Label()
-        self.label2.modify_font(pango.FontDescription("mono 14"))
-
-        #self.label2.set_size_request(220,428)
+        self.label2.modify_font(pango.FontDescription("mono 13"))
 
         align = gtk.Alignment(0.0,0.0,0.0,0.0)
-        align.set_padding(26,0,22,0)
+        align.set_padding(27,0,29,0)
         align.add(self.label2)
         hbox.pack_start(align, False, False, 0)
         #hbox.pack_start(self.label2, False, False, 20)
