@@ -262,7 +262,7 @@ class akkumatik_display:
                     g('set yrange [*:*];')
 
                 g('set terminal png size 1280, 1024;')
-                g('set output "' + self.tmp_dir + "/" + fname[:-4] + '.png"')
+                g('set output "' + self.chart_dir + "/" + fname[:-4] + '.png"')
 
                 g('set xdata time;')
                 g("set datafile separator '\xff';")
@@ -317,14 +317,15 @@ class akkumatik_display:
 
                 g('set nomultiplot;')
                 g('reset')
-                print "**** Generated: "+"%44s"%(self.tmp_dir + "/" +fname[-27:-4])+".png ****"
+                print "**** Generated: "+"%44s"%(self.chart_dir + "/" +fname[-27:-4])+".png ****"
             else:
                 continue
 
-        time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
-        args = shlex.split(qiv_files)
-        arguments = ' '.join(str(n) for n in args)
-        thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
+        if len(qiv_files) > 0:
+            time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
+            args = shlex.split(qiv_files)
+            arguments = ' '.join(str(n) for n in args)
+            thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
 
 
 ##########################################}}}
@@ -372,7 +373,16 @@ class akkumatik_display:
 
         self.file_block = True #stop getting more serial data
         self.f.close()
+
+        if os.path.getsize(self.tmp_dir + '/serial-akkumatik.dat') < 10:
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a') #reopen
+            print "**** Not sufficient Serial Data avaiable"
+            self.file_block = False
+            return
+
+        self.file_block = True #stop getting more serial data
         self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'r')
+
         for line in self.f.readlines():
             if self.file_block == True:
                 self.f.close()
@@ -680,12 +690,62 @@ class akkumatik_display:
 
         self.gewaehlter_ausgang = 1
         self.exe_dir = sys.path[0]
-        self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
-        if not os.path.isdir(self.tmp_dir):
-            os.mkdir(self.tmp_dir)
 
-        #TODO not hardcoded :P
+        #Defaults
         self.picture_exe = '/usr/local/bin/qiv'
+        self.serial_port = '/dev/ttyS0'
+        self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
+        self.chart_dir = self.tmp_dir
+
+        if os.path.exists(self.exe_dir + "/config.txt"):
+            fh = self.open_file(self.exe_dir + "/config.txt", "r")
+
+            for line in fh.readlines():
+                if len(line.strip()) < 5:
+                    continue
+                split = line.split("=", 1)
+                if split[0].strip().lower()[0] == "#":
+                    continue
+                elif split[0].strip().lower() == "viewer":
+                    self.picture_exe = split[1].strip()
+                elif split[0].strip().lower() == "port":
+                    self.serial_port = split[1].strip()
+                elif split[0].strip().lower() == "chart_path":
+                    self.chart_dir = split[1].strip()
+                elif split[0].strip().lower() == "tmp_path":
+                    self.tmp_dir = split[1].strip()
+
+        print "** [ Config ] **********************************"
+        print "Picture viewer: %s" % (self.picture_exe)
+        print "Serial Port: %s" % (self.serial_port)
+        print "Chart Path: %s" % (self.chart_dir)
+        print "Tmp Path: %s" % (self.tmp_dir)
+        print "************************************************"
+
+        if not os.path.isdir(self.tmp_dir):
+            try:
+                os.mkdir(self.tmp_dir)
+            except OSError as exc: # Python >2.5
+                if exc.errno == errno.EEXIST:
+                    pass
+                else:
+                    print "Unable to create [%s] directory" % self.tmp_dir, "Ending program.\n", e
+                    raw_input("\n\nPress the enter key to exit.")
+                    sys.exit()
+        if not os.path.isdir(self.chart_dir):
+            try:
+                os.mkdir(self.chart_dir)
+            except OSError as exc: # Python >2.5
+                if exc.errno == errno.EEXIST:
+                    pass
+                else:
+                    print "Unable to create [%s] directory" % self.chart_dir, "Ending program.\n", e
+                    raw_input("\n\nPress the enter key to exit.")
+                    sys.exit()
+
+
+
+
 
         #}}}
         ##########################################
@@ -1018,7 +1078,7 @@ class akkumatik_display:
         #Serial{{{
         self.ser = serial.Serial(
             #TODO not hardcoded
-            port='/dev/ttyS0',
+            port=self.serial_port,
             baudrate = 9600,
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,

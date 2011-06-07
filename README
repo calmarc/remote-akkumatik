@@ -1,10 +1,11 @@
 Remote Akkumatik Control
 
-Early stage.
-
 TODO:
 
-Control the Akkumatik from the PC
+Add config file for:
+    picture viewer
+    serial port
+    tmp data directory (if std tmp not desired)
 
-Then it will be in a stage, where it fulfills my personal
-need however.
+Matplotlib instead of gnuplot? For windoof it would be
+easier possibly.
