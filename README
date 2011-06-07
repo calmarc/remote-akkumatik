@@ -1,5 +1,17 @@
 Remote Akkumatik Control
 
+Config file: exe_dir/config.txt
+
+Example Config
+--
+# remote akkumatik config file
+
+serial_port = "/dev/ttyS0"
+viewer = /usr/local/bin/qiv
+hart_path = /home/calmar/remote-akkumatik/data
+tmp_path =  /tmp/remote-akkumatik
+--
+
 TODO:
 
 Add config file for:

@@ -708,14 +708,14 @@ class akkumatik_display:
                     continue
                 elif split[0].strip().lower() == "viewer":
                     self.picture_exe = split[1].strip()
-                elif split[0].strip().lower() == "port":
+                elif split[0].strip().lower() == "serial_port":
                     self.serial_port = split[1].strip()
                 elif split[0].strip().lower() == "chart_path":
                     self.chart_dir = split[1].strip()
                 elif split[0].strip().lower() == "tmp_path":
                     self.tmp_dir = split[1].strip()
 
-        print "** [ Config ] **********************************"
+        print "* [ Config ] ***********************************"
         print "Picture viewer: %s" % (self.picture_exe)
         print "Serial Port: %s" % (self.serial_port)
         print "Chart Path: %s" % (self.chart_dir)
