@@ -212,7 +212,7 @@ class akkumatik_display:
         print "****                                                             ****"
         for fname in dirList:
             if fname[0:4] == "Akku" and fname[4:6] == str(self.gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
-                qiv_files += self.tmp_dir + "/" + fname[:-4] + ".png "
+                qiv_files += self.chart_dir + "/" + fname[:-4] + ".png "
 
                 f = self.open_file(self.tmp_dir + "/" + fname, "r")
                 while True: #ignore other than real data lines
@@ -893,7 +893,7 @@ class akkumatik_display:
                 vbox.pack_start(sp_kapazitaet, False, True, 0)
                 sp_kapazitaet.show()
 
-                label = gtk.Label("Lade Limit mA")
+                label = gtk.Label("I-Laden mA")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.ladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
@@ -903,7 +903,7 @@ class akkumatik_display:
                 vbox.pack_start(sp_ladelimit, False, True, 0)
                 sp_ladelimit.show()
 
-                label = gtk.Label("Entlade Limit mA")
+                label = gtk.Label("I-Entladen mA")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.entladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
@@ -913,7 +913,7 @@ class akkumatik_display:
                 vbox.pack_start(sp_entladelimit, False, True, 0)
                 sp_entladelimit.show()
 
-                label = gtk.Label("Menge")
+                label = gtk.Label("Menge mAh")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.menge[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
@@ -1077,7 +1077,6 @@ class akkumatik_display:
         ##########################################
         #Serial{{{
         self.ser = serial.Serial(
-            #TODO not hardcoded
             port=self.serial_port,
             baudrate = 9600,
             parity = serial.PARITY_NONE,
