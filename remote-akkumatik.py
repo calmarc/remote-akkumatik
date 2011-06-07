@@ -160,7 +160,7 @@ class akkumatik_display:
             gpst +=  'set yrange [*:*];\n'
             divisor = "1"
         else:
-            gpst +=  'set yrange [600:1700];\n'
+            gpst +=  'set yrange [600:1899];\n'
             divisor = str(self.anzahl_zellen[self.gewaehlter_ausgang])
 
         gpst += 'plot wfile using 2:($3/'+divisor+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
@@ -480,13 +480,14 @@ class akkumatik_display:
 #Serial + output stuff{{{
 ##########################################
 
-    def output_data(self, output_tty, output):
+    def output_data(self, output_tty, output, output2):
         #terminal output
         #sys.stdout.write (output_tty)
         #sys.stdout.flush()
 
         #graphical output
         self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
+        self.label2.set_markup('<span foreground="#339933">'+ output2 + '</span>')
         while gtk.events_pending():
             gtk.main_iteration()
 
@@ -528,8 +529,8 @@ class akkumatik_display:
                 ampere = "%imA" % (ampere)
 
             Ah = long(daten[4])/1000.0 #Ladungsmenge Ah
-            VersU = long(daten[5]) #Versorungsspannung mV
-            RimOhm = long(daten[6]) #akku-unnen mOhm
+            VersU = long(daten[5])/1000.0 #Versorungsspannung mV
+            RimOhm_BalDelta = long(daten[6]) #akku-unnen mOhm
             cBat = long(daten[7]) #Akkutemperatur
             tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
             if tmp_zellen < 50:
@@ -540,9 +541,13 @@ class akkumatik_display:
                 self.button_start.set_sensitive(True)
                 self.button_stop.set_sensitive(False)
             else:
-                self.button_start.set_sensitive(False)
+                if phase == 10: #Pause
+                    self.button_start.set_sensitive(True)
+                else:
+                    self.button_start.set_sensitive(False)
                 self.button_stop.set_sensitive(True)
 
+            #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen
             zyklus = long(daten[10]) #Zyklus
             sp = long(daten[11]) #Aktive Akkuspeicher
 
@@ -627,14 +632,24 @@ class akkumatik_display:
                 zeit = zeit [:-3]
 
             #label print
-            RimOhm = "Ri:%03i" % (RimOhm)
+            RimOhm_BalDelta = "Ri:%03i" % (RimOhm_BalDelta)
             #TODO:  more elgegant...
             if len(daten) > 19:
-                RimOhm = "∆%2imV " % (balance_delta)
+                RimOhm_BalDelta = "∆%2imV " % (balance_delta)
 
-            output ="%s%s %s %s %s %2i°B \n%-7s   %+6.3fAh %ix%s %2i°K" % (ausgang, phasedesc, ladeV, zeit, RimOhm, cBat, ampere, Ah, self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cKK)
+            output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, ladeV, zeit, ampere, Ah)
 
-            self.output_data(output_tty, output)
+            output2 ="%ix%s %2i° %s Z:%1i/%i\n" % (self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cBat, RimOhm_BalDelta, zyklus, self.zyklen[self.gewaehlter_ausgang])
+            output2 +="%s %s %s %s\n" % (prg, lart, stromw, stoppm)
+            output2 +="Kap:%imAh ILa:%imA IEn:%imA\n" % (self.kapazitaet[self.gewaehlter_ausgang], self.ladelimit[self.gewaehlter_ausgang], self.entladelimit[self.gewaehlter_ausgang])
+            output2 +="Menge:%imAh Ver-U:%5.2fV %2i°KK\n" % (self.menge[self.gewaehlter_ausgang], VersU, cKK)
+
+            self.output_data(output_tty, output, output2)
+
+        #self.kapazitaet[self.gewaehlter_ausgang]
+        #self.ladelimit[self.gewaehlter_ausgang]
+        #self.entladelimit[self.gewaehlter_ausgang]
+        #self.menge[self.gewaehlter_ausgang]
 
         return True
 
@@ -658,7 +673,7 @@ class akkumatik_display:
         self.LADEART = ["Konst", "Puls", "Reflex"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
-        self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung,", "Fehler Zellenspannung,", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
+        self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung", "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
         self.LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
         ##########################################
@@ -676,6 +691,7 @@ class akkumatik_display:
         #     ^^^^ (Was jetzt auch der Fal ist......)
         #
         # wird ueberschrieben vom laufenden programm
+        # TODO not string?
         self.atyp = [0,0,0]
         self.prg = [0,0,0]
         self.lart = [0,0,0]
@@ -996,13 +1012,13 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(852,168)
-        self.window.set_default_size(852,168)
+        self.window.set_size_request(1006,168)
+        self.window.set_default_size(1006,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", delete_event)
         self.window.connect("destroy", destroy)
-        self.window.set_border_width(10)
+        self.window.set_border_width(8)
 
         # overall hbox
         hbox = gtk.HBox()
@@ -1013,14 +1029,26 @@ class akkumatik_display:
         self.label = gtk.Label()
         self.label.modify_font(pango.FontDescription("mono 22"))
 
-        hbox.pack_start(self.label, False, False, 50)
+        align = gtk.Alignment(0.0,0.0,0.0,0.0)
+        align.set_padding(36,0,48,0)
+        align.add(self.label)
+
+        hbox.pack_start(align, False, False, 0)
+
+        self.label2 = gtk.Label()
+        self.label2.modify_font(pango.FontDescription("mono 14"))
+
+        #self.label2.set_size_request(220,428)
+
+        align = gtk.Alignment(0.0,0.0,0.0,0.0)
+        align.set_padding(26,0,22,0)
+        align.add(self.label2)
+        hbox.pack_start(align, False, False, 0)
+        #hbox.pack_start(self.label2, False, False, 20)
 
         #vbox for buttons
         vbox = gtk.VBox()
         hbox.pack_end(vbox, False, False, 0)
-
-        #label_ausgang = gtk.Label("<1 Ausgang 2> "+str(self.gewaehlter_ausgang))
-        #vbox.pack_start(label_ausgang, False, True, 0)
 
         # hbox for radios
         hbox = gtk.HBox()
