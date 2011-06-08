@@ -963,12 +963,13 @@ class akkumatik_display:
                     #u16 zyklenzahl // 0...9
 
                     self.command_abort = False #reset
-                    if self.gewaehlter_ausgang == 1: #toggle ausgang
-                        self.akkumatik_command("41")
-                    else:
-                        self.akkumatik_command("42")
 
-                    time.sleep(0.6) #needs somehow, else the threads gets out of order possibly
+                    #if self.gewaehlter_ausgang == 1: #toggle ausgang
+                        #self.akkumatik_command("41")
+                    #else:
+                        #self.akkumatik_command("42")
+
+                    #time.sleep(0.6) #needs somehow, else the threads gets out of order possibly
 
                     self.akkumatik_command(hex_str)
 
@@ -1094,7 +1095,6 @@ class akkumatik_display:
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a')
-            print "CONTINUE: Appending to file"
         elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
         else:
