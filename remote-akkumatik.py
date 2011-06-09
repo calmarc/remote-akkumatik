@@ -736,13 +736,13 @@ class akkumatik_display:
                 if split[0].strip().lower()[0] == "#":
                     continue
                 elif split[0].strip().lower() == "viewer":
-                    self.picture_exe = split[1].strip()
+                    self.picture_exe = split[1].strip().replace("\\","/") #windows hm...
                 elif split[0].strip().lower() == "serial_port":
                     self.serial_port = split[1].strip()
                 elif split[0].strip().lower() == "chart_path":
-                    self.chart_dir = split[1].strip()
+                    self.chart_dir = split[1].strip().replace("\\","/")
                 elif split[0].strip().lower() == "tmp_path":
-                    self.tmp_dir = split[1].strip()
+                    self.tmp_dir = split[1].strip().replace("\\","/")
 
         print "* [ Config ] ***********************************"
         print "Picture viewer: %s" % (self.picture_exe)
@@ -1047,25 +1047,20 @@ class akkumatik_display:
         if platform.system() == "Windows": #TODO check once if that fits...
             self.label.modify_font(pango.FontDescription("mono 25"))
         else:
-            self.label.modify_font(pango.FontDescription("mono 22"))
+            self.label.modify_font(pango.FontDescription("mono 28"))
 
-        align = gtk.Alignment(0.0,0.0,0.0,0.0)
-        align.set_padding(36,0,48,0)
-        align.add(self.label)
+        gfixed = gtk.Fixed()
+        gfixed.put(self.label, 48 , 35)
 
-        hbox.pack_start(align, False, False, 0)
+        hbox.pack_start(gfixed, False, False, 0)
 
         self.label2 = gtk.Label()
         if platform.system() == "Windows": #TODO check once if that fits...
             self.label2.modify_font(pango.FontDescription("mono 15"))
         else:
-            self.label2.modify_font(pango.FontDescription("mono 13"))
+            self.label2.modify_font(pango.FontDescription("mono 17"))
 
-        align = gtk.Alignment(0.0,0.0,0.0,0.0)
-        align.set_padding(27,0,29,0)
-        align.add(self.label2)
-        hbox.pack_start(align, False, False, 0)
-        #hbox.pack_start(self.label2, False, False, 20)
+        gfixed.put(self.label2, 440, 28)
 
         #vbox for buttons
         vbox = gtk.VBox()
