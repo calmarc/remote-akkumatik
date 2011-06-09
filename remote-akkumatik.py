@@ -21,6 +21,9 @@ import gobject
 
 import Gnuplot, Gnuplot.funcutils
 import serial
+import platform
+
+import matplotlib.pyplot as plt
 
 
 class akkumatik_display:
@@ -323,6 +326,13 @@ class akkumatik_display:
             arguments = ' '.join(str(n) for n in args)
             thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
 
+##########################################}}}
+#Matplot stuff{{{
+##########################################
+    def matplot(self):
+        plt.plot([1,2,3,4])
+        plt.ylabel('some numbers')
+        plt.show()
 
 ##########################################}}}
 #File handling stuff {{{
@@ -747,7 +757,8 @@ class akkumatik_display:
         def buttoncb (widget, data=None):
             if data == "Chart":
                 self.filesplit(self.f)
-                self.gnuplot()
+                #self.gnuplot()
+                self.matplot()
 
             elif data == "Exit":
                 gtk.main_quit()
@@ -1003,7 +1014,10 @@ class akkumatik_display:
 
         # akkumatik display label
         self.label = gtk.Label()
-        self.label.modify_font(pango.FontDescription("mono 22"))
+        if platform.system() == "Windows": #TODO check once if that fits...
+            self.label.modify_font(pango.FontDescription("mono 25"))
+        else:
+            self.label.modify_font(pango.FontDescription("mono 22"))
 
         align = gtk.Alignment(0.0,0.0,0.0,0.0)
         align.set_padding(36,0,48,0)
@@ -1012,7 +1026,10 @@ class akkumatik_display:
         hbox.pack_start(align, False, False, 0)
 
         self.label2 = gtk.Label()
-        self.label2.modify_font(pango.FontDescription("mono 13"))
+        if platform.system() == "Windows": #TODO check once if that fits...
+            self.label2.modify_font(pango.FontDescription("mono 15"))
+        else:
+            self.label2.modify_font(pango.FontDescription("mono 13"))
 
         align = gtk.Alignment(0.0,0.0,0.0,0.0)
         align.set_padding(27,0,29,0)
@@ -1078,6 +1095,8 @@ class akkumatik_display:
         #}}}
         ##########################################
         #Serial{{{
+        if platform.system() == "Windows":
+            self.serial_port = '\\.' + self.serial_port #TODO does possibly not work
         self.ser = serial.Serial(
             port=self.serial_port,
             baudrate = 9600,
@@ -1090,7 +1109,9 @@ class akkumatik_display:
             interCharTimeout = None)
 
 
-        self.ser.open()
+        if platform.system() != "Windows":
+            self.ser.open()
+
         self.ser.isOpen()
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
