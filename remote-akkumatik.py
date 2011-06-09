@@ -962,9 +962,6 @@ class akkumatik_display:
                 retval = self.dialog.run()
                 self.dialog.destroy()
 
-                if int(sp_menge.get_value()) > int(sp_kapazitaet.get_value()):
-                    print "* [Achtung] *******************************************************************************"
-                    print "Lademenge ist groesser als die Kapazitaet - Akkumatik wird das vielleicht nicht akzeptieren"
                 if retval == -3: #OK got pressed
                     hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
                     hex_str += self.get_pos_hex(cb_atyp.get_active_text(),self.AKKU_TYP)
