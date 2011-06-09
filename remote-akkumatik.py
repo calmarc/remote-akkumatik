@@ -1129,11 +1129,8 @@ class akkumatik_display:
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
-            dsrdtr = False,
-            rtscts = False,
             timeout = 0.1, #some tuning around with that value possibly
-            writeTimeout = 2.0,
-            interCharTimeout = None)
+            writeTimeout = 2.0)
 
 
         if platform.system() != "Windows":
