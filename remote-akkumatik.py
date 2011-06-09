@@ -219,7 +219,11 @@ class akkumatik_display:
                     if l[0] != "#":
                         break
                 f.close()
-                line_a = l.split("\xff")
+                if platform.system() == "Windows":
+                    line_a = l.split(" ")
+                else:
+                    line_a = l.split("\xff")
+
                 phasenr = long(line_a[9])
                 atyp = long(line_a[12])
 
@@ -264,7 +268,12 @@ class akkumatik_display:
                 g('set output "' + self.chart_dir + "/" + fname[:-4] + '.png"')
 
                 g('set xdata time;')
-                g("set datafile separator '\xff';")
+
+                if platform.system() == "Windows":
+                    g("set datafile separator ' ';")
+                else:
+                    g("set datafile separator '\xff';")
+
                 g('set timefmt "%H:%M:%S";')
                 g('set grid')
 
@@ -329,10 +338,10 @@ class akkumatik_display:
 ##########################################}}}
 #Matplot stuff{{{
 ##########################################
-    def matplot(self):
-        plt.plot([1,2,3,4])
-        plt.ylabel('some numbers')
-        plt.show()
+    #def matplot(self):
+        #plt.plot([1,2,3,4])
+        #plt.ylabel('some numbers')
+        #plt.show()
 
 ##########################################}}}
 #File handling stuff {{{
@@ -427,6 +436,10 @@ class akkumatik_display:
                 if current_time1 < previous_time1:
                     fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                     fh1 = self.open_file(fname, "w+")
+
+                    if platform.system() == "Windows":
+                        ausgang1_part = ausgang1_part.replace('\xff', " ")
+
                     fh1.write(ausgang1_part)
                     fh1.close()
                     print "Generated:  " + "%48s" % (fname[-47:])
@@ -452,6 +465,10 @@ class akkumatik_display:
                 if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
                     fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                     fh2 = self.open_file(fname, "w+")
+
+                    if platform.system() == "Windows":
+                        ausgang2_part = ausgang2_part.replace('\xff', " ")
+
                     fh2.write(ausgang2_part)
                     fh2.close()
                     print "Generated:  " + "%48s" % (fname[-47:])
@@ -470,12 +487,20 @@ class akkumatik_display:
         if len(ausgang1_part) > 0:
             fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
             fh1 = self.open_file(fname, "w+")
+
+            if platform.system() == "Windows":
+                ausgang1_part = ausgang1_part.replace('\xff', " ")
+
             fh1.write(ausgang1_part)
             fh1.close()
             print "Generated: " + "%28s" % (fname[-27:])
         if len(ausgang2_part) > 0:
             fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
             fh2 = self.open_file(fname, "w+")
+
+            if platform.system() == "Windows":
+                ausgang2_part = ausgang2_part.replace('\xff', " ")
+
             fh2.write(ausgang2_part)
             print "Generated: " + "%28s" % (fname[-27:])
 
@@ -757,8 +782,8 @@ class akkumatik_display:
         def buttoncb (widget, data=None):
             if data == "Chart":
                 self.filesplit(self.f)
-                #self.gnuplot()
-                self.matplot()
+                self.gnuplot()
+                #self.matplot()
 
             elif data == "Exit":
                 gtk.main_quit()
@@ -1095,8 +1120,7 @@ class akkumatik_display:
         #}}}
         ##########################################
         #Serial{{{
-        if platform.system() == "Windows":
-            self.serial_port = '\\.' + self.serial_port #TODO does possibly not work
+
         self.ser = serial.Serial(
             port=self.serial_port,
             baudrate = 9600,
