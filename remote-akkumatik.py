@@ -1120,6 +1120,8 @@ class akkumatik_display:
         #}}}
         ##########################################
         #Serial{{{
+        #if platform.system() == "Windows":
+        #    self.serial_port = '\\\\.\\' + self.serial_port #TODO does possibly not work / needed when comx>10
 
         self.ser = serial.Serial(
             port=self.serial_port,
