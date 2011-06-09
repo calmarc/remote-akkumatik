@@ -63,6 +63,10 @@ class akkumatik_display:
 
         self.command_wait = True
         self.ser.write(com_str)
+        try:
+            self.ser.write(com_str)
+        except serial.SerialTimeoutException, e:
+            print "%s", e
 
         ok = False
         i=0
@@ -329,11 +333,12 @@ class akkumatik_display:
             else:
                 continue
 
-        if len(qiv_files) > 0:
-            time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
-            args = shlex.split(qiv_files)
-            arguments = ' '.join(str(n) for n in args)
-            thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
+        if platform.system() != "Windows": #on MS, it just created the pictures...
+            if len(qiv_files) > 0:
+                time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
+                args = shlex.split(qiv_files)
+                arguments = ' '.join(str(n) for n in args)
+                thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
 
 ##########################################}}}
 #Matplot stuff{{{
@@ -1120,8 +1125,8 @@ class akkumatik_display:
         #}}}
         ##########################################
         #Serial{{{
-        #if platform.system() == "Windows":
-        #    self.serial_port = '\\\\.\\' + self.serial_port #TODO does possibly not work / needed when comx>10
+        if platform.system() == "Windows":
+            self.serial_port = '\\\\.\\' + self.serial_port #needen on comx>10 - seems to work
 
         self.ser = serial.Serial(
             port=self.serial_port,
@@ -1129,9 +1134,10 @@ class akkumatik_display:
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
-            dsrdtr = True,
+            dsrdtr = False,
             rtscts = False,
             timeout = 0.1, #some tuning around with that value possibly
+            writeTimeout = 2.0,
             interCharTimeout = None)
 
 
