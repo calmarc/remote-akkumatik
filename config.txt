@@ -1,6 +1,8 @@
 # Remote Akkumatik Config File
 
 serial_port = /dev/ttyS0
+#serial_port = COM1
+
 viewer = /usr/local/bin/qiv
 chart_path = /home/calmar/remote-akkumatik/data
 #tmp_path =  /tmp/remote-akkumatik
