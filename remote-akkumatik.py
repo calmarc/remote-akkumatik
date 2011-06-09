@@ -3,6 +3,7 @@
 
 import os
 import sys
+import errno
 
 import shutil
 import shlex #command line splitting
@@ -18,6 +19,7 @@ pygtk.require('2.0')
 import gtk
 import pango
 import gobject
+
 
 import Gnuplot, Gnuplot.funcutils
 import serial
@@ -56,8 +58,6 @@ class akkumatik_display:
         self.threadlock.acquire() #TODO make it how it *should be* instead of that here...
 
         if self.command_abort == True: #skip on further soon to arrive commands
-            print "\n* [Kommando] *******************************************************"
-            print "Kommando <%s> wird nicht gesendet da vorheriges fehlschlug" % (com_str)
             self.threadlock.release()
             return
 
@@ -78,7 +78,7 @@ class akkumatik_display:
                 break
 
         if ok == False:
-            print "\n* [Kommando] *******************************************************"
+            print "\n* [Kommando] *******************************************"
             print "Kommando <%s> kam *nicht* an" % (com_str)
             self.command_abort = True #skip on further soon to arrive commands
         self.threadlock.release()
@@ -753,8 +753,8 @@ class akkumatik_display:
         if not os.path.isdir(self.tmp_dir):
             try:
                 os.mkdir(self.tmp_dir)
-            except OSError as exc: # Python >2.5
-                if exc.errno == errno.EEXIST:
+            except OSError, e: # Python >2.5
+                if OSError.errno == errno.EEXIST:
                     pass
                 else:
                     print "Unable to create [%s] directory" % self.tmp_dir, "Ending program.\n", e
@@ -763,17 +763,13 @@ class akkumatik_display:
         if not os.path.isdir(self.chart_dir):
             try:
                 os.mkdir(self.chart_dir)
-            except OSError as exc: # Python >2.5
-                if exc.errno == errno.EEXIST:
+            except OSError, e: # Python >2.5
+                if OSError.errno == errno.EEXIST:
                     pass
                 else:
                     print "Unable to create [%s] directory" % self.chart_dir, "Ending program.\n", e
                     raw_input("\n\nPress the enter key to exit.")
                     sys.exit()
-
-
-
-
 
         #}}}
         ##########################################
@@ -1047,7 +1043,7 @@ class akkumatik_display:
         if platform.system() == "Windows": #TODO check once if that fits...
             self.label.modify_font(pango.FontDescription("mono 25"))
         else:
-            self.label.modify_font(pango.FontDescription("mono 28"))
+            self.label.modify_font(pango.FontDescription("mono 22"))
 
         gfixed = gtk.Fixed()
         gfixed.put(self.label, 48 , 35)
@@ -1058,9 +1054,9 @@ class akkumatik_display:
         if platform.system() == "Windows": #TODO check once if that fits...
             self.label2.modify_font(pango.FontDescription("mono 15"))
         else:
-            self.label2.modify_font(pango.FontDescription("mono 17"))
+            self.label2.modify_font(pango.FontDescription("mono 12"))
 
-        gfixed.put(self.label2, 440, 28)
+        gfixed.put(self.label2, 440, 30)
 
         #vbox for buttons
         vbox = gtk.VBox()
