@@ -3,7 +3,7 @@
 #######################
 #Linux etc:
 
-serial_port = /dev/ttyS0
+#serial_port = /dev/ttyS0
 
 # There will be the pictures.
 chart_path = /home/calmar/remote-akkumatik/data
@@ -19,6 +19,6 @@ viewer = /usr/local/bin/qiv
 
 #serial_port = COM1
 
-#chart_path = C:\Akkumatik
+#chart_path = D:/Akkumatik
 
 #tmp_path =  /tmp/remote-akkumatik
