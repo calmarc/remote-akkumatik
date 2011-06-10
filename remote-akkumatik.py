@@ -513,10 +513,11 @@ class akkumatik_display:
         yeswrite = True
 
         #handle command-acknowledged string
-        if len(daten[0]) > 1 and lin[0:2] == "A1":
-            lin = lin [5:]
-            self.command_wait = False # Kommando kam an
-            daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
+        if len(daten[0]) > 1:
+            while lin[0:2] == "A1": #more Ack.. can be there
+                lin = lin[5:]
+                daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
+                self.command_wait = False # Kommando kam an
 
         if lin[:1] == "#": #ignore all together for now
             return True
