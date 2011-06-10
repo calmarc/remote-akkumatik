@@ -722,7 +722,11 @@ class akkumatik_display:
 
         #Defaults
         self.picture_exe = '/usr/local/bin/qiv'
-        self.serial_port = '/dev/ttyS0'
+        if platform.system() == "Windows":
+            self.serial_port = 'COM1'
+        else
+            self.serial_port = '/dev/ttyS0'
+
         self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
         self.chart_dir = self.tmp_dir
 
