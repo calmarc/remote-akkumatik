@@ -497,51 +497,6 @@ class akkumatik_display:
         while gtk.events_pending():
             gtk.main_iteration()
 
-    def serial_clean(self, line, daten):
-        """Filter out useless/broken serial incoming data lines"""
-
-        #filter out useless lines
-        #could also check for last thing is a newline ... hm.
-        #TODO: won't work when some spezial line got printed "^#..."
-
-        if line[:1] == "#": #remove special lines
-            return ""
-
-        if len(daten[0]) > 1 and line[0:2] == "A1": #remove command-acknowledged string
-            line = line [5:]
-            self.command_wait = False # Kommando kam an
-            daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
-
-        print len(daten)
-        print len(daten)
-        print len(daten)
-        print len(line)
-        print len(line)
-        print len(line)
-        if len(daten) < 18: #TODO or how long?
-            return "" #probably broken
-
-        #if len(line) < 60: #TODO or how long is default line without balancer?
-        #    return "" #probably broken
-
-        curtime = line[2:10]
-
-        if curtime == "00:00:00": #not begun yet
-            return ""
-
-        if curtime == self.oldtime[daten[0]]:
-            return "" #duplicate time
-
-
-        #if line[11:16] == "00000": #no volt lines
-            #print ("FILTER OUT: Volt has Zero value")
-            #return ""
-
-
-        self.oldtime[daten[0]] = curtime
-
-        return line
-
     def read_line(self):
         """Read serial data (called via interval via gobject.timeout_add)"""
 
@@ -549,19 +504,44 @@ class akkumatik_display:
             print "* [Debug] ********************* Blocked serial input"
             return True
 
-
         lin = self.ser.readline()
-
         daten = lin.split('\xff')
 
-        lin = self.serial_clean(lin, daten)
+        ################*################
+        #Clean/check lines before writing or so
 
-        if lin == "":
-            return True #ignore not according line
+        yeswrite = True
+
+        #handle command-acknowledged string
+        if len(daten[0]) > 1 and lin[0:2] == "A1":
+            lin = lin [5:]
+            self.command_wait = False # Kommando kam an
+            daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
+
+        if lin[:1] == "#": #ignore all together for now
+            return True
+
+        if len(daten) < 19: #scrumbled or empty line
+            return True
+
+        curtime = lin[2:10]
+
+        if curtime == "00:00:00": #not begun yet
+            yeswrite = False
+
+        if curtime == self.oldtime[int(daten[0])]:
+            yeswrite = False
+
+        #if lin[11:16] == "00000": #no volt lines
+            #print ("FILTER OUT: Volt has Zero value")
+            #return ""
+
+        self.oldtime[int(daten[0])] = curtime
+
+        if yeswrite:
+            self.f.write(lin)
 
         daten[0] = daten[0][-1:] #last digit only (in case theres A1xx integrated)
-
-        self.f.write(lin)
 
         if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
                 or (daten[0] == "2" and self.gewaehlter_ausgang == 2):
@@ -719,6 +699,7 @@ class akkumatik_display:
         #     ^^^^ (Was jetzt auch der Fal ist......)
         #
         # wird ueberschrieben vom laufenden programm
+        # item 0 is bogus and not used - only 1 and 2 (Ausgaenge)
         self.atyp = [0,0,0]
         self.prg = [0,0,0]
         self.lart = [0,0,0]
@@ -731,7 +712,7 @@ class akkumatik_display:
         self.menge =  [0,0,0]
         self.zyklen =  [0,0,0]
 
-        self.oldtime = ["", ""]
+        self.oldtime = ["", "", ""]
 
         self.gewaehlter_ausgang = 1
         self.exe_dir = sys.path[0]
@@ -1164,6 +1145,7 @@ class akkumatik_display:
 
         #finally begin collecting
         gobject.timeout_add(400, self.read_line) # some tuning around with that value possibly
+        #TODO: not fast enough when data-uploading.... via memoery-thing
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
