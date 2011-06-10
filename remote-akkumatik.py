@@ -1146,6 +1146,14 @@ class akkumatik_display:
         gobject.timeout_add(400, self.read_line) # some tuning around with that value possibly
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
+        print """Usage:
+
+    -c      Continue with collecting serial data
+    -n      Begin from scratch
+    -h      Print this."""
+        sys.exit()
+
     displ = akkumatik_display()
     displ.main()
 #}}}
