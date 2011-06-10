@@ -1137,8 +1137,14 @@ class akkumatik_display:
         elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
         else:
-            raw_input("Press key to continue with *new* data-collecting (else Ctrl-D)")
-            time.sleep(0.5)
+            print "\n********************************************************"
+            sys.stdout.write("New serial-collecting (5 seconds to abort (Ctrl-C)): ")
+            sys.stdout.flush()
+            time.sleep(1.0)
+            for i in range(1,6):
+                sys.stdout.write("..." + str(i))
+                sys.stdout.flush()
+                time.sleep(1.0)
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
