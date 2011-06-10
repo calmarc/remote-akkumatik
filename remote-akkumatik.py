@@ -407,32 +407,9 @@ class akkumatik_display:
                 self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a') #reopen
                 self.file_block = False #allow further getting serial adding..
 
-            file_line += 1
-
-            #filter out useless lines
-            #could also check for last thing is a newline ... hm.
-            #TODO: won't work when some spezial line got printed "^#..."
-
-            if line[0:2] == "A1": #remove command-acknowledged string
-                line = line [5:]
-
-            if len(previous_line1) > len(line) and previous_line1 > 0:
-                continue #probably last broken line
-
-            if line[2:10] == "00:00:00": #not begun yet
-                continue
-
-            #if line[11:16] == "00000": #no volt lines
-              #print ("FILTER OUT: Volt has Zero value")
-              #continue
-
             if line[0:1] == "1":
 
                 current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
-
-                if previous_time1 == current_time1:  #duplicate time -> ignore (so far)
-                    #print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
-                    continue
 
                 previous_line1 = line
 
@@ -459,10 +436,6 @@ class akkumatik_display:
             elif line[0:1] == "2": #"2"
 
                 current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
-
-                if previous_time2 == current_time2:  #duplicate time -> ignore so far
-                    #print ("FILTER OUT: Duplicate Time. Line [ " + str(file_line) + "] ")
-                    continue
 
                 previousline2 = line
 
@@ -524,31 +497,72 @@ class akkumatik_display:
         while gtk.events_pending():
             gtk.main_iteration()
 
+    def serial_clean(self, line, daten):
+        """Filter out useless/broken serial incoming data lines"""
+
+        #filter out useless lines
+        #could also check for last thing is a newline ... hm.
+        #TODO: won't work when some spezial line got printed "^#..."
+
+        if line[:1] == "#": #remove special lines
+            return ""
+
+        if len(daten[0]) > 1 and line[0:2] == "A1": #remove command-acknowledged string
+            line = line [5:]
+            self.command_wait = False # Kommando kam an
+            daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
+
+        print len(daten)
+        print len(daten)
+        print len(daten)
+        print len(line)
+        print len(line)
+        print len(line)
+        if len(daten) < 18: #TODO or how long?
+            return "" #probably broken
+
+        #if len(line) < 60: #TODO or how long is default line without balancer?
+        #    return "" #probably broken
+
+        curtime = line[2:10]
+
+        if curtime == "00:00:00": #not begun yet
+            return ""
+
+        if curtime == self.oldtime[daten[0]]:
+            return "" #duplicate time
+
+
+        #if line[11:16] == "00000": #no volt lines
+            #print ("FILTER OUT: Volt has Zero value")
+            #return ""
+
+
+        self.oldtime[daten[0]] = curtime
+
+        return line
 
     def read_line(self):
         """Read serial data (called via interval via gobject.timeout_add)"""
 
         if self.file_block == True:
-            print "* [Debug] ********************* Blocked serial input adding"
+            print "* [Debug] ********************* Blocked serial input"
             return True
+
 
         lin = self.ser.readline()
 
-        #TODO how about filter stuff out here already?
-        #     would also fix some howto on serial splitting
-        self.f.write(lin)
-
         daten = lin.split('\xff')
 
+        lin = self.serial_clean(lin, daten)
 
-        if len(daten) < 18:
-            return True #ignore (defective?) line
+        if lin == "":
+            return True #ignore not according line
 
-        if len(daten[0]) > 1:
-            self.command_wait = False # Kommando kam an
-            daten[0] = daten[0][-1:] #last digit only (Ausgang)
+        daten[0] = daten[0][-1:] #last digit only (in case theres A1xx integrated)
 
-        #-1:0 - remove potential command return thing
+        self.f.write(lin)
+
         if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
                 or (daten[0] == "2" and self.gewaehlter_ausgang == 2):
             ausgang = str(long(daten[0][-1:])) #Ausgang
@@ -716,6 +730,8 @@ class akkumatik_display:
         self.entladelimit =  [0,0,0]
         self.menge =  [0,0,0]
         self.zyklen =  [0,0,0]
+
+        self.oldtime = ["", ""]
 
         self.gewaehlter_ausgang = 1
         self.exe_dir = sys.path[0]
