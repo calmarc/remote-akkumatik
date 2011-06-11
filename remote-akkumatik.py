@@ -534,8 +534,8 @@ class akkumatik_display:
                 self.command_wait = False # Kommando kam an
 
         if len(daten[0]) <> 1: # something is not right..
-            print "komische dings oder?"
-            print lin
+            #print "komische dings oder?"
+            #print lin
             return True
 
         if len(daten) < 19: #scrumbled or empty line
@@ -697,6 +697,48 @@ class akkumatik_display:
         gtk.main()
 
 ##########################################}}}
+#gtk {{{
+##########################################
+
+    def button_prog_cb(self, data=None):
+        val = self.cb_prog.get_active_text()
+        if val == "Laden":
+            self.sp_entladelimit.set_sensitive(False)
+            self.sp_ladelimit.set_sensitive(True)
+
+        elif val == "Entladen":
+            self.sp_entladelimit.set_sensitive(True)
+            self.sp_ladelimit.set_sensitive(False)
+        else:
+            self.sp_entladelimit.set_sensitive(True)
+            self.sp_ladelimit.set_sensitive(True)
+
+
+    def button_atyp_cb(self, data=None):
+        val = self.cb_atyp.get_active_text()
+        if val == "LiPo":
+            self.cb_lart.append_text(self.LADEART[3])
+            self.cb_lart.set_active(3)
+            self.cb_lart.set_sensitive(False)
+            self.cb_stromw.set_active(1)
+            self.cb_stromw.set_sensitive(False)
+            self.cb_stoppm.append_text("")
+            self.cb_stoppm.set_active(5)
+            self.cb_stoppm.set_sensitive(False)
+        else:
+            self.cb_lart.set_active(0)
+            self.cb_lart.remove_text(3) # remove LiPo charge method
+            self.cb_lart.set_sensitive(True)
+
+            self.cb_stromw.set_sensitive(True)
+
+            self.cb_stoppm.set_active(0)
+            self.cb_stoppm.remove_text(5) # remove LiPo charge method
+            self.cb_stoppm.set_sensitive(True)
+
+
+
+##########################################}}}
 #INIT{{{
 ##########################################
 
@@ -706,7 +748,7 @@ class akkumatik_display:
         #Konstanten{{{
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender", "Lagern"]
-        self.LADEART = ["Konst", "Puls", "Reflex", "?LIPO was?"]
+        self.LADEART = ["Konst", "Puls", "Reflex", "LiPo"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung", "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
@@ -870,52 +912,61 @@ class akkumatik_display:
                 label = gtk.Label("Batterie Typ")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                cb_atyp = gtk.combo_box_new_text()
+                self.cb_atyp = gtk.combo_box_new_text()
                 for item in self.AKKU_TYP:
-                    cb_atyp.append_text(item)
-                cb_atyp.set_active(self.atyp[self.gewaehlter_ausgang])
-                cb_atyp.show()
-                vbox.pack_start(cb_atyp, True, True, 0)
+                    self.cb_atyp.append_text(item)
+                self.cb_atyp.set_active(self.atyp[self.gewaehlter_ausgang])
+                self.cb_atyp.show()
+                self.cb_atyp.connect("changed", self.button_atyp_cb)
+
+                vbox.pack_start(self.cb_atyp, True, True, 0)
 
                 label = gtk.Label("Programm")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                cb_prog = gtk.combo_box_new_text()
-                for item in self.AMPROGRAMM:
-                    cb_prog.append_text(item)
-                cb_prog.set_active(self.prg[self.gewaehlter_ausgang])
-                cb_prog.show()
-                vbox.pack_start(cb_prog, True, True, 0)
+                self.cb_prog = gtk.combo_box_new_text()
+
+                if self.gewaehlter_ausgang == 1:
+                    for item in self.AMPROGRAMM:
+                        self.cb_prog.append_text(item)
+                else: #no Entladen...
+                    self.cb_prog.append_text(self.AMPROGRAMM[0])
+                    self.cb_prog.append_text(self.AMPROGRAMM[6])
+
+                self.cb_prog.set_active(self.prg[self.gewaehlter_ausgang])
+                self.cb_prog.connect("changed", self.button_prog_cb)
+                self.cb_prog.show()
+                vbox.pack_start(self.cb_prog, True, True, 0)
 
                 label = gtk.Label("Ladeart")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                cb_lart = gtk.combo_box_new_text()
-                for item in self.LADEART:
-                    cb_lart.append_text(item)
-                cb_lart.set_active(self.lart[self.gewaehlter_ausgang])
-                cb_lart.show()
-                vbox.pack_start(cb_lart, True, True, 0)
+                self.cb_lart = gtk.combo_box_new_text()
+                for item in self.LADEART[:-1]: #exclude LiPo
+                    self.cb_lart.append_text(item)
+                self.cb_lart.set_active(self.lart[self.gewaehlter_ausgang])
+                self.cb_lart.show()
+                vbox.pack_start(self.cb_lart, True, True, 0)
 
                 label = gtk.Label("Stromwahl")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                cb_stromw = gtk.combo_box_new_text()
+                self.cb_stromw = gtk.combo_box_new_text()
                 for item in self.STROMWAHL:
-                    cb_stromw.append_text(item)
-                cb_stromw.set_active(self.stromw[self.gewaehlter_ausgang])
-                cb_stromw.show()
-                vbox.pack_start(cb_stromw, True, True, 0)
+                    self.cb_stromw.append_text(item)
+                self.cb_stromw.set_active(self.stromw[self.gewaehlter_ausgang])
+                self.cb_stromw.show()
+                vbox.pack_start(self.cb_stromw, True, True, 0)
 
                 label = gtk.Label("Stoppmethode")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                cb_stoppm = gtk.combo_box_new_text()
+                self.cb_stoppm = gtk.combo_box_new_text()
                 for item in self.STOPPMETHODE:
-                    cb_stoppm.append_text(item)
-                cb_stoppm.set_active(self.stoppm[self.gewaehlter_ausgang])
-                cb_stoppm.show()
-                vbox.pack_start(cb_stoppm, True, True, 0)
+                    self.cb_stoppm.append_text(item)
+                self.cb_stoppm.set_active(self.stoppm[self.gewaehlter_ausgang])
+                self.cb_stoppm.show()
+                vbox.pack_start(self.cb_stoppm, True, True, 0)
 
 
                 #frame 2 (vbox)
@@ -953,21 +1004,25 @@ class akkumatik_display:
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.ladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
-                sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
-                sp_ladelimit.set_wrap(False)
-                sp_ladelimit.set_numeric(True)
-                vbox.pack_start(sp_ladelimit, False, True, 0)
-                sp_ladelimit.show()
+                self.sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
+                self.sp_ladelimit.set_wrap(False)
+                self.sp_ladelimit.set_numeric(True)
+                vbox.pack_start(self.sp_ladelimit, False, True, 0)
+                self.sp_ladelimit.show()
 
                 label = gtk.Label("I-Entladen mA")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.entladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
-                sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
-                sp_entladelimit.set_wrap(False)
-                sp_entladelimit.set_numeric(True)
-                vbox.pack_start(sp_entladelimit, False, True, 0)
-                sp_entladelimit.show()
+                self.sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
+                self.sp_entladelimit.set_wrap(False)
+                self.sp_entladelimit.set_numeric(True)
+                vbox.pack_start(self.sp_entladelimit, False, True, 0)
+
+                if self.gewaehlter_ausgang == 2:
+                    self.sp_entladelimit.set_sensitive(False)
+
+                self.sp_entladelimit.show()
 
                 label = gtk.Label("Menge mAh")
                 vbox.pack_start(label, True, True, 0)
@@ -989,28 +1044,31 @@ class akkumatik_display:
                 vbox.pack_start(sp_zyklen, False, True, 0)
                 sp_zyklen.show()
 
+                self.button_atyp_cb(None)
+                self.button_prog_cb(None)
+
                 # run the dialog
                 retval = self.dialog.run()
                 self.dialog.destroy()
 
                 if retval == -3 or retval == -4: #OK or uebertragen got pressed
                     hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
-                    hex_str += self.get_pos_hex(cb_atyp.get_active_text(),self.AKKU_TYP)
-                    hex_str += self.get_pos_hex(cb_prog.get_active_text(),self.AMPROGRAMM)
-                    hex_str += self.get_pos_hex(cb_lart.get_active_text(),self.LADEART)
-                    hex_str += self.get_pos_hex(cb_stromw.get_active_text(),self.STROMWAHL)
-                    hex_str += self.get_pos_hex(cb_stoppm.get_active_text(),self.STOPPMETHODE)
+                    hex_str += self.get_pos_hex(self.cb_atyp.get_active_text(),self.AKKU_TYP)
+                    hex_str += self.get_pos_hex(self.cb_prog.get_active_text(),self.AMPROGRAMM)
+                    hex_str += self.get_pos_hex(self.cb_lart.get_active_text(),self.LADEART)
+                    hex_str += self.get_pos_hex(self.cb_stromw.get_active_text(),self.STROMWAHL)
+                    hex_str += self.get_pos_hex(self.cb_stoppm.get_active_text(),self.STOPPMETHODE)
 
                     hex_str += self.get_16bit_hex(int(sp_anzzellen.get_value()))
                     hex_str += self.get_16bit_hex(int(sp_kapazitaet.get_value()))
-                    hex_str += self.get_16bit_hex(int(sp_ladelimit.get_value()))
-                    hex_str += self.get_16bit_hex(int(sp_entladelimit.get_value()))
+                    hex_str += self.get_16bit_hex(int(self.sp_ladelimit.get_value()))
+                    hex_str += self.get_16bit_hex(int(self.sp_entladelimit.get_value()))
                     hex_str += self.get_16bit_hex(int(sp_menge.get_value()))
                     hex_str += self.get_16bit_hex(int(sp_zyklen.get_value()))
 
                     self.kapazitaet[self.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
-                    self.ladelimit[self.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
-                    self.entladelimit[self.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
+                    self.ladelimit[self.gewaehlter_ausgang] = int(self.sp_ladelimit.get_value())
+                    self.entladelimit[self.gewaehlter_ausgang] = int(self.sp_entladelimit.get_value())
                     self.menge[self.gewaehlter_ausgang] = int(sp_menge.get_value())
                     self.zyklen[self.gewaehlter_ausgang] = int(sp_zyklen.get_value())
 
