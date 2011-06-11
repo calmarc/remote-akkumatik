@@ -63,17 +63,21 @@ class akkumatik_display:
 
         self.command_wait = True
         try:
+            self.ser.setDTR(True)
             self.ser.write(com_str)
-            self.ser.setDTR(1) #TODO Testing... not really knowing what I do..
-        except serial.SerialTimeoutException, e:
+            self.ser.setDTR(False) #TODO Testing... not really knowing what I do..
+        except serial.SerialException, e:
             print "%s", e
 
         ok = False
         i=0
-        while i < 10:
+        sys.stdout.write("\nWaiting for Command Ack:")
+        while i < 50:
             time.sleep(0.2)
+            sys.stdout.write(".")
             i += 1
             if self.command_wait == False: #put on True before sending. - here waiting for False
+                sys.stdout.write(" OK")
                 ok = True
                 break
 
@@ -522,6 +526,9 @@ class akkumatik_display:
         if lin[:1] == "#": #ignore all together for now
             return True
 
+        if daten[0] == "": #happend on MS as well sometimes...
+            return True
+
         if len(daten) < 19: #scrumbled or empty line
             return True
 
@@ -585,8 +592,14 @@ class akkumatik_display:
             self.prg[self.gewaehlter_ausgang] = long(daten[13]) #Programm
             prg = self.AMPROGRAMM[long(daten[13])] #Programm
 
-            self.lart[self.gewaehlter_ausgang] = long(daten[14]) #Ladeart
-            lart = self.LADEART[long(daten[14])] #Ladeart
+            try:
+                self.lart[self.gewaehlter_ausgang] = long(daten[14]) #Ladeart
+                lart = self.LADEART[long(daten[14])] #Ladeart
+            except IndexError, e:
+                print "%s" % e
+                print "-> %i" % long(daten[14])
+                time.sleep(10)
+                sys.exit()
 
             self.stromw[self.gewaehlter_ausgang] = long(daten[15]) #stromwahl
             stromw = self.STROMWAHL[long(daten[15])] #stromwahl
@@ -600,7 +613,12 @@ class akkumatik_display:
             tmp_a = []
             for cell in daten[18:-1]:
                 cellmV += " " + cell + " "
-                tmp_a.append(long(cell))
+                try:
+                    tmp_a.append(long(cell))
+                except:
+                    print "00:00:00 to long error"
+                    print daten
+                    print "----------------------"
 
             balance_delta = -1
             if len(tmp_a) > 0:
@@ -679,7 +697,7 @@ class akkumatik_display:
         #Konstanten{{{
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
-        self.LADEART = ["Konst", "Puls", "Reflex"]
+        self.LADEART = ["Konst", "Puls", "Reflex", "????LIPO was?"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung", "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
@@ -1124,15 +1142,22 @@ class akkumatik_display:
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,
             bytesize = serial.EIGHTBITS,
-            dsrdtr = True,
+            xonxoff=0,
+            rtscts=0,
+            dsrdtr = False,
             timeout = 0.1, #some tuning around with that value possibly
             writeTimeout = 2.0)
-
 
         if platform.system() != "Windows":
             self.ser.open()
 
         self.ser.isOpen()
+
+        # Wake Modem
+        #self.ser.setDTR(True)
+        #time.sleep(1)
+        #self.ser.setDTR(False)
+        #time.sleep(2)
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a')
@@ -1140,10 +1165,10 @@ class akkumatik_display:
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
         else:
             print "\n********************************************************"
-            sys.stdout.write("New serial-collecting (5 seconds to abort (Ctrl-C)): ")
+            sys.stdout.write("New serial-collecting (3 seconds to abort (Ctrl-C)): ")
             sys.stdout.flush()
             time.sleep(1.0)
-            for i in range(1,6):
+            for i in range(1,4):
                 sys.stdout.write("..." + str(i))
                 sys.stdout.flush()
                 time.sleep(1.0)
