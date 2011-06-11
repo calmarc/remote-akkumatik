@@ -63,21 +63,24 @@ class akkumatik_display:
 
         self.command_wait = True
         try:
-            self.ser.setDTR(True)
+            #self.ser.setDTR(True)
             self.ser.write(com_str)
-            self.ser.setDTR(False) #TODO Testing... not really knowing what I do..
+            #self.ser.setDTR(False) #TODO Testing... not really knowing what I do..
         except serial.SerialException, e:
             print "%s", e
 
         ok = False
         i=0
-        sys.stdout.write("\nWaiting for Command Ack:")
+        sys.stdout.write("\nWaiting for Command Ack: ")
+        sys.stdout.flush()
         while i < 50:
             time.sleep(0.2)
             sys.stdout.write(".")
+            sys.stdout.flush()
             i += 1
             if self.command_wait == False: #put on True before sending. - here waiting for False
                 sys.stdout.write(" OK")
+                sys.stdout.flush()
                 ok = True
                 break
 
@@ -696,7 +699,7 @@ class akkumatik_display:
         ##########################################
         #Konstanten{{{
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
-        self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender"]
+        self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender", "Lagern"]
         self.LADEART = ["Konst", "Puls", "Reflex", "????LIPO was?"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
