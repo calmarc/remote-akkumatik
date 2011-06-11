@@ -33,6 +33,25 @@ class akkumatik_display:
 #Divers stuff{{{
 ##########################################
 
+    #TODO open binary where appropiate
+    def save_akkulist(self):
+        fh = self.open_file(self.exe_dir + "/liste_akkus2.dat", "wb")
+        for item in r:
+            fh.write('\xff'.join(item))
+        fh.close()
+
+    def get_akkulist(self):
+        if os.path.exists(self.exe_dir + "/liste_akkus.dat"):
+            fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "rb")
+        else:
+            return []
+        r = []
+        for item in fh.readlines():
+            tmp = item.split('\xff')
+            r.append(tmp)
+        fh.close()
+        return r
+
     def get_pos_hex(self, string, konst_arr):
 
         position = konst_arr.index(string)
@@ -699,8 +718,19 @@ class akkumatik_display:
 ##########################################}}}
 #gtk {{{
 ##########################################
+    def cb_akkulist_cb(self, data=None):
+        """ Assign values according to saved Akku-parameters """
+        val = self.cb_akkulist.get_active_text()
+        for item in self.akkulist:
+            if item[0] == val:
+                self.cb_atyp.set_active(int(item[1]))
+                self.cb_prog.set_active(int(item[2]))
+                self.cb_lart.set_active(int(item[3]))
+                self.cb_stromw.set_active(int(item[4]))
+                self.cb_stoppm.set_active(int(item[5]))
+                break
 
-    def button_prog_cb(self, data=None):
+    def combo_prog_cb(self, data=None):
         val = self.cb_prog.get_active_text()
         if val == "Laden":
             self.sp_entladelimit.set_sensitive(False)
@@ -713,8 +743,7 @@ class akkumatik_display:
             self.sp_entladelimit.set_sensitive(True)
             self.sp_ladelimit.set_sensitive(True)
 
-
-    def button_atyp_cb(self, data=None):
+    def combo_atyp_cb(self, data=None):
         val = self.cb_atyp.get_active_text()
         if val == "LiPo":
             self.cb_lart.append_text(self.LADEART[3])
@@ -737,7 +766,6 @@ class akkumatik_display:
             self.cb_stoppm.set_sensitive(True)
 
 
-
 ##########################################}}}
 #INIT{{{
 ##########################################
@@ -756,6 +784,7 @@ class akkumatik_display:
 
         ##########################################
         #Class Variablen
+        self.akkulist = []
         self.threadlock = thread.allocate_lock()
         self.file_block = False
         self.command_wait = False # threads are waiting when True on command acknowledge text
@@ -893,6 +922,22 @@ class akkumatik_display:
                 self.dialog.add_button("Übertragen", -4)
                 self.dialog.add_button("Starten", -3)
 
+                frame = gtk.Frame(None)
+                self.dialog.vbox.pack_start(frame, True, True, 0)
+
+                self.cb_akkulist = gtk.combo_box_new_text()
+                frame.add(self.cb_akkulist)
+                frame.show()
+
+                # [ atyp, prog, lart, stromw, stoppm, Zellen, Kapa, I-lade, I-entlade, Menge ]
+                self.akkulist = self.get_akkulist()
+                
+                for item in self.akkulist:
+                    self.cb_akkulist.append_text(item[0])
+
+                self.cb_akkulist.connect("changed", self.cb_akkulist_cb)
+                self.cb_akkulist.show()
+
                 #hbox over the whole dialog
                 hbox = gtk.HBox(False, 0)
                 self.dialog.vbox.pack_start(hbox, True, True, 0)
@@ -917,7 +962,7 @@ class akkumatik_display:
                     self.cb_atyp.append_text(item)
                 self.cb_atyp.set_active(self.atyp[self.gewaehlter_ausgang])
                 self.cb_atyp.show()
-                self.cb_atyp.connect("changed", self.button_atyp_cb)
+                self.cb_atyp.connect("changed", self.combo_atyp_cb)
 
                 vbox.pack_start(self.cb_atyp, True, True, 0)
 
@@ -934,7 +979,7 @@ class akkumatik_display:
                     self.cb_prog.append_text(self.AMPROGRAMM[6])
 
                 self.cb_prog.set_active(self.prg[self.gewaehlter_ausgang])
-                self.cb_prog.connect("changed", self.button_prog_cb)
+                self.cb_prog.connect("changed", self.combo_prog_cb)
                 self.cb_prog.show()
                 vbox.pack_start(self.cb_prog, True, True, 0)
 
@@ -1044,8 +1089,8 @@ class akkumatik_display:
                 vbox.pack_start(sp_zyklen, False, True, 0)
                 sp_zyklen.show()
 
-                self.button_atyp_cb(None)
-                self.button_prog_cb(None)
+                self.combo_atyp_cb(None)
+                self.combo_prog_cb(None)
 
                 # run the dialog
                 retval = self.dialog.run()
