@@ -62,9 +62,9 @@ class akkumatik_display:
             return
 
         self.command_wait = True
-        self.ser.write(com_str)
         try:
             self.ser.write(com_str)
+            self.ser.setDTR(1) #TODO Testing... not really knowing what I do..
         except serial.SerialTimeoutException, e:
             print "%s", e
 
@@ -1123,7 +1123,8 @@ class akkumatik_display:
             baudrate = 9600,
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
+            bytesize = serial.EIGHTBITS,
+            dsrdtr = True,
             timeout = 0.1, #some tuning around with that value possibly
             writeTimeout = 2.0)
 
