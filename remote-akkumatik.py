@@ -874,6 +874,9 @@ class akkumatik_display:
         #}}}
         ##########################################
         #GTK Stuff{{{
+
+        def button_akku_cb(widget, data=None):
+            return
         def delete_event(widget, event, data=None):
             return False
 
@@ -922,12 +925,24 @@ class akkumatik_display:
                 self.dialog.add_button("Übertragen", -4)
                 self.dialog.add_button("Starten", -3)
 
+                #####################################
+                # Akku Liste
                 frame = gtk.Frame(None)
                 self.dialog.vbox.pack_start(frame, True, True, 0)
 
-                self.cb_akkulist = gtk.combo_box_new_text()
-                frame.add(self.cb_akkulist)
+                hbox = gtk.HBox(False, 0)
+                hbox.show()
+                frame.add(hbox)
                 frame.show()
+
+                button = gtk.Button("+")
+                button.connect("clicked", button_akku_cb, "+")
+                hbox.pack_start(button, False, True, 1)
+                button.show()
+
+
+                self.cb_akkulist = gtk.combo_box_new_text()
+                hbox.pack_start(self.cb_akkulist, True, True, 1)
 
                 # [ atyp, prog, lart, stromw, stoppm, Zellen, Kapa, I-lade, I-entlade, Menge ]
                 self.akkulist = self.get_akkulist()
@@ -938,7 +953,14 @@ class akkumatik_display:
                 self.cb_akkulist.connect("changed", self.cb_akkulist_cb)
                 self.cb_akkulist.show()
 
-                #hbox over the whole dialog
+                button = gtk.Button("x")
+                button.connect("clicked", button_akku_cb, "x")
+                hbox.pack_start(button, False, True, 1)
+                button.show()
+
+                #####################################
+                # hbox over the whole dialog (besides of akkulist)
+                
                 hbox = gtk.HBox(False, 0)
                 self.dialog.vbox.pack_start(hbox, True, True, 0)
                 hbox.show()
