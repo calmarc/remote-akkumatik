@@ -73,7 +73,7 @@ class akkumatik_display:
         i=0
         sys.stdout.write("\nWaiting for Command Ack: ")
         sys.stdout.flush()
-        while i < 50:
+        while i < 40:
             time.sleep(0.2)
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -85,8 +85,7 @@ class akkumatik_display:
                 break
 
         if ok == False:
-            print "\n* [Kommando] *******************************************"
-            print "Kommando <%s> kam *nicht* an" % (com_str)
+            sys.stdout.write(" FAILED")
             self.command_abort = True #skip on further soon to arrive commands
         self.threadlock.release()
 
@@ -511,7 +510,12 @@ class akkumatik_display:
             print "* [Debug] ********************* Blocked serial input"
             return True
 
-        lin = self.ser.readline()
+        try:
+            lin = self.ser.readline()
+        except SerialException, e:
+            print "%s" % e
+            return True
+
         daten = lin.split('\xff')
 
         ################*################
