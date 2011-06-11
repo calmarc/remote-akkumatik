@@ -275,7 +275,7 @@ class akkumatik_display:
                     titel = "Unbekannte Phase <"+str(phasenr)+">" + titel_plus
                     g('set yrange [*:*];')
 
-                g('set terminal png size 1280, 1024;')
+                g('set terminal jpeg size 1280, 1024;')
                 g('set output "' + self.chart_dir + "/" + fname[:-4] + '.png"')
 
                 g('set xdata time;')
@@ -311,7 +311,7 @@ class akkumatik_display:
 
 
                 g('wfile="' + self.tmp_dir + "/" + fname + '";')
-                g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
+                #g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
                 g('plot \
@@ -519,6 +519,9 @@ class akkumatik_display:
 
         yeswrite = True
 
+        if lin[:1] == "#": #ignore all together for now
+            return True
+
         #handle command-acknowledged string
         if len(daten[0]) > 1:
             while lin[0:2] == "A1": #more Ack.. can be there
@@ -526,10 +529,9 @@ class akkumatik_display:
                 daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
                 self.command_wait = False # Kommando kam an
 
-        if lin[:1] == "#": #ignore all together for now
-            return True
-
-        if daten[0] == "": #happend on MS as well sometimes...
+        if len(daten[0]) <> 1: # something is not right..
+            print "komische dings oder?"
+            print lin
             return True
 
         if len(daten) < 19: #scrumbled or empty line
@@ -700,7 +702,7 @@ class akkumatik_display:
         #Konstanten{{{
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender", "Lagern"]
-        self.LADEART = ["Konst", "Puls", "Reflex", "????LIPO was?"]
+        self.LADEART = ["Konst", "Puls", "Reflex", "?LIPO was?"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung", "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
@@ -841,7 +843,9 @@ class akkumatik_display:
                         + str(self.gewaehlter_ausgang), self.window,\
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
-                self.dialog.add_button("Start Ausgang %i" % (self.gewaehlter_ausgang), -3)
+
+                self.dialog.add_button("Übertragen", -4)
+                self.dialog.add_button("Starten", -3)
 
                 #hbox over the whole dialog
                 hbox = gtk.HBox(False, 0)
@@ -985,7 +989,7 @@ class akkumatik_display:
                 retval = self.dialog.run()
                 self.dialog.destroy()
 
-                if retval == -3: #OK got pressed
+                if retval == -3 or retval == -4: #OK or uebertragen got pressed
                     hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
                     hex_str += self.get_pos_hex(cb_atyp.get_active_text(),self.AKKU_TYP)
                     hex_str += self.get_pos_hex(cb_prog.get_active_text(),self.AMPROGRAMM)
@@ -1008,7 +1012,7 @@ class akkumatik_display:
 
                     #Kommando       //  0    1    2  ......
                     #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
-                    #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER
+                    #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER, Lagern
                     #u08 lade_mode  // KONST, PULS, REFLEX
                     #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
                     #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
@@ -1021,21 +1025,15 @@ class akkumatik_display:
 
                     self.command_abort = False #reset
 
-                    #if self.gewaehlter_ausgang == 1: #toggle ausgang
-                        #self.akkumatik_command("41")
-                    #else:
-                        #self.akkumatik_command("42")
-
-                    #time.sleep(0.6) #needs somehow, else the threads gets out of order possibly
-
                     self.akkumatik_command(hex_str)
 
-                    time.sleep(0.6) #needs somehow, else the threads gets out of order possibly
+                    if retval == -3: #Additionally start
+                        time.sleep(1.0) #needs somehow, else the threads gets out of order possibly
 
-                    if self.gewaehlter_ausgang == 1: #toggle ausgang
-                        self.akkumatik_command("44")
-                    else:
-                        self.akkumatik_command("48")
+                        if self.gewaehlter_ausgang == 1:
+                            self.akkumatik_command("44")
+                        else:
+                            self.akkumatik_command("48")
 
         #}}}
         def draw_pixbuf(widget, event):
