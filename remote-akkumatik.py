@@ -351,7 +351,7 @@ class akkumatik_display:
 
 
                 g('wfile="' + self.tmp_dir + "/" + fname + '";')
-                #g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
+                g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
                 g('plot \
