@@ -741,8 +741,16 @@ class akkumatik_display:
             #label print
             RimOhm_BalDelta = "Ri:%03i" % (RimOhm_BalDelta)
             #TODO:  more elgegant...
-            if len(daten) > 19:
-                RimOhm_BalDelta = "∆%2imV " % (balance_delta)
+            if self.atyp[self.gewaehlter_ausgang] == 5: #LiPo
+                if len(daten) > 19:
+                    RimOhm_BalDelta = "∆%2imV " % (balance_delta)
+                else:
+                    RimOhm_BalDelta = "∆..mV "
+                self.menge[self.gewaehlter_ausgang] = 0
+                lart = "[LiPo]"
+                stromw = "[LiPo]"
+                stoppm = "[LiPo]"
+
 
             output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, ladeV, zeit, ampere, Ah)
 
@@ -1481,7 +1489,7 @@ class akkumatik_display:
         self.window.show_all() # after file-open (what is needed on plotting)...
 
         #finally begin collecting
-        gobject.timeout_add(400, self.read_line) # some tuning around with that value possibly
+        gobject.timeout_add(100, self.read_line) # some tuning around with that value possibly
         #TODO: not fast enough when data-uploading.... via memoery-thing
 
 if __name__ == '__main__':
