@@ -113,7 +113,7 @@ class akkumatik_display:
         i=0
         sys.stdout.write("\nWaiting for Command Ack: ")
         sys.stdout.flush()
-        while i < 40:
+        while i < 50:
             time.sleep(0.2)
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -126,6 +126,7 @@ class akkumatik_display:
 
         if ok == False:
             sys.stdout.write(" FAILED")
+            sys.stdout.flush()
             self.command_abort = True #skip on further soon to arrive commands
         self.threadlock.release()
 
