@@ -837,15 +837,20 @@ class akkumatik_display:
             self.cb_stromw.set_sensitive(False)
             self.cb_stoppm.set_active(-1)
             self.cb_stoppm.set_sensitive(False)
-        else:
-            self.cb_lart.set_active(0)
+            self.lipo_flag = True
+
+        elif self.lipo_flag == True:
+            self.cb_stoppm.set_active(0) # was -1
+            self.cb_stoppm.set_sensitive(True) # was disabled
             self.cb_lart.remove_text(3) # remove LiPo charge method
-            self.cb_lart.set_sensitive(True)
-
+            self.cb_lart.set_active(0) # and set to 0
+            self.cb_lart.set_sensitive(True) # finally enable
             self.cb_stromw.set_sensitive(True)
+            self.lipo_flag = False
 
-            self.cb_stoppm.set_active(0)
-            self.cb_stoppm.set_sensitive(True)
+        #else:
+
+            ##self.cb_stoppm.set_active(0)
 
 
 ##########################################}}}
@@ -894,6 +899,8 @@ class akkumatik_display:
         self.zyklen =  [0,0,0]
 
         self.oldtime = ["", "", ""]
+
+        self.lipo_flag = False
 
         self.gewaehlter_ausgang = 1
         self.exe_dir = sys.path[0].replace('\\',"/")
