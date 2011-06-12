@@ -753,7 +753,11 @@ class akkumatik_display:
 
             output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, ladeV, zeit, ampere, Ah)
 
-            output2 ="%ix%s %2i° %s Z:%1i/%i\n" % (self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cBat, RimOhm_BalDelta, zyklus, self.zyklen[self.gewaehlter_ausgang])
+            zykll = str(self.zyklen[self.gewaehlter_ausgang])
+            if zykll == "0":
+                zykll = "-"
+
+            output2 ="%ix%s %2i° %s Z:%1i/%s\n" % (self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cBat, RimOhm_BalDelta, zyklus, zykll)
             output2 +="%s %s %s %s\n" % (prg, lart, stromw, stoppm)
 
             kapa = str(self.kapazitaet[self.gewaehlter_ausgang])
