@@ -35,9 +35,14 @@ class akkumatik_display:
 
     #TODO open binary where appropiate
     def save_akkulist(self):
-        fh = self.open_file(self.exe_dir + "/liste_akkus2.dat", "wb")
-        for item in r:
-            fh.write('\xff'.join(item))
+        fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "wb")
+        for item in self.akkulist:
+            line = ""
+            for x in item:
+                line += str(x)  + '\xff'
+            line = line[:-1] # remove last xff
+            line += "\n"
+            fh.write(line)
         fh.close()
 
     def get_akkulist(self):
@@ -45,12 +50,28 @@ class akkumatik_display:
             fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "rb")
         else:
             return []
-        r = []
+
+        ret = []
         for item in fh.readlines():
             tmp = item.split('\xff')
-            r.append(tmp)
+            #tmp = tmp[:-1] # remove -  last is newline
+            if len(tmp) != 12:
+                print "Some Error in liste_akkus.dat - is " + str(len(tmp)) + " - should be 12"
+                continue
+
+            #shoveling into r but with integer values now (besides of first)
+            r = []
+            flag = True
+            for xy in tmp:
+                if flag == True:
+                    r.append(str(xy))
+                    flag = False
+                else:
+                    r.append(int(xy))
+            ret.append(r)
+
         fh.close()
-        return r
+        return ret
 
     def get_pos_hex(self, string, konst_arr):
 
@@ -531,7 +552,7 @@ class akkumatik_display:
 
         try:
             lin = self.ser.readline()
-        except SerialException, e:
+        except serial.SerialException, e:
             print "%s" % e
             return True
 
@@ -728,6 +749,12 @@ class akkumatik_display:
                 self.cb_lart.set_active(int(item[3]))
                 self.cb_stromw.set_active(int(item[4]))
                 self.cb_stoppm.set_active(int(item[5]))
+                self.sp_anzzellen.set_value(int(item[6]))
+                self.sp_kapazitaet.set_value(int(item[7]))
+                self.sp_ladelimit.set_value(int(item[8]))
+                self.sp_entladelimit.set_value(int(item[9]))
+                self.sp_menge.set_value(int(item[10]))
+                self.sp_zyklen.set_value(int(item[11]))
                 break
 
     def combo_prog_cb(self, data=None):
@@ -876,7 +903,77 @@ class akkumatik_display:
         #GTK Stuff{{{
 
         def button_akku_cb(widget, data=None):
-            return
+            if data == "+":
+                dialog = gtk.Dialog("Name Akkuparameter ",\
+                        self.window,\
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+
+                label = gtk.Label("Akkuparameter Name")
+                dialog.vbox.pack_start(label, True, True, 0)
+                label.show()
+
+                tb = gtk.Entry()
+                tb.set_max_length(20)
+                tb.show()
+                dialog.vbox.pack_start(tb, True, True, 0)
+
+                # run the dialog
+                retval = dialog.run()
+
+                if retval == -3: #OK
+                    txt = tb.get_text()
+                    self.akkulist.append([txt, \
+                            int(self.cb_atyp.get_active()),\
+                            int(self.cb_prog.get_active()),\
+                            int(self.cb_lart.get_active()),\
+                            int(self.cb_stromw.get_active()),\
+                            int(self.cb_stoppm.get_active()),\
+                            int(self.sp_anzzellen.get_value()),\
+                            int(self.sp_kapazitaet.get_value()),\
+                            int(self.sp_ladelimit.get_value()),\
+                            int(self.sp_entladelimit.get_value()),\
+                            int(self.sp_menge.get_value()),\
+                            int(self.sp_zyklen.get_value())])
+                            #TODO str() or int()?
+
+                    self.cb_akkulist.append_text(self.akkulist[-1][0])
+                    self.cb_akkulist.set_active(len(self.akkulist) - 1)
+
+                dialog.destroy()
+                self.save_akkulist()
+
+            elif data == "x":
+
+                active_i = self.cb_akkulist.get_active()
+                if active_i == -1:
+                    return
+
+                dialog = gtk.Dialog("Akkuparameter Loeschen",\
+                        self.window,\
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+
+                active_i = self.cb_akkulist.get_active()
+
+                label = gtk.Label("Akkuparameter <%s> Loeschen" % (self.akkulist[active_i][0]))
+                dialog.vbox.pack_start(label, True, True, 0)
+                label.show()
+
+                # run the dialog
+                retval = dialog.run()
+
+                if retval == -3: #OK
+                    self.akkulist.pop(active_i) #gtk synchron to self.akkulist (should)
+                    self.cb_akkulist.remove_text(active_i)
+
+                dialog.destroy()
+
+                self.save_akkulist()
+
+
         def delete_event(widget, event, data=None):
             return False
 
@@ -946,7 +1043,7 @@ class akkumatik_display:
 
                 # [ atyp, prog, lart, stromw, stoppm, Zellen, Kapa, I-lade, I-entlade, Menge ]
                 self.akkulist = self.get_akkulist()
-                
+
                 for item in self.akkulist:
                     self.cb_akkulist.append_text(item[0])
 
@@ -960,7 +1057,7 @@ class akkumatik_display:
 
                 #####################################
                 # hbox over the whole dialog (besides of akkulist)
-                
+
                 hbox = gtk.HBox(False, 0)
                 self.dialog.vbox.pack_start(hbox, True, True, 0)
                 hbox.show()
@@ -1050,22 +1147,22 @@ class akkumatik_display:
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.anzahl_zellen[self.gewaehlter_ausgang], 0, 30, 1, 1, 0.0)
-                sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
-                sp_anzzellen.set_wrap(False)
-                sp_anzzellen.set_numeric(True)
-                vbox.pack_start(sp_anzzellen, False, True, 0)
-                sp_anzzellen.show()
+                self.sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
+                self.sp_anzzellen.set_wrap(False)
+                self.sp_anzzellen.set_numeric(True)
+                vbox.pack_start(self.sp_anzzellen, False, True, 0)
+                self.sp_anzzellen.show()
 
                 label = gtk.Label("Kapazität mAh")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.kapazitaet[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
-                sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
-                sp_kapazitaet.set_wrap(False)
-                sp_kapazitaet.set_numeric(True)
-                #sp_kapazitaet.set_size_request(55, -1)
-                vbox.pack_start(sp_kapazitaet, False, True, 0)
-                sp_kapazitaet.show()
+                self.sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
+                self.sp_kapazitaet.set_wrap(False)
+                self.sp_kapazitaet.set_numeric(True)
+                #self.sp_kapazitaet.set_size_request(55, -1)
+                vbox.pack_start(self.sp_kapazitaet, False, True, 0)
+                self.sp_kapazitaet.show()
 
                 label = gtk.Label("I-Laden mA")
                 vbox.pack_start(label, True, True, 0)
@@ -1095,21 +1192,21 @@ class akkumatik_display:
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.menge[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
-                sp_menge = gtk.SpinButton(adj, 1.0, 0)
-                sp_menge.set_wrap(False)
-                sp_menge.set_numeric(True)
-                vbox.pack_start(sp_menge, False, True, 0)
-                sp_menge.show()
+                self.sp_menge = gtk.SpinButton(adj, 1.0, 0)
+                self.sp_menge.set_wrap(False)
+                self.sp_menge.set_numeric(True)
+                vbox.pack_start(self.sp_menge, False, True, 0)
+                self.sp_menge.show()
 
                 label = gtk.Label("Zyklen")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
                 adj = gtk.Adjustment(self.zyklen[self.gewaehlter_ausgang], 1, 10, 1, 1, 0.0)
-                sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
-                sp_zyklen.set_wrap(False)
-                sp_zyklen.set_numeric(True)
-                vbox.pack_start(sp_zyklen, False, True, 0)
-                sp_zyklen.show()
+                self.sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
+                self.sp_zyklen.set_wrap(False)
+                self.sp_zyklen.set_numeric(True)
+                vbox.pack_start(self.sp_zyklen, False, True, 0)
+                self.sp_zyklen.show()
 
                 self.combo_atyp_cb(None)
                 self.combo_prog_cb(None)
@@ -1126,18 +1223,18 @@ class akkumatik_display:
                     hex_str += self.get_pos_hex(self.cb_stromw.get_active_text(),self.STROMWAHL)
                     hex_str += self.get_pos_hex(self.cb_stoppm.get_active_text(),self.STOPPMETHODE)
 
-                    hex_str += self.get_16bit_hex(int(sp_anzzellen.get_value()))
-                    hex_str += self.get_16bit_hex(int(sp_kapazitaet.get_value()))
+                    hex_str += self.get_16bit_hex(int(self.sp_anzzellen.get_value()))
+                    hex_str += self.get_16bit_hex(int(self.sp_kapazitaet.get_value()))
                     hex_str += self.get_16bit_hex(int(self.sp_ladelimit.get_value()))
                     hex_str += self.get_16bit_hex(int(self.sp_entladelimit.get_value()))
-                    hex_str += self.get_16bit_hex(int(sp_menge.get_value()))
-                    hex_str += self.get_16bit_hex(int(sp_zyklen.get_value()))
+                    hex_str += self.get_16bit_hex(int(self.sp_menge.get_value()))
+                    hex_str += self.get_16bit_hex(int(self.sp_zyklen.get_value()))
 
-                    self.kapazitaet[self.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
+                    self.kapazitaet[self.gewaehlter_ausgang] = int(self.sp_kapazitaet.get_value())
                     self.ladelimit[self.gewaehlter_ausgang] = int(self.sp_ladelimit.get_value())
                     self.entladelimit[self.gewaehlter_ausgang] = int(self.sp_entladelimit.get_value())
-                    self.menge[self.gewaehlter_ausgang] = int(sp_menge.get_value())
-                    self.zyklen[self.gewaehlter_ausgang] = int(sp_zyklen.get_value())
+                    self.menge[self.gewaehlter_ausgang] = int(self.sp_menge.get_value())
+                    self.zyklen[self.gewaehlter_ausgang] = int(self.sp_zyklen.get_value())
 
                     #Kommando       //  0    1    2  ......
                     #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
