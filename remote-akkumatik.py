@@ -26,7 +26,6 @@ import platform
 
 import matplotlib.pyplot as plt
 
-
 class akkumatik_display:
 ##########################################}}}
 #Divers stuff{{{

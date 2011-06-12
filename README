@@ -1,23 +1,31 @@
-Remote Akkumatik Control
+= Remote Akkumatik Control =
 
-Config file: exe_dir/config.txt
+== Configuration File ==
 
-Example Config
+Path: [exe_dir_of_remote..]/config.txt
+
+== Example Config ==
 --
-# remote akkumatik config file
-
 serial_port = "/dev/ttyS0"
 viewer = /usr/local/bin/qiv
-hart_path = /home/calmar/remote-akkumatik/data
+chart_path = /home/calmar/remote-akkumatik/data
 tmp_path =  /tmp/remote-akkumatik
 --
 
-TODO:
+While Remote-Akkumatik is tweaked for irfan-view on Windows,
+in a sense that it open only the first generated .png.
+Irfan-view itself provides then the others to click to.
 
-Add config file for:
-    picture viewer
-    serial port
-    tmp data directory (if std tmp not desired)
+Anyway, remote-akkumatik opens MS's default picture viewer.
 
-Matplotlib instead of gnuplot? For windoof it would be
+TODO: Matplotlib instead of gnuplot? For windoof it would be
 easier possibly.
+
+== Disclaimer ==
+
+Please check the final settings on the Akkumatik-Charger -
+or in other words, you can use this software, but on your own risk.
+
+== Contact ==
+
+mac@calmar.ws
