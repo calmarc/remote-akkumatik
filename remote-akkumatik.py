@@ -232,6 +232,7 @@ class akkumatik_display:
     def get_balancer_range(self, f):
         bmin = 0
         bmax = 0
+        rangeval = 0
         for  l in f.readlines():
             if l[0] == "#":
                 continue
@@ -242,7 +243,12 @@ class akkumatik_display:
             for i in range(18, len(line_a) - 1): #average
                 avg += long(line_a[i])
                 div += 1
-            avg /= float(div)
+
+            if div > 0.0:
+                avg /= float(div)
+            else:
+                continue
+
 
             index=17
             for val in line_a[18:-1]: # get min and max
@@ -252,13 +258,13 @@ class akkumatik_display:
                 elif (long(val) - avg) > bmax:
                     bmax = long(val) - avg
 
-            if abs(bmin) > bmax: # get hicher of limits
+            if abs(bmin) > bmax: # get higher of limits
                 rangeval = abs(bmin)
             else:
                 rangeval = bmax
 
-            if rangeval < 12:  # set range-limit minimum to 12
-                rangeval = 12
+        if rangeval < 12:  # set range-limit minimum to 12
+            rangeval = 12
         return rangeval
 
     def gnuplot(self):
@@ -1490,3 +1496,4 @@ if __name__ == '__main__':
     displ = akkumatik_display()
     displ.main()
 #}}}
+#vim: set nosmartindent autoindent tabstop=8 expandtab shiftwidth=4 softtabstop=4 foldmethod=marker foldnestmax=1 :
