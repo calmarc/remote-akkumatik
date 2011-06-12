@@ -755,8 +755,22 @@ class akkumatik_display:
 
             output2 ="%ix%s %2i° %s Z:%1i/%i\n" % (self.anzahl_zellen[self.gewaehlter_ausgang], atyp, cBat, RimOhm_BalDelta, zyklus, self.zyklen[self.gewaehlter_ausgang])
             output2 +="%s %s %s %s\n" % (prg, lart, stromw, stoppm)
-            output2 +="Kap:%imAh ILa:%imA IEn:%imA\n" % (self.kapazitaet[self.gewaehlter_ausgang], self.ladelimit[self.gewaehlter_ausgang], self.entladelimit[self.gewaehlter_ausgang])
-            output2 +="Menge:%imAh VerU:%5.2fV %2i°KK\n" % (self.menge[self.gewaehlter_ausgang], VersU, cKK)
+
+            kapa = str(self.kapazitaet[self.gewaehlter_ausgang])
+            llimit = str(self.ladelimit[self.gewaehlter_ausgang])
+            entll = str( self.entladelimit[self.gewaehlter_ausgang])
+            menge = str(self.menge[self.gewaehlter_ausgang])
+            if kapa == "0":
+                kapa = "-"
+            if llimit == "0":
+                llimit = "-"
+            if entll == "0":
+                entll = "-"
+            if menge == "0":
+                menge = "-"
+
+            output2 +="Kap:%smAh ILa:%smA IEn:%smA\n" % (kapa , llimit, entll)
+            output2 +="Menge:%smAh VerU:%5.2fV %2i°KK\n" % (menge, VersU, cKK)
 
             self.output_data(output, output2)
 
