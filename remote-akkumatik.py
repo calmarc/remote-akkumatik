@@ -395,11 +395,16 @@ class akkumatik_display:
             else:
                 continue
 
-        if platform.system() != "Windows": #on MS, it just created the pictures...
-            if len(qiv_files) > 0:
-                time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
-                args = shlex.split(qiv_files)
-                arguments = ' '.join(str(n) for n in args)
+        if len(qiv_files) > 0:
+            time.sleep(1.8) #sonst finded qiv (noch) nichts allenfalls
+            args = shlex.split(qiv_files)
+            arguments = ' '.join(str(n) for n in args)
+            if platform.system() == "Windows":
+                for x in args:
+                    # os.startfile(x)
+                    thread.start_new_thread(os.startfile,(x,))
+                    break #one is enough for eg. irfanview
+            else:
                 thread.start_new_thread(os.system,(self.picture_exe+' '+arguments,))
 
 ##########################################}}}
@@ -864,7 +869,7 @@ class akkumatik_display:
         self.oldtime = ["", "", ""]
 
         self.gewaehlter_ausgang = 1
-        self.exe_dir = sys.path[0]
+        self.exe_dir = sys.path[0].replace('\\',"/")
 
         #Defaults
         self.picture_exe = '/usr/local/bin/qiv'
@@ -873,7 +878,8 @@ class akkumatik_display:
         else:
             self.serial_port = '/dev/ttyS0'
 
-        self.tmp_dir = tempfile.gettempdir() + "/remote-akkumatik"
+        #e.g for windoofs \'s  (TODO: should not be needed here however)
+        self.tmp_dir = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
         self.chart_dir = self.tmp_dir
 
         if os.path.exists(self.exe_dir + "/config.txt"):
