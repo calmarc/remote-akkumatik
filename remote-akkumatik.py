@@ -563,7 +563,7 @@ class akkumatik_display:
         #sys.stdout.flush()
 
         #graphical output
-        self.label.set_markup('<span foreground="#333333">'+ output + '</span>')
+        self.label.set_markup('<span foreground="#444444">'+ output + '</span>')
         self.label2.set_markup('<span foreground="#339933">'+ output2 + '</span>')
         while gtk.events_pending():
             gtk.main_iteration()
