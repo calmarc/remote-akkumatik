@@ -328,8 +328,9 @@ class akkumatik_display:
                     titel = "Unbekannte Phase <"+str(phasenr)+">" + titel_plus
                     g('set yrange [*:*];')
 
-                g('set terminal jpeg size 1280, 1024;')
-                g('set output "' + self.chart_dir + "/" + fname[:-4] + '.png"')
+                g('set terminal png size 1280, 1024;')
+                #gnuplot does not like MS-Windoof's \
+                g('set output "' + (self.chart_dir).replace('\\','/') + "/" + fname[:-4] + '.png"')
 
                 g('set xdata time;')
 
@@ -363,7 +364,8 @@ class akkumatik_display:
                 g('set origin 0.0,0.5;')
 
 
-                g('wfile="' + self.tmp_dir + "/" + fname + '";')
+                #gnuplot does not like MS-Windoof's \
+                g('wfile="' + self.tmp_dir.replace('\\', '/') + "/" + fname + '";')
                 g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
