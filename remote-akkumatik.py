@@ -932,6 +932,17 @@ class akkumatik_display:
 
                 if retval == -3: #OK
                     txt = tb.get_text()
+
+                    #check if there is that name already - possibly remove it then
+                    i = 0
+                    for item in self.akkulist:
+                        if item[0] == txt:
+                            self.akkulist.pop(i)
+                            self.cb_akkulist.remove_text(i)
+                            print 'Akkuparameter: "%s" wurden ueberschrieben' % txt
+                            break
+                        i += 1
+
                     self.akkulist.append([txt, \
                             int(self.cb_atyp.get_active()),\
                             int(self.cb_prog.get_active()),\
@@ -944,10 +955,20 @@ class akkumatik_display:
                             int(self.sp_entladelimit.get_value()),\
                             int(self.sp_menge.get_value()),\
                             int(self.sp_zyklen.get_value())])
-                            #TODO str() or int()?
 
-                    self.cb_akkulist.append_text(self.akkulist[-1][0])
-                    self.cb_akkulist.set_active(len(self.akkulist) - 1)
+                    #sort on 'name'
+                    self.akkulist.sort(key = lambda x: x[0].lower())
+
+                    #find new item in new ordered list
+                    i=0
+                    for item in self.akkulist:
+                        if item[0] == txt:
+                            break
+                        i += 1
+
+                    #append new just there into gtk-combo
+                    self.cb_akkulist.insert_text(i, txt)
+                    self.cb_akkulist.set_active(i)
 
                 dialog.destroy()
                 self.save_akkulist()
@@ -958,7 +979,7 @@ class akkumatik_display:
                 if active_i == -1:
                     return
 
-                dialog = gtk.Dialog("Akkuparameter Loeschen",\
+                dialog = gtk.Dialog("Akkuparameter löschen",\
                         self.window,\
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
@@ -966,8 +987,12 @@ class akkumatik_display:
 
                 active_i = self.cb_akkulist.get_active()
 
-                label = gtk.Label("Akkuparameter <%s> Loeschen" % (self.akkulist[active_i][0]))
-                dialog.vbox.pack_start(label, True, True, 0)
+                label = gtk.Label('Akkuparameter "%s" löschen?' % (self.akkulist[active_i][0]))
+                align = gtk.Alignment(0,0,0,0)
+                align.set_padding(20,20,30,30)
+                align.show()
+                align.add(label)
+                dialog.vbox.pack_start(align, True, True, 0)
                 label.show()
 
                 # run the dialog
@@ -1155,7 +1180,7 @@ class akkumatik_display:
                 label = gtk.Label("Zellen Anzahl")
                 vbox.pack_start(label, True, True, 0)
                 label.show()
-                adj = gtk.Adjustment(self.anzahl_zellen[self.gewaehlter_ausgang], 0, 30, 1, 1, 0.0)
+                adj = gtk.Adjustment(self.anzahl_zellen[self.gewaehlter_ausgang], 0.0, 30, 1, 1, 0.0)
                 self.sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
                 self.sp_anzzellen.set_wrap(False)
                 self.sp_anzzellen.set_numeric(True)
