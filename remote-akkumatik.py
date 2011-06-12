@@ -770,6 +770,15 @@ class akkumatik_display:
             self.sp_entladelimit.set_sensitive(True)
             self.sp_ladelimit.set_sensitive(True)
 
+    def combo_stromw_cb(self, data=None):
+        val = self.cb_stromw.get_active_text()
+        if val == "Auto":
+            self.sp_ladelimit.set_sensitive(False)
+            self.sp_entladelimit.set_sensitive(False)
+        else:
+            self.sp_ladelimit.set_sensitive(True)
+            self.sp_entladelimit.set_sensitive(True)
+
     def combo_atyp_cb(self, data=None):
         val = self.cb_atyp.get_active_text()
         if val == "LiPo":
@@ -778,8 +787,7 @@ class akkumatik_display:
             self.cb_lart.set_sensitive(False)
             self.cb_stromw.set_active(1)
             self.cb_stromw.set_sensitive(False)
-            self.cb_stoppm.append_text("")
-            self.cb_stoppm.set_active(5)
+            self.cb_stoppm.set_active(-1)
             self.cb_stoppm.set_sensitive(False)
         else:
             self.cb_lart.set_active(0)
@@ -789,7 +797,6 @@ class akkumatik_display:
             self.cb_stromw.set_sensitive(True)
 
             self.cb_stoppm.set_active(0)
-            self.cb_stoppm.remove_text(5) # remove LiPo charge method
             self.cb_stoppm.set_sensitive(True)
 
 
@@ -1119,6 +1126,7 @@ class akkumatik_display:
                 for item in self.STROMWAHL:
                     self.cb_stromw.append_text(item)
                 self.cb_stromw.set_active(self.stromw[self.gewaehlter_ausgang])
+                self.cb_stromw.connect("changed", self.combo_stromw_cb)
                 self.cb_stromw.show()
                 vbox.pack_start(self.cb_stromw, True, True, 0)
 
@@ -1221,7 +1229,11 @@ class akkumatik_display:
                     hex_str += self.get_pos_hex(self.cb_prog.get_active_text(),self.AMPROGRAMM)
                     hex_str += self.get_pos_hex(self.cb_lart.get_active_text(),self.LADEART)
                     hex_str += self.get_pos_hex(self.cb_stromw.get_active_text(),self.STROMWAHL)
-                    hex_str += self.get_pos_hex(self.cb_stoppm.get_active_text(),self.STOPPMETHODE)
+
+                    x = self.cb_stoppm.get_active_text()
+                    if x == None: #was for not showing anything on lipo here we need something
+                        x = "Lademenge"
+                    hex_str += self.get_pos_hex(x, self.STOPPMETHODE)
 
                     hex_str += self.get_16bit_hex(int(self.sp_anzzellen.get_value()))
                     hex_str += self.get_16bit_hex(int(self.sp_kapazitaet.get_value()))
