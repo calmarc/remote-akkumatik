@@ -1359,8 +1359,8 @@ class akkumatik_display:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title('Akkumatic Remote Display')
-        self.window.set_size_request(1006,168)
-        self.window.set_default_size(1006,168)
+        self.window.set_size_request(966,168)
+        self.window.set_default_size(966,168)
         self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", delete_event)
@@ -1380,7 +1380,7 @@ class akkumatik_display:
             self.label.modify_font(pango.FontDescription("mono 22"))
 
         gfixed = gtk.Fixed()
-        gfixed.put(self.label, 48 , 35)
+        gfixed.put(self.label, 48 , 38)
 
         hbox.pack_start(gfixed, False, False, 0)
 
@@ -1390,7 +1390,7 @@ class akkumatik_display:
         else:
             self.label2.modify_font(pango.FontDescription("mono 12"))
 
-        gfixed.put(self.label2, 440, 30)
+        gfixed.put(self.label2, 440, 33)
 
         #vbox for buttons
         vbox = gtk.VBox()
@@ -1398,7 +1398,7 @@ class akkumatik_display:
 
         # hbox for radios
         hbox = gtk.HBox()
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.pack_start(hbox, True, True, 0)
 
         # TODO nicht wirklich toll diese Radios
         r1button = gtk.RadioButton(None, None)
