@@ -808,27 +808,24 @@ class akkumatik_display:
                 self.sp_zyklen.set_value(int(item[11]))
                 break
 
-    def combo_prog_cb(self, data=None):
+    def combo_prog_stromw_cb(self, data=None):
         val = self.cb_prog.get_active_text()
-        if val == "Laden":
+        val2 = self.cb_stromw.get_active_text()
+
+        if val2 == "Auto": #always False
+            self.sp_ladelimit.set_sensitive(False)
+            self.sp_entladelimit.set_sensitive(False)
+ 
+        elif val == "Laden":
             self.sp_entladelimit.set_sensitive(False)
             self.sp_ladelimit.set_sensitive(True)
 
         elif val == "Entladen":
             self.sp_entladelimit.set_sensitive(True)
             self.sp_ladelimit.set_sensitive(False)
-        else:
+        else: #programs that require both
             self.sp_entladelimit.set_sensitive(True)
             self.sp_ladelimit.set_sensitive(True)
-
-    def combo_stromw_cb(self, data=None):
-        val = self.cb_stromw.get_active_text()
-        if val == "Auto":
-            self.sp_ladelimit.set_sensitive(False)
-            self.sp_entladelimit.set_sensitive(False)
-        else:
-            self.sp_ladelimit.set_sensitive(True)
-            self.sp_entladelimit.set_sensitive(True)
 
     def combo_atyp_cb(self, data=None):
         val = self.cb_atyp.get_active_text()
@@ -1182,7 +1179,7 @@ class akkumatik_display:
                     self.cb_prog.append_text(self.AMPROGRAMM[6])
 
                 self.cb_prog.set_active(self.prg[self.gewaehlter_ausgang])
-                self.cb_prog.connect("changed", self.combo_prog_cb)
+                self.cb_prog.connect("changed", self.combo_prog_stromw_cb)
                 self.cb_prog.show()
                 vbox.pack_start(self.cb_prog, True, True, 0)
 
@@ -1203,7 +1200,7 @@ class akkumatik_display:
                 for item in self.STROMWAHL:
                     self.cb_stromw.append_text(item)
                 self.cb_stromw.set_active(self.stromw[self.gewaehlter_ausgang])
-                self.cb_stromw.connect("changed", self.combo_stromw_cb)
+                self.cb_stromw.connect("changed", self.combo_prog_stromw_cb)
                 self.cb_stromw.show()
                 vbox.pack_start(self.cb_stromw, True, True, 0)
 
@@ -1294,8 +1291,7 @@ class akkumatik_display:
                 self.sp_zyklen.show()
 
                 self.combo_atyp_cb(None)
-                self.combo_prog_cb(None)
-                self.combo_stromw_cb(None)
+                self.combo_prog_stromw_cb(None)
 
                 # run the dialog
                 retval = self.dialog.run()
