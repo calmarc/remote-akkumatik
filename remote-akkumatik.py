@@ -1271,6 +1271,7 @@ class akkumatik_display:
 
                 self.combo_atyp_cb(None)
                 self.combo_prog_cb(None)
+                self.combo_stromw_cb(None)
 
                 # run the dialog
                 retval = self.dialog.run()
