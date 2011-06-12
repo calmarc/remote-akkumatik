@@ -147,36 +147,48 @@ class akkumatik_display:
 #GnuPlotting stuff{{{
 ##########################################
 
-    def lipo_gnuplot(self, line_a, rangeval):
+    def lipo_gnuplot(self, line_a, rangeval, anz_z):
         """lipo gnuplot 2nd chart"""
         gpst = ""
 
         gpst += 'set nolabel;\n'
+        gpst += 'set ytics nomirror;\n'
         gpst += 'set ylabel "mVolt Zellen (Avg)"\n'
         gpst += 'set yrange [2992:4208];\n'
-        gpst += 'set ytics nomirror;\n'
 
         #gpst += 'set autoscale {y{|min|max|fixmin|fixmax|fix} | fix | keepfix}
 
-        gpst += 'set y2range ['+str(-1*rangeval)+':'+str(rangeval)+'];\n'
-        gpst += 'set y2label "Balancer ∆";\n'
-        gpst += 'set y2tics 4;\n'
-        gpst += 'set my2tics 4;\n'
+        if rangeval != -1:
+            gpst += 'set y2range ['+str(-1*rangeval)+':'+str(rangeval)+'];\n'
+            gpst += 'set y2label "Balancer ∆";\n'
+            gpst += 'set y2tics 4;\n'
+            gpst += 'set my2tics 4;\n'
 
-        gpst += "plot "
+            gpst += "plot "
 
-        avg_string = "("
-        x = 0
-        for i in range(18, len(line_a) - 1):
-            avg_string += "$"+str(i+1)+"+"
-            x += 1
-        avg_string = avg_string[0:-1] + ")/" + str(x)
+            avg_string = "("
+            x = 0
+            for i in range(18, len(line_a) - 1):
+                avg_string += "$"+str(i+1)+"+"
+                x += 1
+            avg_string = avg_string[0:-1] + ")/" + str(x)
 
-        gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
+            gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
 
-        for i in range(18, len(line_a) - 1):
-            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+self.LIPORGB[i-18]+'"'
-        gpst += ';'
+            for i in range(18, len(line_a) - 1):
+                gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+self.LIPORGB[i-18]+'"'
+            gpst += ';'
+        else:
+            string = 'mV (avg)'
+            if anz_z == -1:
+                print "*********************************** -1 "
+                gpst += 'set yrange [0:*];\n'
+                gpst += 'set ylabel "mVolt Zellen"\n'
+                anz_z = 1
+                string = 'mVolt'
+
+            gpst += 'plot wfile using 2:($3/'+str(anz_z)+') with lines title "'+string+'" lw 2 lc rgbcolor "#cc3333" '
+            print gpst
 
         return (gpst)
 
@@ -193,7 +205,7 @@ class akkumatik_display:
         #gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
         #gpst += 'set y2tics border;\n'
 
-        gpst += 'plot wfile using 2:($3/'+str(self.anzahl_zellen[self.gewaehlter_ausgang])+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";'
+        gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";'
         return gpst
 
     def nixx_gnuplot(self):
@@ -286,14 +298,17 @@ class akkumatik_display:
                 stoppm = self.STOPPMETHODE[long(line_a[16])] #stromwahl
                 #Stop >= 50?
                 anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+                anz_z = anz_zellen
                 if anz_zellen >= 40: # not really needed there in the title anyway.
                     anz_z_str = ""
+                    anz_z = -1 #unknown
                 else:
                     anz_z_str = str(anz_zellen) + "x"
 
                 titel_plus = " ["+anz_z_str+atyp_str+", "+prg+", "+lart+", "+stromw+", "+stoppm+"] - "
                 titel_little = " ["+anz_z_str+atyp_str+"] - "
 
+                rangeval = -1 # stays like that when no balancer attached
                 if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
                     f = self.open_file(self.tmp_dir + "/" + fname, "r")
                     rangeval = self.get_balancer_range(f)
@@ -367,8 +382,8 @@ class akkumatik_display:
                 g('set size 1.0,0.45;')
                 g('set origin 0.0,0.0;')
 
-                if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer
-                    g(self.lipo_gnuplot(line_a, rangeval))
+                if atyp == 5:
+                    g(self.lipo_gnuplot(line_a, rangeval, anz_z))
                 elif atyp == 0 or atyp == 1:
                     g(self.nixx_gnuplot())
                 else:
