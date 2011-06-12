@@ -111,7 +111,7 @@ class akkumatik_display:
 
         ok = False
         i=0
-        sys.stdout.write("\nWaiting for Command Ack: ")
+        sys.stdout.write("Waiting for Command Ack: ")
         sys.stdout.flush()
         while i < 50:
             time.sleep(0.2)
@@ -119,13 +119,13 @@ class akkumatik_display:
             sys.stdout.flush()
             i += 1
             if self.command_wait == False: #put on True before sending. - here waiting for False
-                sys.stdout.write(" OK")
+                sys.stdout.write(" OK\n")
                 sys.stdout.flush()
                 ok = True
                 break
 
         if ok == False:
-            sys.stdout.write(" FAILED")
+            sys.stdout.write(" Failed\n")
             sys.stdout.flush()
             self.command_abort = True #skip on further soon to arrive commands
         self.threadlock.release()
@@ -1398,31 +1398,41 @@ class akkumatik_display:
         #}}}
         ##########################################
         #Serial{{{
+
+        print "* [ Serial Port ] ***********************************"
+        sys.stdout.write("Trying to open serial port '%s': " % self.serial_port)
+        sys.stdout.flush()
         if platform.system() == "Windows":
             self.serial_port = '\\\\.\\' + self.serial_port #needen on comx>10 - seems to work
 
-        self.ser = serial.Serial(
-            port=self.serial_port,
-            baudrate = 9600,
-            parity = serial.PARITY_NONE,
-            stopbits = serial.STOPBITS_ONE,
-            bytesize = serial.EIGHTBITS,
-            xonxoff=0,
-            rtscts=0,
-            dsrdtr = False,
-            timeout = 0.1, #some tuning around with that value possibly
-            writeTimeout = 2.0)
+        try:
+            self.ser = serial.Serial(
+                port=self.serial_port,
+                baudrate = 9600,
+                parity = serial.PARITY_NONE,
+                stopbits = serial.STOPBITS_ONE,
+                bytesize = serial.EIGHTBITS,
+                xonxoff=0,
+                rtscts=0,
+                dsrdtr = False,
+                timeout = 0.1, #some tuning around with that value possibly
+                writeTimeout = 2.0)
 
-        if platform.system() != "Windows":
-            self.ser.open()
+            if platform.system() != "Windows":
+                self.ser.open()
 
-        self.ser.isOpen()
+            self.ser.isOpen()
 
-        # Wake Modem
-        #self.ser.setDTR(True)
-        #time.sleep(1)
-        #self.ser.setDTR(False)
-        #time.sleep(2)
+            sys.stdout.write("OK\n\n")
+            sys.stdout.flush()
+
+        except serial.SerialException, e:
+            sys.stdout.write("Failed\n\n")
+            sys.stdout.flush()
+            print "Program abort: \"%s\"" % e
+            time.sleep(3)
+            sys.exit()
+
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a')
@@ -1437,6 +1447,8 @@ class akkumatik_display:
                 sys.stdout.write("..." + str(i))
                 sys.stdout.flush()
                 time.sleep(1.0)
+            sys.stdout.write("\n\n")
+            sys.stdout.flush()
             self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
