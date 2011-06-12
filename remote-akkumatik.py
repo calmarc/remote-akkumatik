@@ -113,8 +113,8 @@ class akkumatik_display:
         i=0
         sys.stdout.write("Waiting for Command Ack: ")
         sys.stdout.flush()
-        while i < 50:
-            time.sleep(0.2)
+        while i < 60:
+            time.sleep(0.1)
             sys.stdout.write(".")
             sys.stdout.flush()
             i += 1
@@ -181,14 +181,12 @@ class akkumatik_display:
         else:
             string = 'mV (avg)'
             if anz_z == -1:
-                print "*********************************** -1 "
                 gpst += 'set yrange [0:*];\n'
                 gpst += 'set ylabel "mVolt Zellen"\n'
                 anz_z = 1
                 string = 'mVolt'
 
             gpst += 'plot wfile using 2:($3/'+str(anz_z)+') with lines title "'+string+'" lw 2 lc rgbcolor "#cc3333" '
-            print gpst
 
         return (gpst)
 
