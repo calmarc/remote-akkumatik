@@ -13,7 +13,6 @@ import time
 import subprocess
 import thread
 
-
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -1079,7 +1078,7 @@ class akkumatik_display:
                         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
 
-                self.dialog.add_button("Übertragen", -4)
+                self.dialog.add_button("Übertragen", 2)
                 self.dialog.add_button("Starten", -3)
 
                 #####################################
@@ -1277,7 +1276,7 @@ class akkumatik_display:
                 retval = self.dialog.run()
                 self.dialog.destroy()
 
-                if retval == -3 or retval == -4: #OK or uebertragen got pressed
+                if retval == -3 or retval == 2: #OK or uebertragen got pressed
                     hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
                     hex_str += self.get_pos_hex(self.cb_atyp.get_active_text(),self.AKKU_TYP)
                     hex_str += self.get_pos_hex(self.cb_prog.get_active_text(),self.AMPROGRAMM)
