@@ -26,6 +26,10 @@ easier possibly.
 Please check the final settings on the Akkumatik-Charger -
 or in other words, you can use this software, but on your own risk.
 
+== TODO ==
+
+Clean up code and get rid of as many as possible of the self. variables...
+
 == Contact ==
 
 mac@calmar.ws
