@@ -1391,7 +1391,8 @@ class akkumatik_display:
         else:
             self.label2.modify_font(pango.FontDescription("mono 12"))
 
-        gfixed.put(self.label2, 440, 33)
+        self.label2.set_size_request(364,100)
+        gfixed.put(self.label2, 436, 33)
 
         #vbox for buttons
         vbox = gtk.VBox()
