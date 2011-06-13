@@ -464,18 +464,18 @@ class akkumatik_display:
         self.f.close()
 
         if os.path.getsize(self.tmp_dir + '/serial-akkumatik.dat') < 10:
-            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a') #reopen
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
             print "Not sufficient Serial Data avaiable"
             self.file_block = False
             return
 
         self.file_block = True #stop getting more serial data
-        self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'r')
+        self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'rb')
 
         for line in self.f.readlines():
             if self.file_block == True:
                 self.f.close()
-                self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a') #reopen
+                self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
                 self.file_block = False #allow further getting serial adding..
 
             if line[0:1] == "1":
@@ -488,7 +488,7 @@ class akkumatik_display:
 
                 if current_time1 < previous_time1:
                     fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-                    fh1 = self.open_file(fname, "w+")
+                    fh1 = self.open_file(fname, "wb+")
 
                     if platform.system() == "Windows":
                         ausgang1_part = ausgang1_part.replace('\xff', " ")
@@ -513,7 +513,7 @@ class akkumatik_display:
                 line_counter2 += 1
                 if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
                     fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-                    fh2 = self.open_file(fname, "w+")
+                    fh2 = self.open_file(fname, "wb+")
 
                     if platform.system() == "Windows":
                         ausgang2_part = ausgang2_part.replace('\xff', " ")
@@ -535,7 +535,7 @@ class akkumatik_display:
 
         if len(ausgang1_part) > 0:
             fname = self.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-            fh1 = self.open_file(fname, "w+")
+            fh1 = self.open_file(fname, "wb+")
 
             if platform.system() == "Windows":
                 ausgang1_part = ausgang1_part.replace('\xff', " ")
@@ -545,7 +545,7 @@ class akkumatik_display:
             print "Generated: " + "%28s" % (fname[-27:])
         if len(ausgang2_part) > 0:
             fname = self.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-            fh2 = self.open_file(fname, "w+")
+            fh2 = self.open_file(fname, "wb+")
 
             if platform.system() == "Windows":
                 ausgang2_part = ausgang2_part.replace('\xff', " ")
@@ -622,8 +622,6 @@ class akkumatik_display:
 
         if yeswrite:
             self.f.write(lin)
-
-        daten[0] = daten[0][-1:] #last digit only (in case theres A1xx integrated)
 
         if (daten[0] == "1" and self.gewaehlter_ausgang == 1) \
                 or (daten[0] == "2" and self.gewaehlter_ausgang == 2):
@@ -1490,9 +1488,9 @@ class akkumatik_display:
 
 
         if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'a')
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'ab')
         elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'wb+')
         else:
             print "\n********************************************************"
             sys.stdout.write("New serial-collecting (3 seconds to abort (Ctrl-C)): ")
@@ -1504,7 +1502,7 @@ class akkumatik_display:
                 time.sleep(1.0)
             sys.stdout.write("\n\n")
             sys.stdout.flush()
-            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'w+')
+            self.f = self.open_file(self.tmp_dir + '/serial-akkumatik.dat', 'wb+')
 
         self.window.show_all() # after file-open (what is needed on plotting)...
 
