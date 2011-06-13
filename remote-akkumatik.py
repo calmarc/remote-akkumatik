@@ -813,7 +813,7 @@ class akkumatik_display:
         if val2 == "Auto": #always False
             self.sp_ladelimit.set_sensitive(False)
             self.sp_entladelimit.set_sensitive(False)
- 
+
         elif val == "Laden":
             self.sp_entladelimit.set_sensitive(False)
             self.sp_ladelimit.set_sensitive(True)
@@ -827,29 +827,35 @@ class akkumatik_display:
 
     def combo_atyp_cb(self, data=None):
         val = self.cb_atyp.get_active_text()
-        if val == "LiPo":
+        if val == self.AKKU_TYP[5]: #LiPo
+            self.cb_lart.remove_text(1) #Puls
+            self.cb_lart.remove_text(1) #Reflex
             self.cb_lart.append_text(self.LADEART[3])
-            self.cb_lart.set_active(3)
-            self.cb_lart.set_sensitive(False)
+            self.cb_lart.set_active(0)
+
             self.cb_stromw.set_active(1)
             self.cb_stromw.set_sensitive(False)
             self.cb_stoppm.set_active(-1)
             self.cb_stoppm.set_sensitive(False)
+
             self.lipo_flag = True
 
         elif self.lipo_flag == True:
             self.cb_stoppm.set_active(0) # was -1
             self.cb_stoppm.set_sensitive(True) # was disabled
-            self.cb_lart.remove_text(3) # remove LiPo charge method
+
+            self.cb_lart.remove_text(1) # remove LiPo Fast charge method
+            self.cb_lart.append_text(self.LADEART[1])
+            self.cb_lart.append_text(self.LADEART[2])
             self.cb_lart.set_active(0) # and set to 0
-            self.cb_lart.set_sensitive(True) # finally enable
+
             self.cb_stromw.set_sensitive(True)
+
             self.lipo_flag = False
 
         #else:
 
             ##self.cb_stoppm.set_active(0)
-
 
 ##########################################}}}
 #INIT{{{
@@ -861,7 +867,7 @@ class akkumatik_display:
         #Konstanten{{{
         self.AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
         self.AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender", "Lagern"]
-        self.LADEART = ["Konst", "Puls", "Reflex", "LiPo"]
+        self.LADEART = ["Konst", "Puls", "Reflex", "LiPo Fast"]
         self.STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
         self.STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
         self.FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung", "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
@@ -1158,6 +1164,9 @@ class akkumatik_display:
                 frame.show()
                 vbox.show()
 
+
+                self.lipo_flag = False  #reset for lipo callback
+
                 #stuff into frame (vbox)
                 label = gtk.Label("Batterie Typ")
                 vbox.pack_start(label, True, True, 0)
@@ -1311,7 +1320,7 @@ class akkumatik_display:
 
                     x = self.cb_stoppm.get_active_text()
                     if x == None: #was for not showing anything on lipo here we need something
-                        x = "Lademenge"
+                        x = self.STOPPMETHODE[0] #"Lademenge"
                     hex_str += self.get_pos_hex(x, self.STOPPMETHODE)
 
                     hex_str += self.get_16bit_hex(int(self.sp_anzzellen.get_value()))
@@ -1341,6 +1350,8 @@ class akkumatik_display:
                     #u16 zyklenzahl // 0...9
 
                     self.command_abort = False #reset
+
+                    return #DEBUG
 
                     self.akkumatik_command(hex_str)
 
