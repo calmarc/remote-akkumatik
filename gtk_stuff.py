@@ -8,6 +8,7 @@ import gobject
 
 import os
 import platform
+import time
 
 #own import
 import cfg
@@ -58,7 +59,7 @@ def main_window():
                 helper.akkumatik_command("42", data)
 
         elif data == "Akku_Settings":
-            (cmd1, cmd2)  =  gtk_stuff.akkupara_dialog()
+            (cmd1, cmd2) = akkupara_dialog()
             if not cmd1:
                 return
 
