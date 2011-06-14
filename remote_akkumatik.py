@@ -34,7 +34,7 @@ def output_data(output, label, output2, label2): #{{{
         gtk.main_iteration()
 
 #}}}
-def read_line(label): #{{{
+def read_line(labels): #{{{
     """Read serial data (called via interval via 
     gobject.timeout_add) and print it to display"""
 
@@ -55,9 +55,6 @@ def read_line(label): #{{{
 
     yeswrite = True
 
-    if lin[:1] == "#": #ignore all together for now
-        return True
-
     #handle command-acknowledged string
     if len(daten[0]) > 1:
         while lin[0:2] == "A1": #more Ack.. can be there
@@ -65,12 +62,7 @@ def read_line(label): #{{{
             daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
             cfg.command_wait = False # Kommando kam an
 
-    if len(daten[0]) != 1: # something is not right..
-        #print "komische dings oder?"
-        #print lin
-        return True
-
-    if len(daten) < 19: #scrumbled or empty line
+    if lin[:1] == "#" or len(daten[0]) != 1 or len(daten) < 19:
         return True
 
     curtime = lin[2:10]
@@ -90,8 +82,8 @@ def read_line(label): #{{{
     try:
         if yeswrite:
             cfg.fser.write(lin)
-    except  ValueError, e:
-        print "%s" % e
+    except  ValueError, err:
+        print "%s" % err
         print "Should not happen, but reopening file anyway"
         cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat', 'ab')
         return True
@@ -141,8 +133,8 @@ def read_line(label): #{{{
         try:
             cfg.lart[cfg.gewaehlter_ausgang] = long(daten[14]) #Ladeart
             lart_str = cfg.LADEART[long(daten[14])] #Ladeart
-        except IndexError, e:
-            print "%s" % e
+        except IndexError, err:
+            print "%s" % err
             print "-> %i" % long(daten[14])
             time.sleep(10)
             sys.exit()
@@ -173,7 +165,7 @@ def read_line(label): #{{{
         if phase == 0: #dann 'Fehlercode' zwangsweise ...?
             if tmp_zellen >= 54: # FEHLER
                 output = cfg.FEHLERCODE[tmp_zellen - 50]
-                output_data(output, label[0], "", label2)
+                output_data(output, labels[0], "", label2)
                 return True
 
             if tmp_zellen >= 50: #'gute' codes
@@ -199,7 +191,7 @@ def read_line(label): #{{{
         else:
             if phase >= 1 and phase <= 5:
                 tmp = "L"
-            elif phase >=7 and phase <= 9:
+            elif phase >= 7 and phase <= 9:
                 tmp = "E"
                 phase = "-"
 
@@ -225,7 +217,7 @@ def read_line(label): #{{{
             stoppm_str = "[LiPo]"
 
 
-        output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v,\
+        output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v, \
                 zeit, ampere, amph)
 
         zykll = str(cfg.zyklen[cfg.gewaehlter_ausgang])
@@ -253,7 +245,7 @@ def read_line(label): #{{{
         output2 +="Kap:%smAh ILa:%smA IEn:%smA\n" % (kapa , llimit, entll)
         output2 +="Menge:%smAh VerU:%5.2fV %2i°KK\n" % (menge_str, vers_u, c_kk)
 
-        output_data(output, label[0], output2, label[1])
+        output_data(output, labels[0], output2, labels[1])
 
     return True
 
@@ -288,10 +280,10 @@ def serial_setup(): #{{{
         sys.stdout.write("OK\n\n")
         sys.stdout.flush()
 
-    except serial.SerialException, e:
+    except serial.SerialException, err:
         sys.stdout.write("Failed\n\n")
         sys.stdout.flush()
-        print "Program abort: \"%s\"" % e
+        print "Program abort: \"%s\"" % err
         time.sleep(3)
         sys.exit()
 
@@ -375,24 +367,24 @@ if __name__ == '__main__': #{{{
     if not os.path.isdir(cfg.tmp_dir):
         try:
             os.mkdir(cfg.tmp_dir)
-        except OSError, e: # Python >2.5
+        except OSError, err: # Python >2.5
             if OSError.errno == errno.EEXIST:
                 pass
             else:
                 print "Unable to create [%s] directory" \
-                        % cfg.tmp_dir, "Ending program.\n", e
+                        % cfg.tmp_dir, "Ending program.\n", err
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
     if not os.path.isdir(cfg.chart_dir):
         try:
             os.mkdir(cfg.chart_dir)
-        except OSError, e: # Python >2.5
+        except OSError, err: # Python >2.5
             if OSError.errno == errno.EEXIST:
                 pass
             else:
                 print "Unable to create [%s] directory" \
-                        % cfg.chart_dir, "Ending program.\n", e
+                        % cfg.chart_dir, "Ending program.\n", err
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
