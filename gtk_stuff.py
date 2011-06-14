@@ -1,4 +1,5 @@
 # coding=utf-8
+""" graphical stuff (GTK) """
 
 import pygtk
 pygtk.require('2.0')
@@ -19,17 +20,21 @@ import ra_gnuplot
 # Main Window{{{
 ##########################################
 def main_window():
+    """ main window (display) """
     def delete_event(widget, event, data=None):
+        """ Delete Event """
         return False
 
     def destroy(widget, data=None):
+        """ Detroy """
         gtk.main_quit()
 
     def buttoncb (widget, data):
+        """ callback function from the main display buttons """
 
         if data == "Chart":
-            #ra_gnuplot.gnuplot()
-            ra_matplot.matplot()
+            ra_gnuplot.gnuplot()
+            #ra_matplot.matplot()
 
         elif data == "Exit":
             gtk.main_quit()
@@ -72,16 +77,16 @@ def main_window():
                 helper.akkumatik_command(cmd2, "Start")
 
     def draw_pixbuf(widget, event):
+        """ add the picture to the window """
         path = cfg.exe_dir + '/bilder/Display.jpg'
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL],\
+        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
                 pixbuf, 0, 0, 0,0)
-
 
     cfg.gtk_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
     cfg.gtk_window.set_title('Akkumatic Remote Display')
-    cfg.gtk_window.set_size_request(966,168)
-    cfg.gtk_window.set_default_size(966,168)
+    cfg.gtk_window.set_size_request(966, 168)
+    cfg.gtk_window.set_default_size(966, 168)
     cfg.gtk_window.set_position(gtk.WIN_POS_CENTER)
 
     cfg.gtk_window.connect("delete_event", delete_event)
@@ -111,7 +116,7 @@ def main_window():
     else:
         label2.modify_font(pango.FontDescription("mono 12"))
 
-    label2.set_size_request(364,100)
+    label2.set_size_request(364, 100)
     gfixed.put(label2, 436, 33)
 
     #vbox for buttons
@@ -163,7 +168,7 @@ def main_window():
     vbox.pack_start(button, False, True, 0)
 
     button = gtk.Button("Exit")
-    button.set_size_request(98,20)
+    button.set_size_request(98, 20)
     button.connect("clicked", buttoncb, "Exit")
     vbox.pack_end(button, False, True, 0)
 
@@ -179,24 +184,27 @@ def main_window():
 ##########################################
 
 def akkupara_dialog(): #{{{
+    """ The Akkuparameter Dialog """
 
     def save_akkulist():
-        fh = helper.open_file(cfg.exe_dir + "/liste_akkus.dat", "wb")
+        """ Save the current akku-list """
+        fha = helper.open_file(cfg.exe_dir + "/liste_akkus.dat", "wb")
         for item in akkulist:
             line = ""
-            for x in item:
-                line += str(x)  + '\xff'
+            for tmp in item:
+                line += str(tmp)  + '\xff'
             line = line[:-1] # remove last xff
             line += "\n"
-            fh.write(line)
-        fh.close()
+            fha.write(line)
+        fha.close()
 
     def button_akku_cb(widget, para_dia, data=None):
+        """ Either add or delete from the akkulist """
         if data == "+":
-            dialog = gtk.Dialog("Name Akkuparameter ",\
-                    para_dia,\
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+            dialog = gtk.Dialog("Name Akkuparameter ", \
+                    para_dia, \
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, \
+                    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, \
                     gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
 
             label = gtk.Label("Akkuparameter Name")
@@ -225,23 +233,23 @@ def akkupara_dialog(): #{{{
                     i += 1
 
                 akkulist.append([txt, \
-                        int(cb_atyp.get_active()),\
-                        int(cb_prog.get_active()),\
-                        int(cb_lart.get_active()),\
-                        int(cb_stromw.get_active()),\
-                        int(cb_stoppm.get_active()),\
-                        int(sp_anzzellen.get_value()),\
-                        int(sp_kapazitaet.get_value()),\
-                        int(sp_ladelimit.get_value()),\
-                        int(sp_entladelimit.get_value()),\
-                        int(sp_menge.get_value()),\
+                        int(cb_atyp.get_active()), \
+                        int(cb_prog.get_active()), \
+                        int(cb_lart.get_active()), \
+                        int(cb_stromw.get_active()), \
+                        int(cb_stoppm.get_active()), \
+                        int(sp_anzzellen.get_value()), \
+                        int(sp_kapazitaet.get_value()), \
+                        int(sp_ladelimit.get_value()), \
+                        int(sp_entladelimit.get_value()), \
+                        int(sp_menge.get_value()), \
                         int(sp_zyklen.get_value())])
 
                 #sort on 'name'
                 akkulist.sort(key = lambda x: x[0].lower())
 
                 #find new item in new ordered list
-                i=0
+                i = 0
                 for item in akkulist:
                     if item[0] == txt:
                         break
@@ -260,18 +268,18 @@ def akkupara_dialog(): #{{{
             if active_i == -1:
                 return
 
-            dialog = gtk.Dialog("Akkuparameter löschen",\
-                    para_dia,\
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+            dialog = gtk.Dialog("Akkuparameter löschen", \
+                    para_dia, \
+                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, \
+                    (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, \
                     gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
 
             active_i = cb_akkulist.get_active()
 
             label = gtk.Label('Akkuparameter "%s" löschen?' %\
                     (akkulist[active_i][0]))
-            align = gtk.Alignment(0,0,0,0)
-            align.set_padding(16,16,8,8)
+            align = gtk.Alignment(0, 0, 0, 0)
+            align.set_padding(16, 16, 8, 8)
             align.show()
             align.add(label)
             dialog.vbox.pack_start(align, True, True, 0)
@@ -307,6 +315,7 @@ def akkupara_dialog(): #{{{
                 break
 
     def combo_prog_stromw_cb(data=None):
+        """ when the program or stromwahl changed """
         val = cb_prog.get_active_text()
         val2 = cb_stromw.get_active_text()
 
@@ -326,6 +335,7 @@ def akkupara_dialog(): #{{{
             sp_ladelimit.set_sensitive(True)
 
     def combo_atyp_cb(data, lipo_flag):
+        """ akku type callback (when changed) """
         val = cb_atyp.get_active_text()
         if val == cfg.AKKU_TYP[5]: #LiPo
             cb_lart.remove_text(1) #Puls
@@ -354,13 +364,14 @@ def akkupara_dialog(): #{{{
             lipo_flag[0] = False
 
     def get_akkulist():
+        """ load akkulist from harddrive """
         if os.path.exists(cfg.exe_dir + "/liste_akkus.dat"):
-            fh = helper.open_file(cfg.exe_dir + "/liste_akkus.dat", "rb")
+            fha = helper.open_file(cfg.exe_dir + "/liste_akkus.dat", "rb")
         else:
             return []
 
         ret = []
-        for item in fh.readlines():
+        for item in fha.readlines():
             tmp = item.split('\xff')
             #tmp = tmp[:-1] # remove -  last is newline
             if len(tmp) != 12:
@@ -369,24 +380,24 @@ def akkupara_dialog(): #{{{
                 continue
 
             #shoveling into r but with integer values now (besides of first)
-            r = []
+            rtmp = []
             flag = True
             for xy in tmp:
                 if flag == True:
-                    r.append(str(xy))
+                    rtmp.append(str(xy))
                     flag = False
                 else:
-                    r.append(int(xy))
-            ret.append(r)
+                    rtmp.append(int(xy))
+            ret.append(rtmp)
 
-        fh.close()
+        fha.close()
         return ret
 
     #######################################
     #GTK Akku parameter dialog main window
     dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
-            + str(cfg.gewaehlter_ausgang), cfg.gtk_window,\
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+            + str(cfg.gewaehlter_ausgang), cfg.gtk_window, \
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, \
             (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
 
     dialog.add_button("Übertragen", 2)
@@ -515,7 +526,7 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("Zellen Anzahl")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.anzahl_zellen[cfg.gewaehlter_ausgang],\
+    adj = gtk.Adjustment(cfg.anzahl_zellen[cfg.gewaehlter_ausgang], \
             0.0, 30, 1, 1, 0.0)
     sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
     sp_anzzellen.set_wrap(False)
@@ -526,7 +537,7 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("Kapazität mAh")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.kapazitaet[cfg.gewaehlter_ausgang],\
+    adj = gtk.Adjustment(cfg.kapazitaet[cfg.gewaehlter_ausgang], \
             0.0, 99999, 25, 25, 0.0)
     sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
     sp_kapazitaet.set_wrap(False)
@@ -537,7 +548,7 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("I-Laden mA")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.ladelimit[cfg.gewaehlter_ausgang],\
+    adj = gtk.Adjustment(cfg.ladelimit[cfg.gewaehlter_ausgang], \
             0.0, 9999, 25, 25, 0.0)
     sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
     sp_ladelimit.set_wrap(False)
@@ -548,7 +559,7 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("I-Entladen mA")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.entladelimit[cfg.gewaehlter_ausgang],\
+    adj = gtk.Adjustment(cfg.entladelimit[cfg.gewaehlter_ausgang], \
             0.0, 9999, 25, 25, 0.0)
     sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
     sp_entladelimit.set_wrap(False)
@@ -563,7 +574,7 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("Menge mAh")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.menge[cfg.gewaehlter_ausgang],\
+    adj = gtk.Adjustment(cfg.menge[cfg.gewaehlter_ausgang], \
             0.0, 99999, 25, 25, 0.0)
     sp_menge = gtk.SpinButton(adj, 1.0, 0)
     sp_menge.set_wrap(False)
@@ -591,16 +602,16 @@ def akkupara_dialog(): #{{{
     if retval == -3 or retval == 2: #OK or uebertragen got pressed
 
         hex_str = str(30 + cfg.gewaehlter_ausgang) #kommando 31 or 32
-        hex_str += helper.get_pos_hex(cb_atyp.get_active_text(),cfg.AKKU_TYP)
-        hex_str += helper.get_pos_hex(cb_prog.get_active_text(),cfg.AMPROGRAMM)
-        hex_str += helper.get_pos_hex(cb_lart.get_active_text(),cfg.LADEART)
+        hex_str += helper.get_pos_hex(cb_atyp.get_active_text(), cfg.AKKU_TYP)
+        hex_str += helper.get_pos_hex(cb_prog.get_active_text(), cfg.AMPROGRAMM)
+        hex_str += helper.get_pos_hex(cb_lart.get_active_text(), cfg.LADEART)
         hex_str +=\
-                helper.get_pos_hex(cb_stromw.get_active_text(),cfg.STROMWAHL)
+                helper.get_pos_hex(cb_stromw.get_active_text(), cfg.STROMWAHL)
 
-        x = cb_stoppm.get_active_text()
-        if x == None: #replace lipo None need something
-            x = cfg.STOPPMETHODE[0] #"Lademenge"
-        hex_str += helper.get_pos_hex(x, cfg.STOPPMETHODE)
+        tmp = cb_stoppm.get_active_text()
+        if tmp == None: #replace lipo None need something
+            tmp = cfg.STOPPMETHODE[0] #"Lademenge"
+        hex_str += helper.get_pos_hex(tmp, cfg.STOPPMETHODE)
 
         hex_str += helper.get_16bit_hex(int(sp_anzzellen.get_value()))
         hex_str += helper.get_16bit_hex(int(sp_kapazitaet.get_value()))

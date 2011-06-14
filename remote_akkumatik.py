@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+""" remote akkumatik program for Stefan Estners Akkumatik """
 
 import os
 import sys
@@ -27,6 +28,7 @@ import helper
 #Serial + output stuff{{{
 ##########################################
 def output_data(output, label, output2, label2): #{{{
+    """ print the stuff to the display """
 
     label.set_markup('<span foreground="#444444">'+ output + '</span>')
     label2.set_markup('<span foreground="#339933">'+ output2 + '</span>')
@@ -147,13 +149,11 @@ def read_line(labels): #{{{
 
         c_kk = long(daten[17]) #KK Celsius
 
-        cell_mv = ""
         tmp_a = []
         for cell in daten[18:-1]:
-            cell_mv += " " + cell + " "
             try:
                 tmp_a.append(long(cell))
-            except:
+            except IndexError:
                 print "00:00:00 to long error"
                 print daten
                 print "----------------------"
@@ -165,7 +165,7 @@ def read_line(labels): #{{{
         if phase == 0: #dann 'Fehlercode' zwangsweise ...?
             if tmp_zellen >= 54: # FEHLER
                 output = cfg.FEHLERCODE[tmp_zellen - 50]
-                output_data(output, labels[0], "", label2)
+                output_data(output, labels[0], "", label[1])
                 return True
 
             if tmp_zellen >= 50: #'gute' codes
@@ -251,6 +251,7 @@ def read_line(labels): #{{{
 
 #}}}
 def serial_setup(): #{{{
+    """ try to connect to the serial port """
 
     print "* [ Serial Port ] ***********************************"
     sys.stdout.write("Trying to open serial port '%s': " % cfg.serial_port)
@@ -291,25 +292,26 @@ def serial_setup(): #{{{
 
 #}}}
 def serial_file_setup(): #{{{
+    """ setup the file to store the serial data into """
 
     if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab')
+        fhser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab')
     elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
+        fhser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
     else:
         print "\n********************************************************"
         sys.stdout.write("New collecting (3 seconds to abort (Ctrl-C)): ")
         sys.stdout.flush()
         time.sleep(1.0)
-        for i in range(1,4):
+        for i in range(1, 4):
             sys.stdout.write("..." + str(i))
             sys.stdout.flush()
             time.sleep(1.0)
         sys.stdout.write("\n\n")
         sys.stdout.flush()
-        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
+        fhser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
 
-    return f
+    return fhser
 
 #}}}
 ##########################################}}}
@@ -341,9 +343,9 @@ if __name__ == '__main__': #{{{
 
 
     if os.path.exists(cfg.exe_dir + "/config.txt"):
-        fh = helper.open_file(cfg.exe_dir + "/config.txt", "r")
+        FCONF = helper.open_file(cfg.exe_dir + "/config.txt", "r")
 
-        for line in fh.readlines():
+        for line in FCONF.readlines():
             if len(line.strip()) < 5:
                 continue
             split = line.split("=", 1)
@@ -367,24 +369,24 @@ if __name__ == '__main__': #{{{
     if not os.path.isdir(cfg.tmp_dir):
         try:
             os.mkdir(cfg.tmp_dir)
-        except OSError, err: # Python >2.5
+        except OSError, errx: # Python >2.5
             if OSError.errno == errno.EEXIST:
                 pass
             else:
                 print "Unable to create [%s] directory" \
-                        % cfg.tmp_dir, "Ending program.\n", err
+                        % cfg.tmp_dir, "Ending program.\n", errx
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
     if not os.path.isdir(cfg.chart_dir):
         try:
             os.mkdir(cfg.chart_dir)
-        except OSError, err: # Python >2.5
+        except OSError, errx: # Python >2.5
             if OSError.errno == errno.EEXIST:
                 pass
             else:
                 print "Unable to create [%s] directory" \
-                        % cfg.chart_dir, "Ending program.\n", err
+                        % cfg.chart_dir, "Ending program.\n", errx
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
@@ -392,14 +394,14 @@ if __name__ == '__main__': #{{{
     cfg.fser = serial_file_setup()
 
     #why not putting label's also into cfg....
-    (label, label2) = gtk_stuff.main_window()
+    (LABEL, LABEL2) = gtk_stuff.main_window()
 
     #finally begin collecting
     #TODO: faster when data-uploading via memoery-thing?
     # some tuning around with that value possibly
-    gobject.timeout_add(100, read_line, (label, label2))
+    gobject.timeout_add(100, read_line, (LABEL, LABEL2))
 
     gtk.main()
 
 #}}}
-#vim: set nosmartindent autoindent tabstop=8 expandtab shiftwidth=4 softtabstop=4 foldmethod=marker foldnestmax=1 :
+#vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
