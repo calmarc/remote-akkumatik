@@ -3,6 +3,7 @@
 import sys
 import thread
 import time
+import serial
 
 #own import
 import cfg

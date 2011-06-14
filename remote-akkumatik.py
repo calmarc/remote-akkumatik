@@ -13,7 +13,6 @@ import thread
 import pygtk
 pygtk.require('2.0')
 import gtk
-import pango
 import gobject
 
 import serial
@@ -132,7 +131,7 @@ def read_line(args): #{{{
 
         #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen
         zyklus = long(daten[10]) #Zyklus
-        sp = long(daten[11]) #Aktive Akkuspeicher
+        #sp = long(daten[11]) #Aktive Akkuspeicher
 
         cfg.atyp[cfg.gewaehlter_ausgang] = long(daten[12]) #Akkutyp
         atyp_str = cfg.AKKU_TYP[long(daten[12])] #Akkutyp
