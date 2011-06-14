@@ -17,22 +17,14 @@ import helper
 def filesplit(): #{{{
     """Create files for gnuplot"""
 
-    file_line = 0
     line_counter1 = 0
     line_counter2 = 0
-    oldline = ""
     file_zaehler1 = 1
     file_zaehler2 = 1
-    flag1 = False
-    flag2 = False
     ausgang1_part = ""
     ausgang2_part = ""
-    previous_line1 = ""
-    previousline2 = ""
     current_time1 = 0
     previous_time1 = 0
-    current_time2 = 0
-    previous_time2 = 0
 
     print "\n* [Serial Splitting] ************************************************"
 
@@ -61,8 +53,6 @@ def filesplit(): #{{{
 
             current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
 
-            previous_line1 = line
-
             line_counter1 += 1
 
             if current_time1 < previous_time1:
@@ -85,9 +75,7 @@ def filesplit(): #{{{
 
         elif line[0:1] == "2": #"2"
 
-            current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
-
-            previousline2 = line
+            #current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
 
             line_counter2 += 1
             if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
@@ -105,8 +93,6 @@ def filesplit(): #{{{
                 line_counter2 = 0
             else:
                 ausgang2_part += line
-
-            previous_time2 = current_time2
 
         else:
             print "\n= [Spez Line...] ============================================================"
