@@ -29,8 +29,8 @@ def main_window():
     def buttoncb (widget, data):
 
         if data == "Chart":
-            ra_gnuplot.gnuplot()
-            #ra_matplot.matplot()
+            #ra_gnuplot.gnuplot()
+            ra_matplot.matplot()
 
         elif data == "Exit":
             gtk.main_quit()
