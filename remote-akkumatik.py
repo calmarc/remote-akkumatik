@@ -31,67 +31,6 @@ class akkumatik_display:
 #Divers stuff{{{
 ##########################################
 
-    #TODO open binary where appropiate
-    def save_akkulist(self):
-        fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "wb")
-        for item in self.akkulist:
-            line = ""
-            for x in item:
-                line += str(x)  + '\xff'
-            line = line[:-1] # remove last xff
-            line += "\n"
-            fh.write(line)
-        fh.close()
-
-    def get_akkulist(self):
-        if os.path.exists(self.exe_dir + "/liste_akkus.dat"):
-            fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "rb")
-        else:
-            return []
-
-        ret = []
-        for item in fh.readlines():
-            tmp = item.split('\xff')
-            #tmp = tmp[:-1] # remove -  last is newline
-            if len(tmp) != 12:
-                print "Some Error in liste_akkus.dat - is " + str(len(tmp)) + " - should be 12"
-                continue
-
-            #shoveling into r but with integer values now (besides of first)
-            r = []
-            flag = True
-            for xy in tmp:
-                if flag == True:
-                    r.append(str(xy))
-                    flag = False
-                else:
-                    r.append(int(xy))
-            ret.append(r)
-
-        fh.close()
-        return ret
-
-    def get_pos_hex(self, string, konst_arr):
-
-        position = konst_arr.index(string)
-        string = "%02x" % (position)
-        #Well, just return %02i would work too on values <10 what is 'always' the case
-        final_str = ""
-        for c in string:
-            final_str += chr(int("30", 16) + int(c, 16))
-        return final_str
-
-    def get_16bit_hex(self, integer):
-        #integer to hex
-        string = "%04x" % (integer)
-        #switch around hi and low byte
-        string = string[2:] + string[0:2]
-        # add 0x30 (48) to those hex-digits and add that finally to the string
-        final_str = ""
-        for c in string:
-            final_str += chr(int("30", 16) + int(c, 16))
-        return final_str
-
     def command_thread(self, tname, com_str):
         self.threadlock.acquire() #TODO make it how it *should be* instead of that here...
 
@@ -786,76 +725,473 @@ class akkumatik_display:
         gtk.main()
 
 ##########################################}}}
-#gtk {{{
+# Akku Parameter Dialog{{{
 ##########################################
-    def cb_akkulist_cb(self, data=None):
-        """ Assign values according to saved Akku-parameters """
-        val = self.cb_akkulist.get_active_text()
-        for item in self.akkulist:
-            if item[0] == val:
-                self.cb_atyp.set_active(int(item[1]))
-                self.cb_prog.set_active(int(item[2]))
-                self.cb_lart.set_active(int(item[3]))
-                self.cb_stromw.set_active(int(item[4]))
-                self.cb_stoppm.set_active(int(item[5]))
-                self.sp_anzzellen.set_value(int(item[6]))
-                self.sp_kapazitaet.set_value(int(item[7]))
-                self.sp_ladelimit.set_value(int(item[8]))
-                self.sp_entladelimit.set_value(int(item[9]))
-                self.sp_menge.set_value(int(item[10]))
-                self.sp_zyklen.set_value(int(item[11]))
-                break
+    def akkupara_dialog(self, window):
 
-    def combo_prog_stromw_cb(self, data=None):
-        val = self.cb_prog.get_active_text()
-        val2 = self.cb_stromw.get_active_text()
+        def get_pos_hex(string, konst_arr):
 
-        if val2 == "Auto": #always False
-            self.sp_ladelimit.set_sensitive(False)
+            position = konst_arr.index(string)
+            string = "%02x" % (position)
+            #Well, just return %02i would work too on values <10 what is 'always' the case
+            final_str = ""
+            for c in string:
+                final_str += chr(int("30", 16) + int(c, 16))
+            return final_str
+
+        def get_16bit_hex(integer):
+            #integer to hex
+            string = "%04x" % (integer)
+            #switch around hi and low byte
+            string = string[2:] + string[0:2]
+            # add 0x30 (48) to those hex-digits and add that finally to the string
+            final_str = ""
+            for c in string:
+                final_str += chr(int("30", 16) + int(c, 16))
+            return final_str
+
+        def save_akkulist():
+            fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "wb")
+            for item in akkulist:
+                line = ""
+                for x in item:
+                    line += str(x)  + '\xff'
+                line = line[:-1] # remove last xff
+                line += "\n"
+                fh.write(line)
+            fh.close()
+
+
+        def button_akku_cb(widget, para_dia, data=None):
+            if data == "+":
+                dialog = gtk.Dialog("Name Akkuparameter ",\
+                        para_dia,\
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+
+                label = gtk.Label("Akkuparameter Name")
+                dialog.vbox.pack_start(label, True, True, 0)
+                label.show()
+
+                tb = gtk.Entry()
+                tb.set_max_length(20)
+                tb.show()
+                dialog.vbox.pack_start(tb, True, True, 0)
+
+                # run the dialog
+                retval = dialog.run()
+
+                if retval == -3: #OK
+                    txt = tb.get_text()
+
+                    #check if there is that name already - possibly remove it then
+                    i = 0
+                    for item in akkulist:
+                        if item[0] == txt:
+                            akkulist.pop(i)
+                            self.cb_akkulist.remove_text(i)
+                            print 'Akkuparameter: "%s" wurden ueberschrieben' % txt
+                            break
+                        i += 1
+
+                    akkulist.append([txt, \
+                            int(self.cb_atyp.get_active()),\
+                            int(self.cb_prog.get_active()),\
+                            int(self.cb_lart.get_active()),\
+                            int(self.cb_stromw.get_active()),\
+                            int(self.cb_stoppm.get_active()),\
+                            int(self.sp_anzzellen.get_value()),\
+                            int(self.sp_kapazitaet.get_value()),\
+                            int(self.sp_ladelimit.get_value()),\
+                            int(self.sp_entladelimit.get_value()),\
+                            int(self.sp_menge.get_value()),\
+                            int(self.sp_zyklen.get_value())])
+
+                    #sort on 'name'
+                    akkulist.sort(key = lambda x: x[0].lower())
+
+                    #find new item in new ordered list
+                    i=0
+                    for item in akkulist:
+                        if item[0] == txt:
+                            break
+                        i += 1
+
+                    #append new just there into gtk-combo
+                    self.cb_akkulist.insert_text(i, txt)
+                    self.cb_akkulist.set_active(i)
+
+                dialog.destroy()
+                save_akkulist()
+
+            elif data == "x":
+
+                active_i = self.cb_akkulist.get_active()
+                if active_i == -1:
+                    return
+
+                dialog = gtk.Dialog("Akkuparameter löschen",\
+                        para_dia,\
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
+                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+
+                active_i = self.cb_akkulist.get_active()
+
+                label = gtk.Label('Akkuparameter "%s" löschen?' % (akkulist[active_i][0]))
+                align = gtk.Alignment(0,0,0,0)
+                align.set_padding(20,20,30,30)
+                align.show()
+                align.add(label)
+                dialog.vbox.pack_start(align, True, True, 0)
+                label.show()
+
+                # run the dialog
+                retval = dialog.run()
+
+                if retval == -3: #OK
+                    akkulist.pop(active_i) #gtk synchron to akkulist (should)
+                    self.cb_akkulist.remove_text(active_i)
+
+                dialog.destroy()
+
+                save_akkulist()
+
+        def cb_akkulist_cb(data=None):
+            """ Assign values according to saved Akku-parameters """
+            val = self.cb_akkulist.get_active_text()
+            for item in akkulist:
+                if item[0] == val:
+                    self.cb_atyp.set_active(int(item[1]))
+                    self.cb_prog.set_active(int(item[2]))
+                    self.cb_lart.set_active(int(item[3]))
+                    self.cb_stromw.set_active(int(item[4]))
+                    self.cb_stoppm.set_active(int(item[5]))
+                    self.sp_anzzellen.set_value(int(item[6]))
+                    self.sp_kapazitaet.set_value(int(item[7]))
+                    self.sp_ladelimit.set_value(int(item[8]))
+                    self.sp_entladelimit.set_value(int(item[9]))
+                    self.sp_menge.set_value(int(item[10]))
+                    self.sp_zyklen.set_value(int(item[11]))
+                    break
+
+        def combo_prog_stromw_cb(data=None):
+            val = self.cb_prog.get_active_text()
+            val2 = self.cb_stromw.get_active_text()
+
+            if val2 == "Auto": #always False
+                self.sp_ladelimit.set_sensitive(False)
+                self.sp_entladelimit.set_sensitive(False)
+
+            elif val == "Laden":
+                self.sp_entladelimit.set_sensitive(False)
+                self.sp_ladelimit.set_sensitive(True)
+
+            elif val == "Entladen":
+                self.sp_entladelimit.set_sensitive(True)
+                self.sp_ladelimit.set_sensitive(False)
+            else: #programs that require both
+                self.sp_entladelimit.set_sensitive(True)
+                self.sp_ladelimit.set_sensitive(True)
+
+        def combo_atyp_cb(data=None):
+            val = self.cb_atyp.get_active_text()
+            if val == self.AKKU_TYP[5]: #LiPo
+                self.cb_lart.remove_text(1) #Puls
+                self.cb_lart.remove_text(1) #Reflex
+                self.cb_lart.append_text(self.LADEART[3])
+                self.cb_lart.set_active(0)
+
+                self.cb_stromw.set_active(1)
+                self.cb_stromw.set_sensitive(False)
+                self.cb_stoppm.set_active(-1)
+                self.cb_stoppm.set_sensitive(False)
+
+                self.lipo_flag = True
+
+            elif self.lipo_flag == True:
+                self.cb_stoppm.set_active(0) # was -1
+                self.cb_stoppm.set_sensitive(True) # was disabled
+
+                self.cb_lart.remove_text(1) # remove LiPo Fast charge method
+                self.cb_lart.append_text(self.LADEART[1])
+                self.cb_lart.append_text(self.LADEART[2])
+                self.cb_lart.set_active(0) # and set to 0
+
+                self.cb_stromw.set_sensitive(True)
+
+                self.lipo_flag = False
+
+        def get_akkulist():
+            if os.path.exists(self.exe_dir + "/liste_akkus.dat"):
+                fh = self.open_file(self.exe_dir + "/liste_akkus.dat", "rb")
+            else:
+                return []
+
+            ret = []
+            for item in fh.readlines():
+                tmp = item.split('\xff')
+                #tmp = tmp[:-1] # remove -  last is newline
+                if len(tmp) != 12:
+                    print "Some Error in liste_akkus.dat - is " + str(len(tmp)) + " - should be 12"
+                    continue
+
+                #shoveling into r but with integer values now (besides of first)
+                r = []
+                flag = True
+                for xy in tmp:
+                    if flag == True:
+                        r.append(str(xy))
+                        flag = False
+                    else:
+                        r.append(int(xy))
+                ret.append(r)
+
+            fh.close()
+            return ret
+
+        #######################################
+        #GTK Akku parameter dialog main window
+
+        dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
+                + str(self.gewaehlter_ausgang), window,\
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
+                (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+
+        dialog.add_button("Übertragen", 2)
+        dialog.add_button("Starten", -3)
+
+        frame = gtk.Frame(None)
+        dialog.vbox.pack_start(frame, True, True, 0)
+
+        hbox = gtk.HBox(False, 0)
+        hbox.show()
+        frame.add(hbox)
+        frame.show()
+
+        button = gtk.Button("+")
+        button.connect("clicked", button_akku_cb, dialog, "+")
+        hbox.pack_start(button, False, True, 1)
+        button.show()
+
+        self.cb_akkulist = gtk.combo_box_new_text()
+        hbox.pack_start(self.cb_akkulist, True, True, 1)
+
+        # [ atyp, prog, lart, stromw, stoppm, Zellen, Kapa, I-lade, I-entlade, Menge ]
+        akkulist = get_akkulist()
+
+        for item in akkulist:
+            self.cb_akkulist.append_text(item[0])
+
+        self.cb_akkulist.connect("changed", cb_akkulist_cb)
+        self.cb_akkulist.show()
+
+        button = gtk.Button("x")
+        button.connect("clicked", button_akku_cb, dialog, "x")
+        hbox.pack_start(button, False, True, 1)
+        button.show()
+
+        #####################################
+        # hbox over the whole dialog (besides of akkulist)
+
+        hbox = gtk.HBox(False, 0)
+        dialog.vbox.pack_start(hbox, True, True, 0)
+        hbox.show()
+
+        #frame 1 (vbox)
+        frame = gtk.Frame(None)
+        hbox.pack_start(frame, True, True, 0)
+
+        vbox = gtk.VBox(False, 0)
+        vbox.set_border_width(5)
+        frame.add(vbox)
+        frame.show()
+        vbox.show()
+
+        self.lipo_flag = False  #reset for lipo callback
+
+        #stuff into frame (vbox)
+        label = gtk.Label("Batterie Typ")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        self.cb_atyp = gtk.combo_box_new_text()
+        for item in self.AKKU_TYP:
+            self.cb_atyp.append_text(item)
+        self.cb_atyp.set_active(self.atyp[self.gewaehlter_ausgang])
+        self.cb_atyp.show()
+        self.cb_atyp.connect("changed", combo_atyp_cb)
+
+        vbox.pack_start(self.cb_atyp, True, True, 0)
+
+        label = gtk.Label("Programm")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        self.cb_prog = gtk.combo_box_new_text()
+
+        if self.gewaehlter_ausgang == 1:
+            for item in self.AMPROGRAMM:
+                self.cb_prog.append_text(item)
+        else: #no Entladen...
+            self.cb_prog.append_text(self.AMPROGRAMM[0])
+            self.cb_prog.append_text(self.AMPROGRAMM[6])
+
+        self.cb_prog.set_active(self.prg[self.gewaehlter_ausgang])
+        self.cb_prog.connect("changed", combo_prog_stromw_cb)
+        self.cb_prog.show()
+        vbox.pack_start(self.cb_prog, True, True, 0)
+
+        label = gtk.Label("Ladeart")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        self.cb_lart = gtk.combo_box_new_text()
+        for item in self.LADEART[:-1]: #exclude LiPo
+            self.cb_lart.append_text(item)
+        self.cb_lart.set_active(self.lart[self.gewaehlter_ausgang])
+        self.cb_lart.show()
+        vbox.pack_start(self.cb_lart, True, True, 0)
+
+        label = gtk.Label("Stromwahl")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        self.cb_stromw = gtk.combo_box_new_text()
+        for item in self.STROMWAHL:
+            self.cb_stromw.append_text(item)
+        self.cb_stromw.set_active(self.stromw[self.gewaehlter_ausgang])
+        self.cb_stromw.connect("changed", combo_prog_stromw_cb)
+        self.cb_stromw.show()
+        vbox.pack_start(self.cb_stromw, True, True, 0)
+
+        label = gtk.Label("Stoppmethode")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        self.cb_stoppm = gtk.combo_box_new_text()
+        for item in self.STOPPMETHODE:
+            self.cb_stoppm.append_text(item)
+        self.cb_stoppm.set_active(self.stoppm[self.gewaehlter_ausgang])
+        self.cb_stoppm.show()
+        vbox.pack_start(self.cb_stoppm, True, True, 0)
+
+        #frame 2 (vbox)
+        frame = gtk.Frame(None)
+        hbox.pack_start(frame, True, True, 0)
+
+        vbox = gtk.VBox(False, 0)
+        vbox.set_border_width(5)
+        frame.add(vbox)
+        frame.show()
+        vbox.show()
+
+        label = gtk.Label("Zellen Anzahl")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        adj = gtk.Adjustment(self.anzahl_zellen[self.gewaehlter_ausgang], 0.0, 30, 1, 1, 0.0)
+        self.sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
+        self.sp_anzzellen.set_wrap(False)
+        self.sp_anzzellen.set_numeric(True)
+        vbox.pack_start(self.sp_anzzellen, False, True, 0)
+        self.sp_anzzellen.show()
+
+        label = gtk.Label("Kapazität mAh")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        adj = gtk.Adjustment(self.kapazitaet[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
+        self.sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
+        self.sp_kapazitaet.set_wrap(False)
+        self.sp_kapazitaet.set_numeric(True)
+        vbox.pack_start(self.sp_kapazitaet, False, True, 0)
+        self.sp_kapazitaet.show()
+
+        label = gtk.Label("I-Laden mA")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        adj = gtk.Adjustment(self.ladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
+        self.sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
+        self.sp_ladelimit.set_wrap(False)
+        self.sp_ladelimit.set_numeric(True)
+        vbox.pack_start(self.sp_ladelimit, False, True, 0)
+        self.sp_ladelimit.show()
+
+        label = gtk.Label("I-Entladen mA")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        adj = gtk.Adjustment(self.entladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
+        self.sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
+        self.sp_entladelimit.set_wrap(False)
+        self.sp_entladelimit.set_numeric(True)
+        vbox.pack_start(self.sp_entladelimit, False, True, 0)
+
+        if self.gewaehlter_ausgang == 2:
             self.sp_entladelimit.set_sensitive(False)
 
-        elif val == "Laden":
-            self.sp_entladelimit.set_sensitive(False)
-            self.sp_ladelimit.set_sensitive(True)
+        self.sp_entladelimit.show()
 
-        elif val == "Entladen":
-            self.sp_entladelimit.set_sensitive(True)
-            self.sp_ladelimit.set_sensitive(False)
-        else: #programs that require both
-            self.sp_entladelimit.set_sensitive(True)
-            self.sp_ladelimit.set_sensitive(True)
+        label = gtk.Label("Menge mAh")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        adj = gtk.Adjustment(self.menge[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
+        self.sp_menge = gtk.SpinButton(adj, 1.0, 0)
+        self.sp_menge.set_wrap(False)
+        self.sp_menge.set_numeric(True)
+        vbox.pack_start(self.sp_menge, False, True, 0)
+        self.sp_menge.show()
 
-    def combo_atyp_cb(self, data=None):
-        val = self.cb_atyp.get_active_text()
-        if val == self.AKKU_TYP[5]: #LiPo
-            self.cb_lart.remove_text(1) #Puls
-            self.cb_lart.remove_text(1) #Reflex
-            self.cb_lart.append_text(self.LADEART[3])
-            self.cb_lart.set_active(0)
+        label = gtk.Label("Zyklen")
+        vbox.pack_start(label, True, True, 0)
+        label.show()
+        adj = gtk.Adjustment(self.zyklen[self.gewaehlter_ausgang], 1, 10, 1, 1, 0.0)
+        self.sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
+        self.sp_zyklen.set_wrap(False)
+        self.sp_zyklen.set_numeric(True)
+        vbox.pack_start(self.sp_zyklen, False, True, 0)
+        self.sp_zyklen.show()
 
-            self.cb_stromw.set_active(1)
-            self.cb_stromw.set_sensitive(False)
-            self.cb_stoppm.set_active(-1)
-            self.cb_stoppm.set_sensitive(False)
+        combo_atyp_cb(None)
+        combo_prog_stromw_cb(None)
 
-            self.lipo_flag = True
+        # run the dialog
+        retval = dialog.run()
+        dialog.destroy()
 
-        elif self.lipo_flag == True:
-            self.cb_stoppm.set_active(0) # was -1
-            self.cb_stoppm.set_sensitive(True) # was disabled
+        if retval == -3 or retval == 2: #OK or uebertragen got pressed
+            hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
+            hex_str += get_pos_hex(self.cb_atyp.get_active_text(),self.AKKU_TYP)
+            hex_str += get_pos_hex(self.cb_prog.get_active_text(),self.AMPROGRAMM)
+            hex_str += get_pos_hex(self.cb_lart.get_active_text(),self.LADEART)
+            hex_str += get_pos_hex(self.cb_stromw.get_active_text(),self.STROMWAHL)
 
-            self.cb_lart.remove_text(1) # remove LiPo Fast charge method
-            self.cb_lart.append_text(self.LADEART[1])
-            self.cb_lart.append_text(self.LADEART[2])
-            self.cb_lart.set_active(0) # and set to 0
+            x = self.cb_stoppm.get_active_text()
+            if x == None: #was for not showing anything on lipo here we need something
+                x = self.STOPPMETHODE[0] #"Lademenge"
+            hex_str += get_pos_hex(x, self.STOPPMETHODE)
 
-            self.cb_stromw.set_sensitive(True)
+            hex_str += get_16bit_hex(int(self.sp_anzzellen.get_value()))
+            hex_str += get_16bit_hex(int(self.sp_kapazitaet.get_value()))
+            hex_str += get_16bit_hex(int(self.sp_ladelimit.get_value()))
+            hex_str += get_16bit_hex(int(self.sp_entladelimit.get_value()))
+            hex_str += get_16bit_hex(int(self.sp_menge.get_value()))
+            hex_str += get_16bit_hex(int(self.sp_zyklen.get_value()))
 
-            self.lipo_flag = False
+            self.kapazitaet[self.gewaehlter_ausgang] = int(self.sp_kapazitaet.get_value())
+            self.ladelimit[self.gewaehlter_ausgang] = int(self.sp_ladelimit.get_value())
+            self.entladelimit[self.gewaehlter_ausgang] = int(self.sp_entladelimit.get_value())
+            self.menge[self.gewaehlter_ausgang] = int(self.sp_menge.get_value())
+            self.zyklen[self.gewaehlter_ausgang] = int(self.sp_zyklen.get_value())
 
-        #else:
+            #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode u08 stop_mode
+            #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
 
-            ##self.cb_stoppm.set_active(0)
+            self.command_abort = False #reset
+
+            self.akkumatik_command(hex_str)
+
+            if retval == -3: #Additionally start
+                time.sleep(1.0) #needs somehow, else the threads gets out of order possibly
+
+                if self.gewaehlter_ausgang == 1:
+                    self.akkumatik_command("44")
+                else:
+                    self.akkumatik_command("48")
 
 ##########################################}}}
 #INIT{{{
@@ -875,7 +1211,6 @@ class akkumatik_display:
 
         ##########################################
         #Class Variablen
-        self.akkulist = []
         self.threadlock = thread.allocate_lock()
         self.file_block = False
         self.command_wait = False # threads are waiting when True on command acknowledge text
@@ -966,105 +1301,6 @@ class akkumatik_display:
                     sys.exit()
 
         #}}}
-        ##########################################
-        #GTK Stuff{{{
-
-        def button_akku_cb(widget, data=None):
-            if data == "+":
-                dialog = gtk.Dialog("Name Akkuparameter ",\
-                        self.window,\
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
-                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-
-                label = gtk.Label("Akkuparameter Name")
-                dialog.vbox.pack_start(label, True, True, 0)
-                label.show()
-
-                tb = gtk.Entry()
-                tb.set_max_length(20)
-                tb.show()
-                dialog.vbox.pack_start(tb, True, True, 0)
-
-                # run the dialog
-                retval = dialog.run()
-
-                if retval == -3: #OK
-                    txt = tb.get_text()
-
-                    #check if there is that name already - possibly remove it then
-                    i = 0
-                    for item in self.akkulist:
-                        if item[0] == txt:
-                            self.akkulist.pop(i)
-                            self.cb_akkulist.remove_text(i)
-                            print 'Akkuparameter: "%s" wurden ueberschrieben' % txt
-                            break
-                        i += 1
-
-                    self.akkulist.append([txt, \
-                            int(self.cb_atyp.get_active()),\
-                            int(self.cb_prog.get_active()),\
-                            int(self.cb_lart.get_active()),\
-                            int(self.cb_stromw.get_active()),\
-                            int(self.cb_stoppm.get_active()),\
-                            int(self.sp_anzzellen.get_value()),\
-                            int(self.sp_kapazitaet.get_value()),\
-                            int(self.sp_ladelimit.get_value()),\
-                            int(self.sp_entladelimit.get_value()),\
-                            int(self.sp_menge.get_value()),\
-                            int(self.sp_zyklen.get_value())])
-
-                    #sort on 'name'
-                    self.akkulist.sort(key = lambda x: x[0].lower())
-
-                    #find new item in new ordered list
-                    i=0
-                    for item in self.akkulist:
-                        if item[0] == txt:
-                            break
-                        i += 1
-
-                    #append new just there into gtk-combo
-                    self.cb_akkulist.insert_text(i, txt)
-                    self.cb_akkulist.set_active(i)
-
-                dialog.destroy()
-                self.save_akkulist()
-
-            elif data == "x":
-
-                active_i = self.cb_akkulist.get_active()
-                if active_i == -1:
-                    return
-
-                dialog = gtk.Dialog("Akkuparameter löschen",\
-                        self.window,\
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,\
-                        gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-
-                active_i = self.cb_akkulist.get_active()
-
-                label = gtk.Label('Akkuparameter "%s" löschen?' % (self.akkulist[active_i][0]))
-                align = gtk.Alignment(0,0,0,0)
-                align.set_padding(20,20,30,30)
-                align.show()
-                align.add(label)
-                dialog.vbox.pack_start(align, True, True, 0)
-                label.show()
-
-                # run the dialog
-                retval = dialog.run()
-
-                if retval == -3: #OK
-                    self.akkulist.pop(active_i) #gtk synchron to self.akkulist (should)
-                    self.cb_akkulist.remove_text(active_i)
-
-                dialog.destroy()
-
-                self.save_akkulist()
-
 
         def delete_event(widget, event, data=None):
             return False
@@ -1105,265 +1341,8 @@ class akkumatik_display:
                     self.akkumatik_command("42")
 
             elif data == "Akku_Settings": #{{{
+                self.akkupara_dialog(self.window)
 
-                self.dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
-                        + str(self.gewaehlter_ausgang), self.window,\
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
-
-                self.dialog.add_button("Übertragen", 2)
-                self.dialog.add_button("Starten", -3)
-
-                #####################################
-                # Akku Liste
-                frame = gtk.Frame(None)
-                self.dialog.vbox.pack_start(frame, True, True, 0)
-
-                hbox = gtk.HBox(False, 0)
-                hbox.show()
-                frame.add(hbox)
-                frame.show()
-
-                button = gtk.Button("+")
-                button.connect("clicked", button_akku_cb, "+")
-                hbox.pack_start(button, False, True, 1)
-                button.show()
-
-
-                self.cb_akkulist = gtk.combo_box_new_text()
-                hbox.pack_start(self.cb_akkulist, True, True, 1)
-
-                # [ atyp, prog, lart, stromw, stoppm, Zellen, Kapa, I-lade, I-entlade, Menge ]
-                self.akkulist = self.get_akkulist()
-
-                for item in self.akkulist:
-                    self.cb_akkulist.append_text(item[0])
-
-                self.cb_akkulist.connect("changed", self.cb_akkulist_cb)
-                self.cb_akkulist.show()
-
-                button = gtk.Button("x")
-                button.connect("clicked", button_akku_cb, "x")
-                hbox.pack_start(button, False, True, 1)
-                button.show()
-
-                #####################################
-                # hbox over the whole dialog (besides of akkulist)
-
-                hbox = gtk.HBox(False, 0)
-                self.dialog.vbox.pack_start(hbox, True, True, 0)
-                hbox.show()
-
-                #frame 1 (vbox)
-                frame = gtk.Frame(None)
-                hbox.pack_start(frame, True, True, 0)
-
-                vbox = gtk.VBox(False, 0)
-                vbox.set_border_width(5)
-                frame.add(vbox)
-                frame.show()
-                vbox.show()
-
-
-                self.lipo_flag = False  #reset for lipo callback
-
-                #stuff into frame (vbox)
-                label = gtk.Label("Batterie Typ")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                self.cb_atyp = gtk.combo_box_new_text()
-                for item in self.AKKU_TYP:
-                    self.cb_atyp.append_text(item)
-                self.cb_atyp.set_active(self.atyp[self.gewaehlter_ausgang])
-                self.cb_atyp.show()
-                self.cb_atyp.connect("changed", self.combo_atyp_cb)
-
-                vbox.pack_start(self.cb_atyp, True, True, 0)
-
-                label = gtk.Label("Programm")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                self.cb_prog = gtk.combo_box_new_text()
-
-                if self.gewaehlter_ausgang == 1:
-                    for item in self.AMPROGRAMM:
-                        self.cb_prog.append_text(item)
-                else: #no Entladen...
-                    self.cb_prog.append_text(self.AMPROGRAMM[0])
-                    self.cb_prog.append_text(self.AMPROGRAMM[6])
-
-                self.cb_prog.set_active(self.prg[self.gewaehlter_ausgang])
-                self.cb_prog.connect("changed", self.combo_prog_stromw_cb)
-                self.cb_prog.show()
-                vbox.pack_start(self.cb_prog, True, True, 0)
-
-                label = gtk.Label("Ladeart")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                self.cb_lart = gtk.combo_box_new_text()
-                for item in self.LADEART[:-1]: #exclude LiPo
-                    self.cb_lart.append_text(item)
-                self.cb_lart.set_active(self.lart[self.gewaehlter_ausgang])
-                self.cb_lart.show()
-                vbox.pack_start(self.cb_lart, True, True, 0)
-
-                label = gtk.Label("Stromwahl")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                self.cb_stromw = gtk.combo_box_new_text()
-                for item in self.STROMWAHL:
-                    self.cb_stromw.append_text(item)
-                self.cb_stromw.set_active(self.stromw[self.gewaehlter_ausgang])
-                self.cb_stromw.connect("changed", self.combo_prog_stromw_cb)
-                self.cb_stromw.show()
-                vbox.pack_start(self.cb_stromw, True, True, 0)
-
-                label = gtk.Label("Stoppmethode")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                self.cb_stoppm = gtk.combo_box_new_text()
-                for item in self.STOPPMETHODE:
-                    self.cb_stoppm.append_text(item)
-                self.cb_stoppm.set_active(self.stoppm[self.gewaehlter_ausgang])
-                self.cb_stoppm.show()
-                vbox.pack_start(self.cb_stoppm, True, True, 0)
-
-
-                #frame 2 (vbox)
-                frame = gtk.Frame(None)
-                hbox.pack_start(frame, True, True, 0)
-
-                vbox = gtk.VBox(False, 0)
-                vbox.set_border_width(5)
-                frame.add(vbox)
-                frame.show()
-                vbox.show()
-
-                label = gtk.Label("Zellen Anzahl")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                adj = gtk.Adjustment(self.anzahl_zellen[self.gewaehlter_ausgang], 0.0, 30, 1, 1, 0.0)
-                self.sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
-                self.sp_anzzellen.set_wrap(False)
-                self.sp_anzzellen.set_numeric(True)
-                vbox.pack_start(self.sp_anzzellen, False, True, 0)
-                self.sp_anzzellen.show()
-
-                label = gtk.Label("Kapazität mAh")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                adj = gtk.Adjustment(self.kapazitaet[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
-                self.sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
-                self.sp_kapazitaet.set_wrap(False)
-                self.sp_kapazitaet.set_numeric(True)
-                #self.sp_kapazitaet.set_size_request(55, -1)
-                vbox.pack_start(self.sp_kapazitaet, False, True, 0)
-                self.sp_kapazitaet.show()
-
-                label = gtk.Label("I-Laden mA")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                adj = gtk.Adjustment(self.ladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
-                self.sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
-                self.sp_ladelimit.set_wrap(False)
-                self.sp_ladelimit.set_numeric(True)
-                vbox.pack_start(self.sp_ladelimit, False, True, 0)
-                self.sp_ladelimit.show()
-
-                label = gtk.Label("I-Entladen mA")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                adj = gtk.Adjustment(self.entladelimit[self.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
-                self.sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
-                self.sp_entladelimit.set_wrap(False)
-                self.sp_entladelimit.set_numeric(True)
-                vbox.pack_start(self.sp_entladelimit, False, True, 0)
-
-                if self.gewaehlter_ausgang == 2:
-                    self.sp_entladelimit.set_sensitive(False)
-
-                self.sp_entladelimit.show()
-
-                label = gtk.Label("Menge mAh")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                adj = gtk.Adjustment(self.menge[self.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
-                self.sp_menge = gtk.SpinButton(adj, 1.0, 0)
-                self.sp_menge.set_wrap(False)
-                self.sp_menge.set_numeric(True)
-                vbox.pack_start(self.sp_menge, False, True, 0)
-                self.sp_menge.show()
-
-                label = gtk.Label("Zyklen")
-                vbox.pack_start(label, True, True, 0)
-                label.show()
-                adj = gtk.Adjustment(self.zyklen[self.gewaehlter_ausgang], 1, 10, 1, 1, 0.0)
-                self.sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
-                self.sp_zyklen.set_wrap(False)
-                self.sp_zyklen.set_numeric(True)
-                vbox.pack_start(self.sp_zyklen, False, True, 0)
-                self.sp_zyklen.show()
-
-                self.combo_atyp_cb(None)
-                self.combo_prog_stromw_cb(None)
-
-                # run the dialog
-                retval = self.dialog.run()
-                self.dialog.destroy()
-
-                if retval == -3 or retval == 2: #OK or uebertragen got pressed
-                    hex_str = str(30 + self.gewaehlter_ausgang) #kommando 31 or 32
-                    hex_str += self.get_pos_hex(self.cb_atyp.get_active_text(),self.AKKU_TYP)
-                    hex_str += self.get_pos_hex(self.cb_prog.get_active_text(),self.AMPROGRAMM)
-                    hex_str += self.get_pos_hex(self.cb_lart.get_active_text(),self.LADEART)
-                    hex_str += self.get_pos_hex(self.cb_stromw.get_active_text(),self.STROMWAHL)
-
-                    x = self.cb_stoppm.get_active_text()
-                    if x == None: #was for not showing anything on lipo here we need something
-                        x = self.STOPPMETHODE[0] #"Lademenge"
-                    hex_str += self.get_pos_hex(x, self.STOPPMETHODE)
-
-                    hex_str += self.get_16bit_hex(int(self.sp_anzzellen.get_value()))
-                    hex_str += self.get_16bit_hex(int(self.sp_kapazitaet.get_value()))
-                    hex_str += self.get_16bit_hex(int(self.sp_ladelimit.get_value()))
-                    hex_str += self.get_16bit_hex(int(self.sp_entladelimit.get_value()))
-                    hex_str += self.get_16bit_hex(int(self.sp_menge.get_value()))
-                    hex_str += self.get_16bit_hex(int(self.sp_zyklen.get_value()))
-
-                    self.kapazitaet[self.gewaehlter_ausgang] = int(self.sp_kapazitaet.get_value())
-                    self.ladelimit[self.gewaehlter_ausgang] = int(self.sp_ladelimit.get_value())
-                    self.entladelimit[self.gewaehlter_ausgang] = int(self.sp_entladelimit.get_value())
-                    self.menge[self.gewaehlter_ausgang] = int(self.sp_menge.get_value())
-                    self.zyklen[self.gewaehlter_ausgang] = int(self.sp_zyklen.get_value())
-
-                    #Kommando       //  0    1    2  ......
-                    #u08 Akkutyp    // NICD, NIMH, BLEI, BGEL, Li36, Li37, LiFe, IUxx
-                    #u08 program    // LADE, ENTL, E+L, L+E, (L)E+L, (E)L+E, SENDER, Lagern
-                    #u08 lade_mode  // KONST, PULS, REFLEX
-                    #u08 strom_mode // AUTO, LIMIT, FEST, EXT-W
-                    #u08 stop_mode  // LADEMENGE, GRADIENT, DELTA-PK-1, DELTA-PK-2, DELTA-PK-3
-                    #u16 zellenzahl // 0...n (abhaengig von Akkutyp und Ausgang)
-                    #u16 capacity   // [mAh] max. FFFFh
-                    #u16 i_lade     // [mA] max. 8000 bzw. 2600
-                    #u16 i_entl     // [mA] max. 5000
-                    #u16 menge      // [mAh] max. FFFFh
-                    #u16 zyklenzahl // 0...9
-
-                    self.command_abort = False #reset
-
-                    return #DEBUG
-
-                    self.akkumatik_command(hex_str)
-
-                    if retval == -3: #Additionally start
-                        time.sleep(1.0) #needs somehow, else the threads gets out of order possibly
-
-                        if self.gewaehlter_ausgang == 1:
-                            self.akkumatik_command("44")
-                        else:
-                            self.akkumatik_command("48")
-
-        #}}}
         def draw_pixbuf(widget, event):
             path = self.exe_dir + '/bilder/Display.jpg'
             pixbuf = gtk.gdk.pixbuf_new_from_file(path)
