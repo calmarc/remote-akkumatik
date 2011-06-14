@@ -579,7 +579,9 @@ if __name__ == '__main__': #{{{
                 helper.akkumatik_command("42", data)
 
         elif data == "Akku_Settings": #{{{
-            (cmd1, cmd2)  = gtk_stuff.akkupara_dialog()
+            (cmd1, cmd2)  =  gtk_stuff.akkupara_dialog()
+            if not cmd1:
+                return
 
             cfg.command_abort = False #reset
 

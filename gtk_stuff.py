@@ -460,3 +460,5 @@ def akkupara_dialog(): #{{{
                 hex_str2 = "48"
 
         return (hex_str, hex_str2)
+
+    return(None, None)
