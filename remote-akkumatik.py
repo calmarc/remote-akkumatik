@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+#{{{imports
 import os
 import sys
 import errno
@@ -26,22 +27,22 @@ import platform
 
 import matplotlib.pyplot as plt
 
+import cfg
+#}}}
 
-def command_thread(tname, com_str):
-    global threadlock
-    global ser
+def command_thread(tname, com_str): #{{{
 
-    threadlock.acquire() #TODO make it how it *should be* instead of that here...
+    cfg.threadlock.acquire() #TODO make it how it *should be* instead of that here...
 
-    if command_abort == True: #skip on further soon to arrive commands
-        threadlock.release()
+    if cfg.command_abort == True: #skip on further soon to arrive commands
+        cfg.threadlock.release()
         return
 
-    command_wait = True
+    cfg.command_wait = True
     try:
-        #ser.setDTR(True)
-        ser.write(com_str)
-        #ser.setDTR(False) #TODO Testing... not really knowing what I do..
+        #cfg.ser.setDTR(True)
+        cfg.ser.write(com_str)
+        #cfg.ser.setDTR(False) #TODO Testing... not really knowing what I do..
     except serial.SerialException, e:
         print "%s", e
 
@@ -54,7 +55,7 @@ def command_thread(tname, com_str):
         sys.stdout.write(".")
         sys.stdout.flush()
         i += 1
-        if command_wait == False: #put on True before sending. - here waiting for False
+        if cfg.command_wait == False: #put on True before sending. - here waiting for False
             sys.stdout.write(" OK\n")
             sys.stdout.flush()
             ok = True
@@ -63,10 +64,12 @@ def command_thread(tname, com_str):
     if ok == False:
         sys.stdout.write(" Failed\n")
         sys.stdout.flush()
-        command_abort = True #skip on further soon to arrive commands
-    threadlock.release()
+        cfg.command_abort = True #skip on further soon to arrive commands
+    cfg.threadlock.release()
 
-def akkumatik_command(string):
+#}}}
+
+def akkumatik_command(string): #{{{
 
     checksum = 2
     for x in string:
@@ -75,17 +78,18 @@ def akkumatik_command(string):
     checksum ^= 64 #dummy checksum byte itself to checksum...
 
     #try:
+    #thread.start_new_thread(command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3), cfg.threadlock, cfg.ser))
     thread.start_new_thread(command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3)))
     #except:
     #    print "Error: unable to start thread"
 
-##########################################}}}
+#}}}
+
+##########################################
 #GnuPlotting stuff{{{
 ##########################################
 
-def lipo_gnuplot(line_a, rangeval, anz_z):
-    global anzahl_zellen
-    global gewaehlter_ausgang
+def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
 
     """lipo gnuplot 2nd chart"""
     gpst = ""
@@ -115,7 +119,7 @@ def lipo_gnuplot(line_a, rangeval, anz_z):
         gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
 
         for i in range(18, len(line_a) - 1):
-            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+LIPORGB[i-18]+'"'
+            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+cfg.LIPORGB[i-18]+'"'
         gpst += ';'
     else:
         string = 'mV (avg)'
@@ -129,15 +133,15 @@ def lipo_gnuplot(line_a, rangeval, anz_z):
 
     return (gpst)
 
-def else_gnuplot():
-    global anzahl_zellen
-    global gewaehlter_ausgang
+#}}}
+
+def else_gnuplot(): #{{{
 
     """other than lipo gnuplot 2nd chart"""
 
     gpst = ""
 
-    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(anzahl_zellen[gewaehlter_ausgang])+' Zellen)"\n'
+    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
     gpst +=  'set yrange [*:*];\n'
     gpst +=  'set ytics nomirror;\n'
 
@@ -148,33 +152,35 @@ def else_gnuplot():
     gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";'
     return gpst
 
-def nixx_gnuplot():
-    global anzahl_zellen
-    global gewaehlter_ausgang
+#}}}
+
+def nixx_gnuplot(): #{{{
 
     """NiCd and NiMH gnuplot 2nd chart"""
 
     gpst = ""
 
-    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(anzahl_zellen[gewaehlter_ausgang])+' Zellen)"\n'
+    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
     gpst +=  'set ytics nomirror;\n'
 
     gpst += 'set y2range [*:*];\n'
     gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
     gpst += 'set y2tics border;\n'
 
-    if anzahl_zellen[gewaehlter_ausgang] == 0: #e.g on restarts + anz-zellen >=50 (errorstuff)
+    if cfg.anzahl_zellen[cfg.gewaehlter_ausgang] == 0: #e.g on restarts + anz-zellen >=50 (errorstuff)
         gpst +=  'set yrange [*:*];\n'
         divisor = "1"
     else:
         gpst +=  'set yrange [600:1899];\n'
-        divisor = str(anzahl_zellen[gewaehlter_ausgang])
+        divisor = str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])
 
     gpst += 'plot wfile using 2:($3/'+divisor+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
                 wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
     return gpst
 
-def get_balancer_range(f):
+#}}}
+
+def get_balancer_range(f): #{{{
 
     bmin = 0
     bmax = 0
@@ -213,30 +219,22 @@ def get_balancer_range(f):
         rangeval = 12
     return rangeval
 
-def gnuplot():
-    """Create charts"""
-    global gewaehlter_ausgang
-    global picture_exe
-    global AKKU_TYP
-    global AMPROGRAMM
-    global LADEART
-    global STROMWAHL
-    global STOPPMETHODE
-    global FEHLERCODE
-    global LIPORGB
+#}}}
 
+def gnuplot(): #{{{
+    """Create charts"""
 
     g = Gnuplot.Gnuplot(debug=0)
 
     qiv_files = ""
-    dirList=os.listdir(tmp_dir)
+    dirList=os.listdir(cfg.tmp_dir)
     dirList.sort()
     print "\n* [Gnu-Plotting] ****************************************************"
     for fname in dirList:
-        if fname[0:4] == "Akku" and fname[4:6] == str(gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
-            qiv_files += chart_dir + "/" + fname[:-4] + ".png "
+        if fname[0:4] == "Akku" and fname[4:6] == str(cfg.gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
+            qiv_files += cfg.chart_dir + "/" + fname[:-4] + ".png "
 
-            f = open_file(tmp_dir + "/" + fname, "r")
+            f = open_file(cfg.tmp_dir + "/" + fname, "r")
             while True: #ignore other than real data lines
                 l = f.readline()
                 if l[0] != "#":
@@ -251,11 +249,11 @@ def gnuplot():
             atyp_i = long(line_a[12])
 
             #titel stuff
-            atyp_str = AKKU_TYP[long(line_a[12])] #Akkutyp
-            prg_str = AMPROGRAMM[long(line_a[13])] #Programm
-            lart_str = LADEART[long(line_a[14])] #Ladeart
-            stromw_str = STROMWAHL[long(line_a[15])] #stromwahl
-            stoppm_str = STOPPMETHODE[long(line_a[16])] #stromwahl
+            atyp_str = cfg.AKKU_TYP[long(line_a[12])] #Akkutyp
+            prg_str = cfg.AMPROGRAMM[long(line_a[13])] #Programm
+            lart_str = cfg.LADEART[long(line_a[14])] #Ladeart
+            stromw_str = cfg.STROMWAHL[long(line_a[15])] #stromwahl
+            stoppm_str = cfg.STOPPMETHODE[long(line_a[16])] #stromwahl
             #Stop >= 50?
             anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
             anz_z = anz_zellen
@@ -270,7 +268,7 @@ def gnuplot():
 
             rangeval = -1 # stays like that when no balancer attached
             if atyp_i == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
-                f = open_file(tmp_dir + "/" + fname, "r")
+                f = open_file(cfg.tmp_dir + "/" + fname, "r")
                 rangeval = get_balancer_range(f)
                 f.close()
 
@@ -292,7 +290,7 @@ def gnuplot():
 
             g('set terminal png size 1280, 1024;')
             #gnuplot does not like MS-Windoof's \
-            g('set output "' + (chart_dir).replace('\\','/') + "/" + fname[:-4] + '.png"')
+            g('set output "' + (cfg.chart_dir).replace('\\','/') + "/" + fname[:-4] + '.png"')
 
             g('set xdata time;')
 
@@ -327,7 +325,7 @@ def gnuplot():
 
 
             #gnuplot does not like MS-Windoof's \
-            g('wfile="' + tmp_dir.replace('\\', '/') + "/" + fname + '";')
+            g('wfile="' + cfg.tmp_dir.replace('\\', '/') + "/" + fname + '";')
             g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
@@ -353,7 +351,7 @@ def gnuplot():
 
             g('set nomultiplot;')
             g('reset')
-            print "Generated:  "+"%44s"%(chart_dir + "/" +fname[-27:-4])+".png"
+            print "Generated:  "+"%44s"%(cfg.chart_dir + "/" +fname[-27:-4])+".png"
         else:
             continue
 
@@ -367,7 +365,9 @@ def gnuplot():
                 thread.start_new_thread(os.startfile,(x,))
                 break #one is enough for eg. irfanview
         else:
-            thread.start_new_thread(os.system,(picture_exe+' '+arguments,))
+            thread.start_new_thread(os.system,(cfg.picture_exe+' '+arguments,))
+
+#}}}
 
 ##########################################}}}
 #Matplot stuff{{{
@@ -381,7 +381,7 @@ def gnuplot():
 #File handling stuff {{{
 ##########################################
 
-def open_file(file_name, mode):
+def open_file(file_name, mode): #{{{
     """Open a file."""
 
     try:
@@ -393,11 +393,10 @@ def open_file(file_name, mode):
     else:
         return the_file
 
-def filesplit(fh):
+#}}}
+
+def filesplit(fh): #{{{
     """Create files for gnuplot"""
-    global file_block
-    global command_wait
-    global fser
 
     file_line = 0
     line_counter1 = 0
@@ -418,26 +417,26 @@ def filesplit(fh):
 
     print "\n* [Serial Splitting] ************************************************"
 
-    for file in os.listdir(tmp_dir):
+    for file in os.listdir(cfg.tmp_dir):
         if len(file) == 12 and file[0:4] == "Akku":
-            os.remove(tmp_dir + "/" + file)
+            os.remove(cfg.tmp_dir + "/" + file)
 
-    file_block = True #stop getting more serial data
-    fser.close()
+    cfg.file_block = True #stop getting more serial data
+    cfg.fser.close()
 
-    if os.path.getsize(tmp_dir + '/serial-akkumatik.dat') < 10:
-        f = open_file(tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
+    if os.path.getsize(cfg.tmp_dir + '/serial-akkumatik.dat') < 10:
+        f = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
         print "Not sufficient Serial Data avaiable"
-        file_block = False
+        cfg.file_block = False
         return
 
-    fser = open_file(tmp_dir + '/serial-akkumatik.dat', 'rb')
+    cfg.fser = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'rb')
 
-    for line in fser.readlines(): #get all lines in one step
-        if file_block == True:
-            fser.close()
-            fser = open_file(tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
-            file_block = False #allow further getting serial adding..
+    for line in cfg.fser.readlines(): #get all lines in one step
+        if cfg.file_block == True:
+            cfg.fser.close()
+            cfg.fser = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
+            cfg.file_block = False #allow further getting serial adding..
 
         if line[0:1] == "1":
 
@@ -448,7 +447,7 @@ def filesplit(fh):
             line_counter1 += 1
 
             if current_time1 < previous_time1:
-                fname = tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = open_file(fname, "wb+")
 
                 if platform.system() == "Windows":
@@ -473,7 +472,7 @@ def filesplit(fh):
 
             line_counter2 += 1
             if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
-                fname = tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                 fh2 = open_file(fname, "wb+")
 
                 if platform.system() == "Windows":
@@ -495,7 +494,7 @@ def filesplit(fh):
             print "SPEZ: " + line
 
     if len(ausgang1_part) > 0:
-        fname = tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+        fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
         fh1 = open_file(fname, "wb+")
 
         if platform.system() == "Windows":
@@ -505,7 +504,7 @@ def filesplit(fh):
         fh1.close()
         print "Generated: " + "%28s" % (fname[-27:])
     if len(ausgang2_part) > 0:
-        fname = tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+        fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
         fh2 = open_file(fname, "wb+")
 
         if platform.system() == "Windows":
@@ -514,55 +513,32 @@ def filesplit(fh):
         fh2.write(ausgang2_part)
         print "Generated: " + "%28s" % (fname[-27:])
 
+#}}}
+
 ##########################################}}}
 #Serial + output stuff{{{
 ##########################################
 
-def output_data(output, output2):
-    global label
-    global label2
+def output_data(output, label, output2, label2): #{{{
 
-    #terminal output
-    #sys.stdout.write (output_tty)
-    #sys.stdout.flush()
-
-    #graphical output
     label.set_markup('<span foreground="#444444">'+ output + '</span>')
     label2.set_markup('<span foreground="#339933">'+ output2 + '</span>')
     while gtk.events_pending():
         gtk.main_iteration()
 
-def read_line():
-    """Read serial data (called via interval via gobject.timeout_add) and print it to display"""
-    global anzahl_zellen
-    global atyp
-    global prg
-    global lart
-    global stromw
-    global stoppm
-    global kapazitaet
-    global ladelimit
-    global entladelimit
-    global menge
-    global zyklen
-    global oldtime
-    global gewaehlter_ausgang
-    global fser
-    global ser
-    global AKKU_TYP
-    global AMPROGRAMM
-    global LADEART
-    global STROMWAHL
-    global STOPPMETHODE
-    global FEHLERCODE
-    global LIPORGB
+#}}}
 
-    if file_block == True:
+def read_line(args): #{{{
+    """Read serial data (called via interval via gobject.timeout_add) and print it to display"""
+
+    (label, label2) = args
+
+    if cfg.file_block == True:
         print "* [Debug] ********************* Blocked serial input"
         return True
 
     try:
-        lin = ser.readline()
+        lin = cfg.ser.readline()
     except serial.SerialException, e:
         print "%s" % e
         return True
@@ -582,7 +558,7 @@ def read_line():
         while lin[0:2] == "A1": #more Ack.. can be there
             lin = lin[5:]
             daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
-            command_wait = False # Kommando kam an
+            cfg.command_wait = False # Kommando kam an
 
     if len(daten[0]) <> 1: # something is not right..
         #print "komische dings oder?"
@@ -597,27 +573,27 @@ def read_line():
     if curtime == "00:00:00": #not begun yet
         yeswrite = False
 
-    if curtime == oldtime[int(daten[0])]:
+    if curtime == cfg.oldtime[int(daten[0])]:
         yeswrite = False
 
     #if lin[11:16] == "00000": #no volt lines
         #print ("FILTER OUT: Volt has Zero value")
         #return ""
 
-    oldtime[int(daten[0])] = curtime
+    cfg.oldtime[int(daten[0])] = curtime
 
     try: 
         if yeswrite:
-            fser.write(lin)
+            cfg.fser.write(lin)
     except  ValueError, e:
         print "%s" % e
         print "Should not happen, but reopening file anyway"
-        fser = open_file(tmp_dir + '/serial-akkumatik.dat', 'ab')
+        cfg.fser = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab')
         return True
 
 
-    if (daten[0] == "1" and gewaehlter_ausgang == 1) \
-            or (daten[0] == "2" and gewaehlter_ausgang == 2):
+    if (daten[0] == "1" and cfg.gewaehlter_ausgang == 1) \
+            or (daten[0] == "2" and cfg.gewaehlter_ausgang == 2):
         ausgang = str(long(daten[0][-1:])) #Ausgang
         zeit = daten[1] #Stunden Minuten Sekunden
         ladeV = long(daten[2])/1000.0 #Akkuspannung mV
@@ -634,7 +610,7 @@ def read_line():
         cBat = long(daten[7]) #Akkutemperatur
         tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
         if tmp_zellen < 50:
-            anzahl_zellen[long(ausgang)] = tmp_zellen
+            cfg.anzahl_zellen[long(ausgang)] = tmp_zellen
 
         phase = long(daten[9]) #Ladephase 0-stop ...
         if phase == 0:
@@ -651,26 +627,26 @@ def read_line():
         zyklus = long(daten[10]) #Zyklus
         sp = long(daten[11]) #Aktive Akkuspeicher
 
-        atyp[gewaehlter_ausgang] = int(daten[12]) #Akkutyp
-        atyp_str = AKKU_TYP[long(daten[12])] #Akkutyp
+        cfg.atyp[cfg.gewaehlter_ausgang] = int(daten[12]) #Akkutyp
+        atyp_str = cfg.AKKU_TYP[long(daten[12])] #Akkutyp
 
-        prg[gewaehlter_ausgang] = long(daten[13]) #Programm
-        prg_str = AMPROGRAMM[long(daten[13])] #Programm
+        cfg.prg[cfg.gewaehlter_ausgang] = long(daten[13]) #Programm
+        prg_str = cfg.AMPROGRAMM[long(daten[13])] #Programm
 
         try:
-            lart[gewaehlter_ausgang] = long(daten[14]) #Ladeart
-            lart_str = LADEART[long(daten[14])] #Ladeart
+            cfg.lart[cfg.gewaehlter_ausgang] = long(daten[14]) #Ladeart
+            lart_str = cfg.LADEART[long(daten[14])] #Ladeart
         except IndexError, e:
             print "%s" % e
             print "-> %i" % long(daten[14])
             time.sleep(10)
             sys.exit()
 
-        stromw[gewaehlter_ausgang] = long(daten[15]) #stromwahl
-        stromw_str = STROMWAHL[long(daten[15])] #stromwahl
+        cfg.stromw[cfg.gewaehlter_ausgang] = long(daten[15]) #stromwahl
+        stromw_str = cfg.STROMWAHL[long(daten[15])] #stromwahl
 
-        stoppm[gewaehlter_ausgang] = long(daten[16]) #stromwahl
-        stoppm_str = STOPPMETHODE[long(daten[16])] #stromwahl
+        cfg.stoppm[cfg.gewaehlter_ausgang] = long(daten[16]) #stromwahl
+        stoppm_str = cfg.STOPPMETHODE[long(daten[16])] #stromwahl
 
         cKK = long(daten[17]) #KK Celsius
 
@@ -691,12 +667,12 @@ def read_line():
 
         if phase == 0: #dann 'Fehlercode' zwangsweise ...?
             if tmp_zellen >= 54: # FEHLER
-                output = FEHLERCODE[tmp_zellen - 50]
-                output_data(output, "")
+                output = cfg.FEHLERCODE[tmp_zellen - 50]
+                output_data(output, label, "", label2)
                 return True
 
             if tmp_zellen >= 50: #'gute' codes
-                phasedesc = "%-11s" % (FEHLERCODE[tmp_zellen - 50])
+                phasedesc = "%-11s" % (cfg.FEHLERCODE[tmp_zellen - 50])
                 ausgang = ""
                 ladeV = ""
 
@@ -731,12 +707,12 @@ def read_line():
         #label print
         RimOhm_BalDelta = "Ri:%03i" % (RimOhm_BalDelta)
         #TODO:  more elgegant...
-        if atyp[gewaehlter_ausgang] == 5: #LiPo
+        if cfg.atyp[cfg.gewaehlter_ausgang] == 5: #LiPo
             if len(daten) > 19:
                 RimOhm_BalDelta = "∆%2imV " % (balance_delta)
             else:
                 RimOhm_BalDelta = "∆..mV "
-            menge[gewaehlter_ausgang] = 0
+            cfg.menge[cfg.gewaehlter_ausgang] = 0
             lart_str = "[LiPo]"
             stromw_str = "[LiPo]"
             stoppm_str = "[LiPo]"
@@ -744,17 +720,17 @@ def read_line():
 
         output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, ladeV, zeit, ampere, Ah)
 
-        zykll = str(zyklen[gewaehlter_ausgang])
+        zykll = str(cfg.zyklen[cfg.gewaehlter_ausgang])
         if zykll == "0":
             zykll = "-"
 
-        output2 ="%ix%s %2i° %s Z:%1i/%s\n" % (anzahl_zellen[gewaehlter_ausgang], atyp_str, cBat, RimOhm_BalDelta, zyklus, zykll)
+        output2 ="%ix%s %2i° %s Z:%1i/%s\n" % (cfg.anzahl_zellen[cfg.gewaehlter_ausgang], atyp_str, cBat, RimOhm_BalDelta, zyklus, zykll)
         output2 +="%s %s %s %s\n" % (prg_str, lart_str, stromw_str, stoppm_str)
 
-        kapa = str(kapazitaet[gewaehlter_ausgang])
-        llimit = str(ladelimit[gewaehlter_ausgang])
-        entll = str( entladelimit[gewaehlter_ausgang])
-        menge_str = str(menge[gewaehlter_ausgang])
+        kapa = str(cfg.kapazitaet[cfg.gewaehlter_ausgang])
+        llimit = str(cfg.ladelimit[cfg.gewaehlter_ausgang])
+        entll = str( cfg.entladelimit[cfg.gewaehlter_ausgang])
+        menge_str = str(cfg.menge[cfg.gewaehlter_ausgang])
         if kapa == "0":
             kapa = "-"
         if llimit == "0":
@@ -767,21 +743,23 @@ def read_line():
         output2 +="Kap:%smAh ILa:%smA IEn:%smA\n" % (kapa , llimit, entll)
         output2 +="Menge:%smAh VerU:%5.2fV %2i°KK\n" % (menge_str, VersU, cKK)
 
-        output_data(output, output2)
+        output_data(output, label, output2, label2)
 
     return True
 
-def serial_setup(serial_port):
+#}}}
+
+def serial_setup(): #{{{
 
     print "* [ Serial Port ] ***********************************"
-    sys.stdout.write("Trying to open serial port '%s': " % serial_port)
+    sys.stdout.write("Trying to open serial port '%s': " % cfg.serial_port)
     sys.stdout.flush()
     if platform.system() == "Windows":
-        serial_port = '\\\\.\\' + serial_port #needen on comx>10 - seems to work
+        cfg.serial_port = '\\\\.\\' + cfg.serial_port #needen on comx>10 - seems to work
 
     try:
-        ser = serial.Serial(
-            port=serial_port,
+        cfg.ser = serial.Serial(
+            port=cfg.serial_port,
             baudrate = 9600,
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_ONE,
@@ -793,9 +771,9 @@ def serial_setup(serial_port):
             writeTimeout = 2.0)
 
         if platform.system() != "Windows":
-            ser.open()
+            cfg.ser.open()
 
-        ser.isOpen()
+        cfg.ser.isOpen()
 
         sys.stdout.write("OK\n\n")
         sys.stdout.flush()
@@ -807,14 +785,16 @@ def serial_setup(serial_port):
         time.sleep(3)
         sys.exit()
 
-    return ser
+    return cfg.ser
 
-def serial_file_setup():
+#}}}
+
+def serial_file_setup(): #{{{
 
     if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-        f = open_file(tmp_dir + '/serial-akkumatik.dat', 'ab')
+        f = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab')
     elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-        f = open_file(tmp_dir + '/serial-akkumatik.dat', 'wb+')
+        f = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'wb+')
     else:
         print "\n********************************************************"
         sys.stdout.write("New serial-collecting (3 seconds to abort (Ctrl-C)): ")
@@ -826,44 +806,17 @@ def serial_file_setup():
             time.sleep(1.0)
         sys.stdout.write("\n\n")
         sys.stdout.flush()
-        f = open_file(tmp_dir + '/serial-akkumatik.dat', 'wb+')
+        f = open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'wb+')
 
     return f
+
+#}}}
 
 ##########################################}}}
 # Akku Parameter Dialog{{{
 ##########################################
-def akkupara_dialog(window):
-    global threadlock
-    global file_block
-    global command_wait
-    global command_abort
-    global anzahl_zellen
-    global atyp
-    global prg
-    global lart
-    global stromw
-    global stoppm
-    global kapazitaet
-    global ladelimit
-    global entladelimit
-    global menge
-    global zyklen
-    global oldtime
-    global gewaehlter_ausgang
-    global exe_dir
-    global picture_exe
-    global serial_port
-    global fser
-    global ser
-    global AKKU_TYP
-    global AMPROGRAMM
-    global LADEART
-    global STROMWAHL
-    global STOPPMETHODE
-    global FEHLERCODE
-    global LIPORGB
 
+def akkupara_dialog(): #{{{
 
     def get_pos_hex(string, konst_arr):
 
@@ -887,7 +840,7 @@ def akkupara_dialog(window):
         return final_str
 
     def save_akkulist():
-        fh = open_file(exe_dir + "/liste_akkus.dat", "wb")
+        fh = open_file(cfg.exe_dir + "/liste_akkus.dat", "wb")
         for item in akkulist:
             line = ""
             for x in item:
@@ -1032,10 +985,10 @@ def akkupara_dialog(window):
 
     def combo_atyp_cb(data, lipo_flag):
         val = cb_atyp.get_active_text()
-        if val == AKKU_TYP[5]: #LiPo
+        if val == cfg.AKKU_TYP[5]: #LiPo
             cb_lart.remove_text(1) #Puls
             cb_lart.remove_text(1) #Reflex
-            cb_lart.append_text(LADEART[3])
+            cb_lart.append_text(cfg.LADEART[3])
             cb_lart.set_active(0)
 
             cb_stromw.set_active(1)
@@ -1050,8 +1003,8 @@ def akkupara_dialog(window):
             cb_stoppm.set_sensitive(True) # was disabled
 
             cb_lart.remove_text(1) # remove LiPo Fast charge method
-            cb_lart.append_text(LADEART[1])
-            cb_lart.append_text(LADEART[2])
+            cb_lart.append_text(cfg.LADEART[1])
+            cb_lart.append_text(cfg.LADEART[2])
             cb_lart.set_active(0) # and set to 0
 
             cb_stromw.set_sensitive(True)
@@ -1059,8 +1012,8 @@ def akkupara_dialog(window):
             lipo_flag[0] = False
 
     def get_akkulist():
-        if os.path.exists(exe_dir + "/liste_akkus.dat"):
-            fh = open_file(exe_dir + "/liste_akkus.dat", "rb")
+        if os.path.exists(cfg.exe_dir + "/liste_akkus.dat"):
+            fh = open_file(cfg.exe_dir + "/liste_akkus.dat", "rb")
         else:
             return []
 
@@ -1087,10 +1040,10 @@ def akkupara_dialog(window):
         return ret
 
     #######################################
-    #GTK Akku parameter dialog main window
+    #GTK Akku parameter dialog main cfg.gtk_window
 
     dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
-            + str(gewaehlter_ausgang), window,\
+            + str(cfg.gewaehlter_ausgang), cfg.gtk_window,\
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
             (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
 
@@ -1151,9 +1104,9 @@ def akkupara_dialog(window):
     vbox.pack_start(label, True, True, 0)
     label.show()
     cb_atyp = gtk.combo_box_new_text()
-    for item in AKKU_TYP:
+    for item in cfg.AKKU_TYP:
         cb_atyp.append_text(item)
-    cb_atyp.set_active(atyp[gewaehlter_ausgang])
+    cb_atyp.set_active(cfg.atyp[cfg.gewaehlter_ausgang])
     cb_atyp.show()
     cb_atyp.connect("changed", combo_atyp_cb, lipo_flag)
 
@@ -1164,14 +1117,14 @@ def akkupara_dialog(window):
     label.show()
     cb_prog = gtk.combo_box_new_text()
 
-    if gewaehlter_ausgang == 1:
-        for item in AMPROGRAMM:
+    if cfg.gewaehlter_ausgang == 1:
+        for item in cfg.AMPROGRAMM:
             cb_prog.append_text(item)
     else: #no Entladen...
-        cb_prog.append_text(AMPROGRAMM[0])
-        cb_prog.append_text(AMPROGRAMM[6])
+        cb_prog.append_text(cfg.AMPROGRAMM[0])
+        cb_prog.append_text(cfg.AMPROGRAMM[6])
 
-    cb_prog.set_active(prg[gewaehlter_ausgang])
+    cb_prog.set_active(cfg.prg[cfg.gewaehlter_ausgang])
     cb_prog.connect("changed", combo_prog_stromw_cb)
     cb_prog.show()
     vbox.pack_start(cb_prog, True, True, 0)
@@ -1180,9 +1133,9 @@ def akkupara_dialog(window):
     vbox.pack_start(label, True, True, 0)
     label.show()
     cb_lart = gtk.combo_box_new_text()
-    for item in LADEART[:-1]: #exclude LiPo
+    for item in cfg.LADEART[:-1]: #exclude LiPo
         cb_lart.append_text(item)
-    cb_lart.set_active(lart[gewaehlter_ausgang])
+    cb_lart.set_active(cfg.lart[cfg.gewaehlter_ausgang])
     cb_lart.show()
     vbox.pack_start(cb_lart, True, True, 0)
 
@@ -1190,9 +1143,9 @@ def akkupara_dialog(window):
     vbox.pack_start(label, True, True, 0)
     label.show()
     cb_stromw = gtk.combo_box_new_text()
-    for item in STROMWAHL:
+    for item in cfg.STROMWAHL:
         cb_stromw.append_text(item)
-    cb_stromw.set_active(stromw[gewaehlter_ausgang])
+    cb_stromw.set_active(cfg.stromw[cfg.gewaehlter_ausgang])
     cb_stromw.connect("changed", combo_prog_stromw_cb)
     cb_stromw.show()
     vbox.pack_start(cb_stromw, True, True, 0)
@@ -1201,9 +1154,9 @@ def akkupara_dialog(window):
     vbox.pack_start(label, True, True, 0)
     label.show()
     cb_stoppm = gtk.combo_box_new_text()
-    for item in STOPPMETHODE:
+    for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
-    cb_stoppm.set_active(stoppm[gewaehlter_ausgang])
+    cb_stoppm.set_active(cfg.stoppm[cfg.gewaehlter_ausgang])
     cb_stoppm.show()
     vbox.pack_start(cb_stoppm, True, True, 0)
 
@@ -1220,7 +1173,7 @@ def akkupara_dialog(window):
     label = gtk.Label("Zellen Anzahl")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(anzahl_zellen[gewaehlter_ausgang], 0.0, 30, 1, 1, 0.0)
+    adj = gtk.Adjustment(cfg.anzahl_zellen[cfg.gewaehlter_ausgang], 0.0, 30, 1, 1, 0.0)
     sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
     sp_anzzellen.set_wrap(False)
     sp_anzzellen.set_numeric(True)
@@ -1230,7 +1183,7 @@ def akkupara_dialog(window):
     label = gtk.Label("Kapazität mAh")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(kapazitaet[gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.kapazitaet[cfg.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
     sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
     sp_kapazitaet.set_wrap(False)
     sp_kapazitaet.set_numeric(True)
@@ -1240,7 +1193,7 @@ def akkupara_dialog(window):
     label = gtk.Label("I-Laden mA")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(ladelimit[gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.ladelimit[cfg.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
     sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
     sp_ladelimit.set_wrap(False)
     sp_ladelimit.set_numeric(True)
@@ -1250,13 +1203,13 @@ def akkupara_dialog(window):
     label = gtk.Label("I-Entladen mA")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(entladelimit[gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.entladelimit[cfg.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
     sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
     sp_entladelimit.set_wrap(False)
     sp_entladelimit.set_numeric(True)
     vbox.pack_start(sp_entladelimit, False, True, 0)
 
-    if gewaehlter_ausgang == 2:
+    if cfg.gewaehlter_ausgang == 2:
         sp_entladelimit.set_sensitive(False)
 
     sp_entladelimit.show()
@@ -1264,7 +1217,7 @@ def akkupara_dialog(window):
     label = gtk.Label("Menge mAh")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(menge[gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.menge[cfg.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
     sp_menge = gtk.SpinButton(adj, 1.0, 0)
     sp_menge.set_wrap(False)
     sp_menge.set_numeric(True)
@@ -1274,7 +1227,7 @@ def akkupara_dialog(window):
     label = gtk.Label("Zyklen")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(zyklen[gewaehlter_ausgang], 1, 10, 1, 1, 0.0)
+    adj = gtk.Adjustment(cfg.zyklen[cfg.gewaehlter_ausgang], 1, 10, 1, 1, 0.0)
     sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
     sp_zyklen.set_wrap(False)
     sp_zyklen.set_numeric(True)
@@ -1289,16 +1242,16 @@ def akkupara_dialog(window):
     dialog.destroy()
 
     if retval == -3 or retval == 2: #OK or uebertragen got pressed
-        hex_str = str(30 + gewaehlter_ausgang) #kommando 31 or 32
-        hex_str += get_pos_hex(cb_atyp.get_active_text(),AKKU_TYP)
-        hex_str += get_pos_hex(cb_prog.get_active_text(),AMPROGRAMM)
-        hex_str += get_pos_hex(cb_lart.get_active_text(),LADEART)
-        hex_str += get_pos_hex(cb_stromw.get_active_text(),STROMWAHL)
+        hex_str = str(30 + cfg.gewaehlter_ausgang) #kommando 31 or 32
+        hex_str += get_pos_hex(cb_atyp.get_active_text(),cfg.AKKU_TYP)
+        hex_str += get_pos_hex(cb_prog.get_active_text(),cfg.AMPROGRAMM)
+        hex_str += get_pos_hex(cb_lart.get_active_text(),cfg.LADEART)
+        hex_str += get_pos_hex(cb_stromw.get_active_text(),cfg.STROMWAHL)
 
         x = cb_stoppm.get_active_text()
         if x == None: #was for not showing anything on lipo here we need something
-            x = STOPPMETHODE[0] #"Lademenge"
-        hex_str += get_pos_hex(x, STOPPMETHODE)
+            x = cfg.STOPPMETHODE[0] #"Lademenge"
+        hex_str += get_pos_hex(x, cfg.STOPPMETHODE)
 
         hex_str += get_16bit_hex(int(sp_anzzellen.get_value()))
         hex_str += get_16bit_hex(int(sp_kapazitaet.get_value()))
@@ -1307,29 +1260,32 @@ def akkupara_dialog(window):
         hex_str += get_16bit_hex(int(sp_menge.get_value()))
         hex_str += get_16bit_hex(int(sp_zyklen.get_value()))
 
-        kapazitaet[gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
-        ladelimit[gewaehlter_ausgang] = int(sp_ladelimit.get_value())
-        entladelimit[gewaehlter_ausgang] = int(sp_entladelimit.get_value())
-        menge[gewaehlter_ausgang] = int(sp_menge.get_value())
-        zyklen[gewaehlter_ausgang] = int(sp_zyklen.get_value())
+        cfg.kapazitaet[cfg.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
+        cfg.ladelimit[cfg.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
+        cfg.entladelimit[cfg.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
+        cfg.menge[cfg.gewaehlter_ausgang] = int(sp_menge.get_value())
+        cfg.zyklen[cfg.gewaehlter_ausgang] = int(sp_zyklen.get_value())
 
         #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode u08 stop_mode
         #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
 
-        command_abort = False #reset
+        cfg.command_abort = False #reset
 
         akkumatik_command(hex_str)
 
         if retval == -3: #Additionally start
             time.sleep(1.0) #needs somehow, else the threads gets out of order possibly
 
-            if gewaehlter_ausgang == 1:
+            if cfg.gewaehlter_ausgang == 1:
                 akkumatik_command("44")
             else:
                 akkumatik_command("48")
 
+#}}}
 
-if __name__ == '__main__':
+##########################################}}}
+if __name__ == '__main__': #{{{
+##########################################
     if len(sys.argv) > 1 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
         print """Usage:
 
@@ -1339,23 +1295,9 @@ if __name__ == '__main__':
         sys.exit()
 
     ##########################################
-    #Konstanten
-    AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
-    AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", "(E)L+E", "Sender", "Lagern"]
-    LADEART = ["Konst", "Puls", "Reflex", "LiPo Fast"]
-    STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
-    STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", "Delta-Peak-3"]
-    FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", "Fehler Lade-Menge", "Fehler Akku zu Heiss", "Fehler Versorgungsspannung", "Fehler Akkuspannung", "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", "Fehler Polung/Kurzschluss", "Fehler Regelfenster", "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", "Fehler Hardware"]
-    LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
-
-    ##########################################
     #Variablen
 
-    threadlock = thread.allocate_lock()
-    file_block = False
-    command_wait = False # threads are waiting when True on command acknowledge text
-    command_abort = False #indicates missed commands - skip next ones
-    anzahl_zellen = [0,0,0] # defautls to 0 (on restarts + errorcode (>=50) = no plotting limits
+    cfg.threadlock = thread.allocate_lock()
 
     #     Entweter laufenden programm (wobei das sendet ja erst nach start) oder
     #     halt unabhaengig die dialog dinger speichern
@@ -1363,38 +1305,23 @@ if __name__ == '__main__':
     #
     #     ^^^^ (Was jetzt auch der Fal ist......)
     #
-    # wird ueberschrieben vom laufenden programm
-    # item 0 is bogus and not used - only 1 and 2 (Ausgaenge)
-    atyp = [0,0,0]
-    prg = [0,0,0]
-    lart = [0,0,0]
-    stromw = [0,0,0]
-    stoppm = [0,0,0]
-    # gespeichert vom dialog
-    kapazitaet =  [0,0,0]
-    ladelimit =  [0,0,0]
-    entladelimit =  [0,0,0]
-    menge =  [0,0,0]
-    zyklen =  [0,0,0]
 
-    oldtime = ["", "", ""]
 
-    gewaehlter_ausgang = 1
-    exe_dir = sys.path[0].replace('\\',"/")
+    cfg.exe_dir = sys.path[0].replace('\\',"/")
 
     #Defaults
-    picture_exe = '/usr/local/bin/qiv'
+    cfg.picture_exe = '/usr/local/bin/qiv'
     if platform.system() == "Windows":
-        serial_port = 'COM1'
+        cfg.serial_port = 'COM1'
     else:
-        serial_port = '/dev/ttyS0'
+        cfg.serial_port = '/dev/ttyS0'
 
     #e.g for windoofs \'s  (TODO: should not be needed here however)
-    tmp_dir = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
-    chart_dir = tmp_dir
+    cfg.tmp_dir = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
+    cfg.chart_dir = cfg.tmp_dir
 
-    if os.path.exists(exe_dir + "/config.txt"):
-        fh = open_file(exe_dir + "/config.txt", "r")
+    if os.path.exists(cfg.exe_dir + "/config.txt"):
+        fh = open_file(cfg.exe_dir + "/config.txt", "r")
 
         for line in fh.readlines():
             if len(line.strip()) < 5:
@@ -1403,38 +1330,38 @@ if __name__ == '__main__':
             if split[0].strip().lower()[0] == "#":
                 continue
             elif split[0].strip().lower() == "viewer":
-                picture_exe = split[1].strip().replace("\\","/") #windows hm...
-            elif split[0].strip().lower() == "serial_port":
-                serial_port = split[1].strip()
+                cfg.picture_exe = split[1].strip().replace("\\","/") #windows hm...
+            elif split[0].strip().lower() == "cfg.serial_port":
+                cfg.serial_port = split[1].strip()
             elif split[0].strip().lower() == "chart_path":
-                chart_dir = split[1].strip().replace("\\","/")
+                cfg.chart_dir = split[1].strip().replace("\\","/")
             elif split[0].strip().lower() == "tmp_path":
-                tmp_dir = split[1].strip().replace("\\","/")
+                cfg.tmp_dir = split[1].strip().replace("\\","/")
 
     print "* [ Config ] ***********************************"
-    print "Picture viewer: %s" % (picture_exe)
-    print "Serial Port:    %s" % (serial_port)
-    print "Chart Path:     %s" % (chart_dir)
-    print "Tmp Path:       %s" % (tmp_dir)
+    print "Picture viewer: %s" % (cfg.picture_exe)
+    print "Serial Port:    %s" % (cfg.serial_port)
+    print "Chart Path:     %s" % (cfg.chart_dir)
+    print "Tmp Path:       %s" % (cfg.tmp_dir)
 
-    if not os.path.isdir(tmp_dir):
+    if not os.path.isdir(cfg.tmp_dir):
         try:
-            os.mkdir(tmp_dir)
+            os.mkdir(cfg.tmp_dir)
         except OSError, e: # Python >2.5
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                print "Unable to create [%s] directory" % tmp_dir, "Ending program.\n", e
+                print "Unable to create [%s] directory" % cfg.tmp_dir, "Ending program.\n", e
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
-    if not os.path.isdir(chart_dir):
+    if not os.path.isdir(cfg.chart_dir):
         try:
-            os.mkdir(chart_dir)
+            os.mkdir(cfg.chart_dir)
         except OSError, e: # Python >2.5
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                print "Unable to create [%s] directory" % chart_dir, "Ending program.\n", e
+                print "Unable to create [%s] directory" % cfg.chart_dir, "Ending program.\n", e
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
@@ -1445,9 +1372,10 @@ if __name__ == '__main__':
     def destroy(widget, data=None):
         gtk.main_quit()
 
-    def buttoncb (widget, data=None):
+    def buttoncb (widget, data):
+
         if data == "Chart":
-            filesplit(fser)
+            filesplit(cfg.fser)
             gnuplot()
             #matplot()
 
@@ -1455,50 +1383,50 @@ if __name__ == '__main__':
             gtk.main_quit()
 
         elif data == "Ausg":
-            if gewaehlter_ausgang == 1: #toggle ausgang
-                gewaehlter_ausgang = 2
+            if cfg.gewaehlter_ausgang == 1: #toggle ausgang
+                cfg.gewaehlter_ausgang = 2
                 button_start.set_sensitive(False)
                 button_stop.set_sensitive(False)
             else:
-                gewaehlter_ausgang = 1
+                cfg.gewaehlter_ausgang = 1
                 button_start.set_sensitive(False)
                 button_stop.set_sensitive(False)
         elif data == "Start":
-            command_abort = False #reset
-            if gewaehlter_ausgang == 1: #toggle ausgang
+            cfg.command_abort = False #reset
+            if cfg.gewaehlter_ausgang == 1: #toggle ausgang
                 akkumatik_command("44")
             else:
                 akkumatik_command("48")
 
         elif data == "Stop":
-            command_abort = False #reset
-            if gewaehlter_ausgang == 1: #toggle ausgang
+            cfg.command_abort = False #reset
+            if cfg.gewaehlter_ausgang == 1: #toggle ausgang
                 akkumatik_command("41")
             else:
                 akkumatik_command("42")
 
         elif data == "Akku_Settings": #{{{
-            akkupara_dialog(window)
+            akkupara_dialog()
 
     def draw_pixbuf(widget, event):
-        path = exe_dir + '/bilder/Display.jpg'
+        path = cfg.exe_dir + '/bilder/Display.jpg'
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
         widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
 
 
-    window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-    window.set_title('Akkumatic Remote Display')
-    window.set_size_request(966,168)
-    window.set_default_size(966,168)
-    window.set_position(gtk.WIN_POS_CENTER)
+    cfg.gtk_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+    cfg.gtk_window.set_title('Akkumatic Remote Display')
+    cfg.gtk_window.set_size_request(966,168)
+    cfg.gtk_window.set_default_size(966,168)
+    cfg.gtk_window.set_position(gtk.WIN_POS_CENTER)
 
-    window.connect("delete_event", delete_event)
-    window.connect("destroy", destroy)
-    window.set_border_width(8)
+    cfg.gtk_window.connect("delete_event", delete_event)
+    cfg.gtk_window.connect("destroy", destroy)
+    cfg.gtk_window.set_border_width(8)
 
     # overall hbox
     hbox = gtk.HBox()
-    window.add(hbox)
+    cfg.gtk_window.add(hbox)
     hbox.connect('expose-event', draw_pixbuf)
 
     # akkumatik display label
@@ -1541,7 +1469,7 @@ if __name__ == '__main__':
     r2button = gtk.RadioButton(r1button, None)
     hbox.pack_start(r2button, True, True, 0)
 
-    if gewaehlter_ausgang == 1:
+    if cfg.gewaehlter_ausgang == 1:
         r1button.set_active(True)
     else:
         r2button.set_active(True)
@@ -1577,14 +1505,13 @@ if __name__ == '__main__':
 
     vbox.pack_end(gtk.HSeparator(), False, True, 5)
 
-    ser = serial_setup(serial_port)
-    fser = serial_file_setup()
+    cfg.ser = serial_setup()
+    cfg.fser = serial_file_setup()
 
-
-    window.show_all() # after file-open (what is needed on plotting)...
+    cfg.gtk_window.show_all() # after file-open (what is needed on plotting)...
 
     #finally begin collecting
-    gobject.timeout_add(100, read_line) # some tuning around with that value possibly
+    gobject.timeout_add(100, read_line, (label, label2)) # some tuning around with that value possibly
     #TODO: not fast enough when data-uploading.... via memoery-thing
 
     gtk.main()
