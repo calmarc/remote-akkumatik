@@ -19,26 +19,6 @@ import helper
 
 def akkupara_dialog(): #{{{
 
-    def get_pos_hex(string, konst_arr):
-
-        position = konst_arr.index(string)
-        string = "%02x" % (position)
-        #Well, just return %02i would work too on values <10 what is 'always' the case
-        final_str = ""
-        for c in string:
-            final_str += chr(int("30", 16) + int(c, 16))
-        return final_str
-
-    def get_16bit_hex(integer):
-        #integer to hex
-        string = "%04x" % (integer)
-        #switch around hi and low byte
-        string = string[2:] + string[0:2]
-        # add 0x30 (48) to those hex-digits and add that finally to the string
-        final_str = ""
-        for c in string:
-            final_str += chr(int("30", 16) + int(c, 16))
-        return final_str
 
     def save_akkulist():
         fh = helper.open_file(cfg.exe_dir + "/liste_akkus.dat", "wb")
@@ -441,4 +421,43 @@ def akkupara_dialog(): #{{{
     # run the dialog
     retval = dialog.run()
     dialog.destroy()
-    return retval
+
+    if retval == -3 or retval == 2: #OK or uebertragen got pressed
+
+        #since akkumatik is not sending this stuff from its own (yet)
+        cfg.kapazitaet[cfg.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
+        cfg.ladelimit[cfg.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
+        cfg.entladelimit[cfg.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
+        cfg.menge[cfg.gewaehlter_ausgang] = int(sp_menge.get_value())
+        cfg.zyklen[cfg.gewaehlter_ausgang] = int(sp_zyklen.get_value())
+
+        hex_str = str(30 + cfg.gewaehlter_ausgang) #kommando 31 or 32
+        hex_str += helper.get_pos_hex(cb_atyp.get_active_text(),cfg.AKKU_TYP)
+        hex_str += helper.get_pos_hex(cb_prog.get_active_text(),cfg.AMPROGRAMM)
+        hex_str += helper.get_pos_hex(cb_lart.get_active_text(),cfg.LADEART)
+        hex_str += helper.get_pos_hex(cb_stromw.get_active_text(),cfg.STROMWAHL)
+
+        x = cb_stoppm.get_active_text()
+        if x == None: #was for not showing anything on lipo here we need something
+            x = cfg.STOPPMETHODE[0] #"Lademenge"
+        hex_str += helper.get_pos_hex(x, cfg.STOPPMETHODE)
+
+        hex_str += helper.get_16bit_hex(int(sp_anzzellen.get_value()))
+        hex_str += helper.get_16bit_hex(int(sp_kapazitaet.get_value()))
+        hex_str += helper.get_16bit_hex(int(sp_ladelimit.get_value()))
+        hex_str += helper.get_16bit_hex(int(sp_entladelimit.get_value()))
+        hex_str += helper.get_16bit_hex(int(sp_menge.get_value()))
+        hex_str += helper.get_16bit_hex(int(sp_zyklen.get_value()))
+
+
+        #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode u08 stop_mode
+        #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
+
+        hex_str2 = ""
+        if retval == -3: #Additionally start
+            if cfg.gewaehlter_ausgang == 1:
+                hex_str2 = "44"
+            else:
+                hex_str2 = "48"
+
+    return (hex_str, hex_str2)

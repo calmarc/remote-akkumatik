@@ -34,60 +34,6 @@ import helper
 
 #}}}
 
-def command_thread(tname, com_str): #{{{
-
-    cfg.threadlock.acquire() #TODO make it how it *should be* instead of that here...
-
-    if cfg.command_abort == True: #skip on further soon to arrive commands
-        cfg.threadlock.release()
-        return
-
-    cfg.command_wait = True
-    try:
-        #cfg.ser.setDTR(True)
-        cfg.ser.write(com_str)
-        #cfg.ser.setDTR(False) #TODO Testing... not really knowing what I do..
-    except serial.SerialException, e:
-        print "%s", e
-
-    ok = False
-    i=0
-    sys.stdout.write("Waiting for Command Ack: ")
-    sys.stdout.flush()
-    while i < 60:
-        time.sleep(0.1)
-        sys.stdout.write(".")
-        sys.stdout.flush()
-        i += 1
-        if cfg.command_wait == False: #put on True before sending. - here waiting for False
-            sys.stdout.write(" OK\n")
-            sys.stdout.flush()
-            ok = True
-            break
-
-    if ok == False:
-        sys.stdout.write(" Failed\n")
-        sys.stdout.flush()
-        cfg.command_abort = True #skip on further soon to arrive commands
-    cfg.threadlock.release()
-
-#}}}
-
-def akkumatik_command(string): #{{{
-
-    checksum = 2
-    for x in string:
-        checksum ^= ord(x)
-
-    checksum ^= 64 #dummy checksum byte itself to checksum...
-
-    #try:
-    #thread.start_new_thread(command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3), cfg.threadlock, cfg.ser))
-    thread.start_new_thread(command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3)))
-    #except:
-    #    print "Error: unable to start thread"
-
-#}}}
 
 ##########################################
 #GnuPlotting stuff{{{
@@ -908,59 +854,28 @@ if __name__ == '__main__': #{{{
         elif data == "Start":
             cfg.command_abort = False #reset
             if cfg.gewaehlter_ausgang == 1: #toggle ausgang
-                akkumatik_command("44")
+                helper.akkumatik_command("44", data)
             else:
-                akkumatik_command("48")
+                helper.akkumatik_command("48", data)
 
         elif data == "Stop":
             cfg.command_abort = False #reset
             if cfg.gewaehlter_ausgang == 1: #toggle ausgang
-                akkumatik_command("41")
+                helper.akkumatik_command("41", data)
             else:
-                akkumatik_command("42")
+                helper.akkumatik_command("42", data)
 
         elif data == "Akku_Settings": #{{{
-            retval = gtk_stuff.akkupara_dialog()
-            if retval == -3 or retval == 2: #OK or uebertragen got pressed
-                hex_str = str(30 + cfg.gewaehlter_ausgang) #kommando 31 or 32
-                hex_str += get_pos_hex(cb_atyp.get_active_text(),cfg.AKKU_TYP)
-                hex_str += get_pos_hex(cb_prog.get_active_text(),cfg.AMPROGRAMM)
-                hex_str += get_pos_hex(cb_lart.get_active_text(),cfg.LADEART)
-                hex_str += get_pos_hex(cb_stromw.get_active_text(),cfg.STROMWAHL)
+            (cmd1, cmd2)  = gtk_stuff.akkupara_dialog()
 
-                x = cb_stoppm.get_active_text()
-                if x == None: #was for not showing anything on lipo here we need something
-                    x = cfg.STOPPMETHODE[0] #"Lademenge"
-                hex_str += get_pos_hex(x, cfg.STOPPMETHODE)
+            cfg.command_abort = False #reset
 
-                hex_str += get_16bit_hex(int(sp_anzzellen.get_value()))
-                hex_str += get_16bit_hex(int(sp_kapazitaet.get_value()))
-                hex_str += get_16bit_hex(int(sp_ladelimit.get_value()))
-                hex_str += get_16bit_hex(int(sp_entladelimit.get_value()))
-                hex_str += get_16bit_hex(int(sp_menge.get_value()))
-                hex_str += get_16bit_hex(int(sp_zyklen.get_value()))
+            # TODO: would be good when - if succeded, _all_ akku-settings get changed on the display
+            helper.akkumatik_command(cmd1, "Übertragen")
 
-                cfg.kapazitaet[cfg.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
-                cfg.ladelimit[cfg.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
-                cfg.entladelimit[cfg.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
-                cfg.menge[cfg.gewaehlter_ausgang] = int(sp_menge.get_value())
-                cfg.zyklen[cfg.gewaehlter_ausgang] = int(sp_zyklen.get_value())
-
-                #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode u08 stop_mode
-                #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
-
-                cfg.command_abort = False #reset
-
-                akkumatik_command(hex_str)
-
-                if retval == -3: #Additionally start
-                    time.sleep(1.0) #needs somehow, else the threads gets out of order possibly
-
-                    if cfg.gewaehlter_ausgang == 1:
-                        akkumatik_command("44")
-                    else:
-                        akkumatik_command("48")
-
+            if cmd2 != "":
+                time.sleep(1.0) #else threads may get out of order somehow
+                helper.akkumatik_command(cmd2, "Start")
 
     def draw_pixbuf(widget, event):
         path = cfg.exe_dir + '/bilder/Display.jpg'
