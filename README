@@ -18,9 +18,6 @@ Irfan-view itself provides then the others to click to.
 
 Anyway, remote-akkumatik opens MS's default picture viewer.
 
-TODO: Matplotlib instead of gnuplot? For windoof it would be
-easier possibly.
-
 == Disclaimer ==
 
 Please check the final settings on the Akkumatik-Charger -
@@ -28,7 +25,7 @@ or in other words, you can use this software, but on your own risk.
 
 == TODO ==
 
-Clean up code and get rid of as many as possible of the self. variables...
+Matplot as alternative to gnuplot
 
 == Contact ==
 
