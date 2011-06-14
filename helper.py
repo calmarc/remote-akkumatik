@@ -1,5 +1,6 @@
 # coding=utf-8
-#
+""" Helper/Utility stuff """
+
 import sys
 import thread
 import time
@@ -13,8 +14,8 @@ def open_file(file_name, mode):
 
     try:
         the_file = open(file_name, mode)
-    except(IOError), e:
-        print "Unable to open the file", file_name, "Ending program.\n", e
+    except(IOError), err:
+        print "Unable to open the file", file_name, "Ending program.\n", err
         raw_input("\n\nPress the enter key to exit.")
         sys.exit()
     else:
@@ -23,30 +24,35 @@ def open_file(file_name, mode):
 
 #command stuff
 def get_pos_hex(string, konst_arr):
+    """ hm """
 
     position = konst_arr.index(string)
     string = "%02x" % (position)
     #Well, just return %02i would work too on values <10
     final_str = ""
-    for c in string:
-        final_str += chr(int("30", 16) + int(c, 16))
+    for item in string:
+        final_str += chr(int("30", 16) + int(item, 16))
     return final_str
 
 def get_16bit_hex(integer):
+    """ calculate the stuff Akkumatik wants """
     #integer to hex
     string = "%04x" % (integer)
     #switch around hi and low byte
     string = string[2:] + string[0:2]
     # add 0x30 (48) to those hex-digits and add that finally to the string
     final_str = ""
-    for c in string:
-        final_str += chr(int("30", 16) + int(c, 16))
+    for item in string:
+        final_str += chr(int("30", 16) + int(item, 16))
     return final_str
 
 #command sending (queued in thread (quasi (TODO) at least))
 def akkumatik_command(string, what):
+    """ Send a Command to the Akkumatik """
 
+    #TODO tname possibly last of str_tuple..
     def command_thread(tname, str_tuple): #{{{
+        """ thread each single command """
 
         (com_str, what) = str_tuple
         #TODO make it how it *should be* instead of that here...
@@ -61,11 +67,11 @@ def akkumatik_command(string, what):
             #cfg.ser.setDTR(True)
             cfg.ser.write(com_str)
             #cfg.ser.setDTR(False) #TODO Testing. not really knowing what I do
-        except serial.SerialException, e:
-            print "%s", e
+        except serial.SerialException, err:
+            print "%s", err
 
-        ok = False
-        i=0
+        okk = False
+        i = 0
         sys.stdout.write("Waiting for Command <%s> Ack: " % (what))
         sys.stdout.flush()
         while i < 60:
@@ -77,10 +83,10 @@ def akkumatik_command(string, what):
             if cfg.command_wait == False:
                 sys.stdout.write(" OK\n")
                 sys.stdout.flush()
-                ok = True
+                okk = True
                 break
 
-        if ok == False:
+        if okk == False:
             sys.stdout.write(" Failed\n")
             sys.stdout.flush()
             cfg.command_abort = True #skip on further soon to arrive commands
@@ -89,8 +95,8 @@ def akkumatik_command(string, what):
     #}}}
 
     checksum = 2
-    for x in string:
-        checksum ^= ord(x)
+    for item in string:
+        checksum ^= ord(item)
 
     checksum ^= 64 #dummy checksum byte itself to checksum...
 
