@@ -46,7 +46,8 @@ def main_window():
         elif data == "Start":
             cfg.command_abort = False #reset
             if cfg.gewaehlter_ausgang == 1: #toggle ausgang
-                helper.akkumatik_command("44", data) #data = something like "Start"
+                #data = something like "Start"
+                helper.akkumatik_command("44", data)
             else:
                 helper.akkumatik_command("48", data)
 
@@ -73,7 +74,8 @@ def main_window():
     def draw_pixbuf(widget, event):
         path = cfg.exe_dir + '/bilder/Display.jpg'
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
+        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL],\
+                pixbuf, 0, 0, 0,0)
 
 
     cfg.gtk_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -167,7 +169,8 @@ def main_window():
 
     vbox.pack_end(gtk.HSeparator(), False, True, 5)
 
-    cfg.gtk_window.show_all() # after file-open (what is needed on plotting)... hm?
+    # after file-open (what is needed on plotting)... hm?
+    cfg.gtk_window.show_all()
 
     return (label, label2)
 
@@ -265,7 +268,8 @@ def akkupara_dialog(): #{{{
 
             active_i = cb_akkulist.get_active()
 
-            label = gtk.Label('Akkuparameter "%s" löschen?' % (akkulist[active_i][0]))
+            label = gtk.Label('Akkuparameter "%s" löschen?' %\
+                    (akkulist[active_i][0]))
             align = gtk.Alignment(0,0,0,0)
             align.set_padding(16,16,8,8)
             align.show()
@@ -360,7 +364,8 @@ def akkupara_dialog(): #{{{
             tmp = item.split('\xff')
             #tmp = tmp[:-1] # remove -  last is newline
             if len(tmp) != 12:
-                print "Some Error in liste_akkus.dat - is " + str(len(tmp)) + " - should be 12"
+                print "Some Error in liste_akkus.dat - is " +\
+                        str(len(tmp)) + " - should be 12"
                 continue
 
             #shoveling into r but with integer values now (besides of first)
@@ -403,7 +408,7 @@ def akkupara_dialog(): #{{{
     cb_akkulist = gtk.combo_box_new_text()
     hbox.pack_start(cb_akkulist, True, True, 1)
 
-    # [ atyp, prog, lart, stromw, stoppm, Zellen, Kapa, I-lade, I-entlade, Menge ]
+    # [atyp,prog,lart,stromw,stoppm,Zellen,Kapa,I-lade,I-entlade,Menge]
     akkulist = get_akkulist()
 
     for item in akkulist:
@@ -510,7 +515,8 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("Zellen Anzahl")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.anzahl_zellen[cfg.gewaehlter_ausgang], 0.0, 30, 1, 1, 0.0)
+    adj = gtk.Adjustment(cfg.anzahl_zellen[cfg.gewaehlter_ausgang],\
+            0.0, 30, 1, 1, 0.0)
     sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
     sp_anzzellen.set_wrap(False)
     sp_anzzellen.set_numeric(True)
@@ -520,7 +526,8 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("Kapazität mAh")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.kapazitaet[cfg.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.kapazitaet[cfg.gewaehlter_ausgang],\
+            0.0, 99999, 25, 25, 0.0)
     sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
     sp_kapazitaet.set_wrap(False)
     sp_kapazitaet.set_numeric(True)
@@ -530,7 +537,8 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("I-Laden mA")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.ladelimit[cfg.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.ladelimit[cfg.gewaehlter_ausgang],\
+            0.0, 9999, 25, 25, 0.0)
     sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
     sp_ladelimit.set_wrap(False)
     sp_ladelimit.set_numeric(True)
@@ -540,7 +548,8 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("I-Entladen mA")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.entladelimit[cfg.gewaehlter_ausgang], 0.0, 9999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.entladelimit[cfg.gewaehlter_ausgang],\
+            0.0, 9999, 25, 25, 0.0)
     sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
     sp_entladelimit.set_wrap(False)
     sp_entladelimit.set_numeric(True)
@@ -554,7 +563,8 @@ def akkupara_dialog(): #{{{
     label = gtk.Label("Menge mAh")
     vbox.pack_start(label, True, True, 0)
     label.show()
-    adj = gtk.Adjustment(cfg.menge[cfg.gewaehlter_ausgang], 0.0, 99999, 25, 25, 0.0)
+    adj = gtk.Adjustment(cfg.menge[cfg.gewaehlter_ausgang],\
+            0.0, 99999, 25, 25, 0.0)
     sp_menge = gtk.SpinButton(adj, 1.0, 0)
     sp_menge.set_wrap(False)
     sp_menge.set_numeric(True)
@@ -584,10 +594,11 @@ def akkupara_dialog(): #{{{
         hex_str += helper.get_pos_hex(cb_atyp.get_active_text(),cfg.AKKU_TYP)
         hex_str += helper.get_pos_hex(cb_prog.get_active_text(),cfg.AMPROGRAMM)
         hex_str += helper.get_pos_hex(cb_lart.get_active_text(),cfg.LADEART)
-        hex_str += helper.get_pos_hex(cb_stromw.get_active_text(),cfg.STROMWAHL)
+        hex_str +=\
+                helper.get_pos_hex(cb_stromw.get_active_text(),cfg.STROMWAHL)
 
         x = cb_stoppm.get_active_text()
-        if x == None: #was for not showing anything on lipo here we need something
+        if x == None: #replace lipo None need something
             x = cfg.STOPPMETHODE[0] #"Lademenge"
         hex_str += helper.get_pos_hex(x, cfg.STOPPMETHODE)
 
@@ -601,12 +612,14 @@ def akkupara_dialog(): #{{{
         #since akkumatik is not sending this stuff from its own (yet)
         cfg.kapazitaet[cfg.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
         cfg.ladelimit[cfg.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
-        cfg.entladelimit[cfg.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
+        cfg.entladelimit[cfg.gewaehlter_ausgang] = \
+                int(sp_entladelimit.get_value())
         cfg.menge[cfg.gewaehlter_ausgang] = int(sp_menge.get_value())
         cfg.zyklen[cfg.gewaehlter_ausgang] = int(sp_zyklen.get_value())
 
-        #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode u08 stop_mode
-        #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
+        #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode
+        #u08 stop_mode u16 zellenzahl u16 capacity u16 i_lade u16 i_entl
+        #u16 menge u16 zyklenzahl
 
         hex_str2 = ""
         if retval == -3: #Additionally start the thing

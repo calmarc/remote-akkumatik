@@ -34,10 +34,9 @@ def output_data(output, label, output2, label2): #{{{
         gtk.main_iteration()
 
 #}}}
-def read_line(args): #{{{
-    """Read serial data (called via interval via gobject.timeout_add) and print it to display"""
-
-    (label, label2) = args
+def read_line(label): #{{{
+    """Read serial data (called via interval via 
+    gobject.timeout_add) and print it to display"""
 
     if cfg.file_block == True:
         print "* [Debug] ********************* Blocked serial input"
@@ -45,8 +44,8 @@ def read_line(args): #{{{
 
     try:
         lin = cfg.ser.readline()
-    except serial.SerialException, e:
-        print "%s" % e
+    except serial.SerialException, err:
+        print "%s" % err
         return True
 
     daten = lin.split('\xff')
@@ -66,7 +65,7 @@ def read_line(args): #{{{
             daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
             cfg.command_wait = False # Kommando kam an
 
-    if len(daten[0]) <> 1: # something is not right..
+    if len(daten[0]) != 1: # something is not right..
         #print "komische dings oder?"
         #print lin
         return True
@@ -94,7 +93,7 @@ def read_line(args): #{{{
     except  ValueError, e:
         print "%s" % e
         print "Should not happen, but reopening file anyway"
-        cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab')
+        cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat', 'ab')
         return True
 
 
@@ -102,18 +101,18 @@ def read_line(args): #{{{
             or (daten[0] == "2" and cfg.gewaehlter_ausgang == 2):
         ausgang = str(long(daten[0][-1:])) #Ausgang
         zeit = daten[1] #Stunden Minuten Sekunden
-        ladeV = long(daten[2])/1000.0 #Akkuspannung mV
-        ladeV = "%6.3fV" % (ladeV) #format into string
+        lade_v = long(daten[2])/1000.0 #Akkuspannung mV
+        lade_v = "%6.3fV" % (lade_v) #format into string
         ampere = long(daten[3]) #Strom A
         if ampere >= 1000 or ampere <= -1000:
             ampere = "%+.2fA" % (ampere/1000.0)
         else:
             ampere = "%imA" % (ampere)
 
-        Ah = long(daten[4])/1000.0 #Ladungsmenge Ah
-        VersU = long(daten[5])/1000.0 #Versorungsspannung mV
-        RimOhm_BalDelta = long(daten[6]) #akku-unnen mOhm
-        cBat = long(daten[7]) #Akkutemperatur
+        amph = long(daten[4])/1000.0 #Ladungsmenge amph
+        vers_u = long(daten[5])/1000.0 #Versorungsspannung mV
+        rimohm_baldelta = long(daten[6]) #akku-unnen mOhm
+        c_bat = long(daten[7]) #Akkutemperatur
         tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
         if tmp_zellen < 50:
             cfg.anzahl_zellen[long(ausgang)] = tmp_zellen
@@ -154,12 +153,12 @@ def read_line(args): #{{{
         cfg.stoppm[cfg.gewaehlter_ausgang] = long(daten[16]) #stromwahl
         stoppm_str = cfg.STOPPMETHODE[long(daten[16])] #stromwahl
 
-        cKK = long(daten[17]) #KK Celsius
+        c_kk = long(daten[17]) #KK Celsius
 
-        cellmV = ""
+        cell_mv = ""
         tmp_a = []
         for cell in daten[18:-1]:
-            cellmV += " " + cell + " "
+            cell_mv += " " + cell + " "
             try:
                 tmp_a.append(long(cell))
             except:
@@ -174,35 +173,37 @@ def read_line(args): #{{{
         if phase == 0: #dann 'Fehlercode' zwangsweise ...?
             if tmp_zellen >= 54: # FEHLER
                 output = cfg.FEHLERCODE[tmp_zellen - 50]
-                output_data(output, label, "", label2)
+                output_data(output, label[0], "", label2)
                 return True
 
             if tmp_zellen >= 50: #'gute' codes
                 phasedesc = "%-11s" % (cfg.FEHLERCODE[tmp_zellen - 50])
                 ausgang = ""
-                ladeV = ""
+                lade_v = ""
 
             else:
                 phasedesc = "?????" # should never happen possibly
 
-        #• 51 VOLL   Ladevorgang wurde korrekt beendet, Akku ist voll geladen
-        #• 52 LEER   Entladevorgang wurde korrekt beendet, Akku ist leer
-        #• TODO: 52 od 51 + "x..." FERTIG Lipo-Lagerprogramm wurde korrekt beendet, Akku ist fertig zum Lagern
-        #• TODO: 52 od 51 + "x ": ? MENGE  Vorgang wurde durch eingestelltes Mengenlimit beendet
-        #• 50 STOP Vorgang wurde manuell (vorzeitig) beendet
-        #• FEHLER Vorgang wurde fehlerhaft beendet
+        # 51 VOLL   Ladevorgang wurde korrekt beendet, Akku ist voll geladen
+        # 52 LEER   Entladevorgang wurde korrekt beendet, Akku ist leer
+        # TODO: 52 od 51 + "x..." FERTIG Lipo-Lagerprogramm wurde korrekt 
+        #         beendet, Akku ist fertig zum Lagern
+        # TODO: 52 od 51 + "x ": ? MENGE  Vorgang wurde durch eingestelltes 
+        #        Mengenlimit beendet
+        # 50 STOP Vorgang wurde manuell (vorzeitig) beendet
+        # FEHLER Vorgang wurde fehlerhaft beendet
 
         elif phase == 10:
             phasedesc = " PAUSE    "
-            ladeV = ""
+            lade_v = ""
         else:
             if phase >= 1 and phase <= 5:
-                c = "L"
+                tmp = "L"
             elif phase >=7 and phase <= 9:
-                c = "E"
+                tmp = "E"
                 phase = "-"
 
-            phasedesc = atyp_str[0:1] + c + str(phase)
+            phasedesc = atyp_str[0:1] + tmp + str(phase)
 
         #< stunde dann Minunte:Sekunden, sonst Stunde:Minuten
         if zeit[0:2] == "00":
@@ -211,26 +212,29 @@ def read_line(args): #{{{
             zeit = zeit [:-3]
 
         #label print
-        RimOhm_BalDelta = "Ri:%03i" % (RimOhm_BalDelta)
+        rimohm_baldelta = "Ri:%03i" % (rimohm_baldelta)
         #TODO:  more elgegant...
         if cfg.atyp[cfg.gewaehlter_ausgang] == 5: #LiPo
             if len(daten) > 19:
-                RimOhm_BalDelta = "∆%2imV " % (balance_delta)
+                rimohm_baldelta = "∆%2imV " % (balance_delta)
             else:
-                RimOhm_BalDelta = "∆..mV "
+                rimohm_baldelta = "∆..mV "
             cfg.menge[cfg.gewaehlter_ausgang] = 0
             lart_str = "[LiPo]"
             stromw_str = "[LiPo]"
             stoppm_str = "[LiPo]"
 
 
-        output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, ladeV, zeit, ampere, Ah)
+        output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v,\
+                zeit, ampere, amph)
 
         zykll = str(cfg.zyklen[cfg.gewaehlter_ausgang])
         if zykll == "0":
             zykll = "-"
 
-        output2 ="%ix%s %2i° %s Z:%1i/%s\n" % (cfg.anzahl_zellen[cfg.gewaehlter_ausgang], atyp_str, cBat, RimOhm_BalDelta, zyklus, zykll)
+        output2 ="%ix%s %2i° %s Z:%1i/%s\n" % \
+                (cfg.anzahl_zellen[cfg.gewaehlter_ausgang], atyp_str, c_bat,\
+                rimohm_baldelta, zyklus, zykll)
         output2 +="%s %s %s %s\n" % (prg_str, lart_str, stromw_str, stoppm_str)
 
         kapa = str(cfg.kapazitaet[cfg.gewaehlter_ausgang])
@@ -247,9 +251,9 @@ def read_line(args): #{{{
             menge_str = "-"
 
         output2 +="Kap:%smAh ILa:%smA IEn:%smA\n" % (kapa , llimit, entll)
-        output2 +="Menge:%smAh VerU:%5.2fV %2i°KK\n" % (menge_str, VersU, cKK)
+        output2 +="Menge:%smAh VerU:%5.2fV %2i°KK\n" % (menge_str, vers_u, c_kk)
 
-        output_data(output, label, output2, label2)
+        output_data(output, label[0], output2, label[1])
 
     return True
 
@@ -260,7 +264,8 @@ def serial_setup(): #{{{
     sys.stdout.write("Trying to open serial port '%s': " % cfg.serial_port)
     sys.stdout.flush()
     if platform.system() == "Windows":
-        cfg.serial_port = '\\\\.\\' + cfg.serial_port #needen on comx>10 - seems to work
+        #needen on comx>10 - seems to work
+        cfg.serial_port = '\\\\.\\' + cfg.serial_port
 
     try:
         cfg.ser = serial.Serial(
@@ -301,7 +306,7 @@ def serial_file_setup(): #{{{
         f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
     else:
         print "\n********************************************************"
-        sys.stdout.write("New serial-collecting (3 seconds to abort (Ctrl-C)): ")
+        sys.stdout.write("New collecting (3 seconds to abort (Ctrl-C)): ")
         sys.stdout.flush()
         time.sleep(1.0)
         for i in range(1,4):
@@ -331,7 +336,7 @@ if __name__ == '__main__': #{{{
 
     cfg.threadlock = thread.allocate_lock()
 
-    cfg.exe_dir = sys.path[0].replace('\\',"/") #TODO should not be neede.. in fact
+    cfg.exe_dir = sys.path[0].replace('\\',"/") #TODO neede?
     cfg.tmp_dir = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
     cfg.chart_dir = cfg.tmp_dir
 
@@ -353,7 +358,7 @@ if __name__ == '__main__': #{{{
             if split[0].strip().lower()[0] == "#":
                 continue
             elif split[0].strip().lower() == "viewer":
-                cfg.picture_exe = split[1].strip().replace("\\","/") #TODO: windows hm... really needed?
+                cfg.picture_exe = split[1].strip().replace("\\","/") #TODO:?
             elif split[0].strip().lower() == "cfg.serial_port":
                 cfg.serial_port = split[1].strip()
             elif split[0].strip().lower() == "chart_path":
@@ -374,7 +379,8 @@ if __name__ == '__main__': #{{{
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                print "Unable to create [%s] directory" % cfg.tmp_dir, "Ending program.\n", e
+                print "Unable to create [%s] directory" \
+                        % cfg.tmp_dir, "Ending program.\n", e
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
@@ -385,7 +391,8 @@ if __name__ == '__main__': #{{{
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                print "Unable to create [%s] directory" % cfg.chart_dir, "Ending program.\n", e
+                print "Unable to create [%s] directory" \
+                        % cfg.chart_dir, "Ending program.\n", e
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
@@ -397,7 +404,8 @@ if __name__ == '__main__': #{{{
 
     #finally begin collecting
     #TODO: faster when data-uploading via memoery-thing?
-    gobject.timeout_add(100, read_line, (label, label2)) # some tuning around with that value possibly
+    # some tuning around with that value possibly
+    gobject.timeout_add(100, read_line, (label, label2))
 
     gtk.main()
 

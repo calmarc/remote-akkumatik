@@ -26,7 +26,7 @@ def get_pos_hex(string, konst_arr):
 
     position = konst_arr.index(string)
     string = "%02x" % (position)
-    #Well, just return %02i would work too on values <10 what is 'always' the case
+    #Well, just return %02i would work too on values <10
     final_str = ""
     for c in string:
         final_str += chr(int("30", 16) + int(c, 16))
@@ -49,7 +49,8 @@ def akkumatik_command(string, what):
     def command_thread(tname, str_tuple): #{{{
 
         (com_str, what) = str_tuple
-        cfg.threadlock.acquire() #TODO make it how it *should be* instead of that here...
+        #TODO make it how it *should be* instead of that here...
+        cfg.threadlock.acquire()
 
         if cfg.command_abort == True: #skip on further soon to arrive commands
             cfg.threadlock.release()
@@ -59,7 +60,7 @@ def akkumatik_command(string, what):
         try:
             #cfg.ser.setDTR(True)
             cfg.ser.write(com_str)
-            #cfg.ser.setDTR(False) #TODO Testing... not really knowing what I do..
+            #cfg.ser.setDTR(False) #TODO Testing. not really knowing what I do
         except serial.SerialException, e:
             print "%s", e
 
@@ -72,7 +73,8 @@ def akkumatik_command(string, what):
             sys.stdout.write(".")
             sys.stdout.flush()
             i += 1
-            if cfg.command_wait == False: #put on True before sending. - here waiting for False
+            #put on True before sending. - here waiting for False
+            if cfg.command_wait == False:
                 sys.stdout.write(" OK\n")
                 sys.stdout.flush()
                 ok = True
@@ -93,8 +95,8 @@ def akkumatik_command(string, what):
     checksum ^= 64 #dummy checksum byte itself to checksum...
 
     #try:
-    #thread.start_new_thread(command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3), cfg.threadlock, cfg.ser))
-    thread.start_new_thread(command_thread, (what, (chr(2) + string + chr(checksum) + chr(3), what)))
+    thread.start_new_thread(command_thread, (what, (chr(2) + string +\
+            chr(checksum) + chr(3), what)))
     #except:
     #    print "Error: unable to start thread"
 

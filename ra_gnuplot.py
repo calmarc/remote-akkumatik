@@ -26,7 +26,7 @@ def filesplit(): #{{{
     current_time1 = 0
     previous_time1 = 0
 
-    print "\n* [Serial Splitting] ************************************************"
+    print "\n* [Serial Splitting] ********************************************"
 
     for file in os.listdir(cfg.tmp_dir):
         if len(file) == 12 and file[0:4] == "Akku":
@@ -36,7 +36,8 @@ def filesplit(): #{{{
     cfg.fser.close()
 
     if os.path.getsize(cfg.tmp_dir + '/serial-akkumatik.dat') < 10:
-        cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen (append) and return
+        #reopen (append) and return
+        cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat', 'ab')
         print "Not sufficient Serial Data avaiable"
         cfg.file_block = False
         return
@@ -46,17 +47,20 @@ def filesplit(): #{{{
     for line in cfg.fser.readlines(): #get all lines in one step
         if cfg.file_block == True:
             cfg.fser.close()
-            cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
+            #reopen
+            cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat',\
+                    'ab')
             cfg.file_block = False #allow further getting serial adding..
 
         if line[0:1] == "1":
 
-            current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+            current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 +\
+                    long(line[8:10]) #in seconds
 
             line_counter1 += 1
 
             if current_time1 < previous_time1:
-                fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                fname = cfg.tmp_dir+'/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = helper.open_file(fname, "w+b")
 
                 if platform.system() == "Windows":
@@ -75,11 +79,13 @@ def filesplit(): #{{{
 
         elif line[0:1] == "2": #"2"
 
-            #current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+            #current_time2 = long(line[2:4]) * 60 + long(line[5:7])\
+            #        * 60 + long(line[8:10]) #in seconds
 
             line_counter2 += 1
-            if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
-                fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+            #only write when did not just begun
+            if line[2:10] == "00:00:01" and line_counter2 > 1:
+                fname = cfg.tmp_dir+'/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                 fh2 = helper.open_file(fname, "w+b")
 
                 if platform.system() == "Windows":
@@ -95,7 +101,7 @@ def filesplit(): #{{{
                 ausgang2_part += line
 
         else:
-            print "\n= [Spez Line...] ============================================================"
+            print "\n= [Spez Line...] ========================================"
             print "SPEZ: " + line
 
     if len(ausgang1_part) > 0:
@@ -147,10 +153,13 @@ def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
             x += 1
         avg_string = avg_string[0:-1] + ")/" + str(x)
 
-        gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)" lw 2 lc rgbcolor "#cc3333" '
+        gpst += 'wfile using 2:('+avg_string+') with lines title "mV\
+                (avg)" lw 2 lc rgbcolor "#cc3333" '
 
         for i in range(18, len(line_a) - 1):
-            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+') smooth bezier with lines title "∆ '+str(i-17)+'" axes x1y2 lw 1 lc rgbcolor "#'+cfg.LIPORGB[i-18]+'"'
+            gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+')\
+                    smooth bezier with lines title "∆ '+str(i-17)+'"\
+                    axes x1y2 lw 1 lc rgbcolor "#'+cfg.LIPORGB[i-18]+'"'
         gpst += ';'
     else:
         string = 'mV (avg)'
@@ -160,7 +169,8 @@ def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
             anz_z = 1
             string = 'mVolt'
 
-        gpst += 'plot wfile using 2:($3/'+str(anz_z)+') with lines title "'+string+'" lw 2 lc rgbcolor "#cc3333" '
+        gpst += 'plot wfile using 2:($3/'+str(anz_z)+') with lines\
+                title "'+string+'" lw 2 lc rgbcolor "#cc3333" '
 
     return (gpst)
 
@@ -172,7 +182,8 @@ def else_gnuplot(): #{{{
 
     gpst = ""
 
-    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
+    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+\
+            str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
     gpst +=  'set yrange [*:*];\n'
     gpst +=  'set ytics nomirror;\n'
 
@@ -180,7 +191,8 @@ def else_gnuplot(): #{{{
     #gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
     #gpst += 'set y2tics border;\n'
 
-    gpst += 'plot wfile using 2:3 with lines title "mVolt" lw 2 lc rgbcolor "#ff0000";'
+    gpst += 'plot wfile using 2:3 with lines title "mVolt"\
+            lw 2 lc rgbcolor "#ff0000";'
     return gpst
 
 #}}}
@@ -191,22 +203,25 @@ def nixx_gnuplot(): #{{{
 
     gpst = ""
 
-    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
+    gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+\
+            str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
     gpst +=  'set ytics nomirror;\n'
 
     gpst += 'set y2range [*:*];\n'
     gpst += 'set y2label "Innerer Widerstand Ri (mOhm)";\n'
     gpst += 'set y2tics border;\n'
 
-    if cfg.anzahl_zellen[cfg.gewaehlter_ausgang] == 0: #e.g on restarts + anz-zellen >=50 (errorstuff)
+    #e.g on restarts + anz-zellen >=50 (errorstuff)
+    if cfg.anzahl_zellen[cfg.gewaehlter_ausgang] == 0:
         gpst +=  'set yrange [*:*];\n'
         divisor = "1"
     else:
         gpst +=  'set yrange [600:1899];\n'
         divisor = str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])
 
-    gpst += 'plot wfile using 2:($3/'+divisor+') with lines title "mVolt" lw 2 lc rgbcolor "#ff0000", \
-                wfile using 2:7 with lines title "mOhm" axes x1y2 lw 1 lc rgbcolor "#000044";'
+    gpst += 'plot wfile using 2:($3/'+divisor+') with lines title "mVolt"\
+           lw 2 lc rgbcolor "#ff0000", wfile using 2:7 with lines title "mOhm"\
+            axes x1y2 lw 1 lc rgbcolor "#000044";'
     return gpst
 
 #}}}
@@ -262,9 +277,10 @@ def gnuplot(): #{{{
     qiv_files = ""
     dirList=os.listdir(cfg.tmp_dir)
     dirList.sort()
-    print "\n* [Gnu-Plotting] ****************************************************"
+    print "\n* [Gnu-Plotting] ************************************************"
     for fname in dirList:
-        if fname[0:4] == "Akku" and fname[4:6] == str(cfg.gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
+        if fname[0:4] == "Akku" and fname[4:6] == str(cfg.gewaehlter_ausgang)+\
+                "-" and fname [8:12] == ".dat":
             qiv_files += cfg.chart_dir + "/" + fname[:-4] + ".png "
 
             f = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
@@ -296,11 +312,13 @@ def gnuplot(): #{{{
             else:
                 anz_z_str = str(anz_zellen) + "x"
 
-            titel_plus = " ["+anz_z_str+atyp_str+", "+prg_str+", "+lart_str+", "+stromw_str+", "+stoppm_str+"] - "
+            titel_plus = " ["+anz_z_str+atyp_str+", "+prg_str+", "+lart_str+",\
+                    "+stromw_str+", "+stoppm_str+"] - "
             titel_little = " ["+anz_z_str+atyp_str+"] - "
 
             rangeval = -1 # stays like that when no balancer attached
-            if atyp_i == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
+            #lipo -> Balancer graph TODO what when no balancer?
+            if atyp_i == 5 and len(line_a) > 19:
                 f = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
                 rangeval = get_balancer_range(f)
                 f.close()
@@ -323,7 +341,8 @@ def gnuplot(): #{{{
 
             g('set terminal png size 1280, 1024;')
             #gnuplot does not like MS-Windoof's \
-            g('set output "' + (cfg.chart_dir).replace('\\','/') + "/" + fname[:-4] + '.png"')
+            g('set output "' + (cfg.chart_dir).replace('\\','/') +\
+            "/" + fname[:-4] + '.png"')
 
             g('set xdata time;')
 
@@ -363,11 +382,14 @@ def gnuplot(): #{{{
 
 
             g('plot \
-                wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor "#009900" , \
-                wfile using 2:5 smooth bezier with lines title "mAh" lw 2 lc rgbcolor "#0000ff", \
-                wfile using 2:8 smooth bezier with lines title "Bat C" axes x1y2 lc rgbcolor "#cc0000" , \
-                wfile using 2:18 smooth bezier with lines title "KK C" axes x1y2 lc rgbcolor "#222222";')
-
+                wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor\
+                "#009900" , \
+                wfile using 2:5 smooth bezier with lines title "mAh" lw\
+                2 lc rgbcolor "#0000ff", \
+                wfile using 2:8 smooth bezier with lines title "Bat C"\
+                axes x1y2 lc rgbcolor "#cc0000" , \
+                wfile using 2:18 smooth bezier with lines title "KK C"\
+                axes x1y2 lc rgbcolor "#222222";')
 
             g('set nolabel;')
             g('set notitle;')
@@ -384,7 +406,8 @@ def gnuplot(): #{{{
 
             g('set nomultiplot;')
             g('reset')
-            print "Generated:  "+"%44s"%(cfg.chart_dir + "/" +fname[-27:-4])+".png"
+            print "Generated:  "+"%44s"%(cfg.chart_dir + "/" +\
+                    fname[-27:-4])+".png"
         else:
             continue
 
