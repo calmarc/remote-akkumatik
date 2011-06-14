@@ -1,3 +1,5 @@
+# coding=utf-8
+#
 # well... actually - all around variables (also knows an 'globals' shrug)
  
 ##########################################
