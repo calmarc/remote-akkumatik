@@ -1,4 +1,6 @@
 # coding=utf-8
+""" print charts via gnuplot """
+
 import Gnuplot, Gnuplot.funcutils
 import os
 import platform
@@ -17,7 +19,6 @@ import helper
 def filesplit(): #{{{
     """Create files for gnuplot"""
 
-    line_counter1 = 0
     line_counter2 = 0
     file_zaehler1 = 1
     file_zaehler2 = 1
@@ -28,9 +29,9 @@ def filesplit(): #{{{
 
     print "\n* [Serial Splitting] ********************************************"
 
-    for file in os.listdir(cfg.tmp_dir):
-        if len(file) == 12 and file[0:4] == "Akku":
-            os.remove(cfg.tmp_dir + "/" + file)
+    for fil in os.listdir(cfg.tmp_dir):
+        if len(fil) == 12 and fil[0:4] == "Akku":
+            os.remove(cfg.tmp_dir + "/" + fil)
 
     cfg.file_block = True #Block (on read_line) while doing stuff here
     cfg.fser.close()
@@ -48,7 +49,7 @@ def filesplit(): #{{{
         if cfg.file_block == True:
             cfg.fser.close()
             #reopen
-            cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat',\
+            cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat', \
                     'ab')
             cfg.file_block = False #allow further getting serial adding..
 
@@ -57,7 +58,6 @@ def filesplit(): #{{{
             current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 +\
                     long(line[8:10]) #in seconds
 
-            line_counter1 += 1
 
             if current_time1 < previous_time1:
                 fname = cfg.tmp_dir+'/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
@@ -71,7 +71,6 @@ def filesplit(): #{{{
                 print "Generated:  " + "%48s" % (fname[-47:])
                 file_zaehler1 += 1
                 ausgang1_part = line
-                line_counter1 = 0
             else:
                 ausgang1_part += line
 
@@ -127,8 +126,8 @@ def filesplit(): #{{{
 #}}}
 
 def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
-
     """lipo gnuplot 2nd chart"""
+
     gpst = ""
 
     gpst += 'set nolabel;\n'
@@ -147,11 +146,11 @@ def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
         gpst += "plot "
 
         avg_string = "("
-        x = 0
+        xtmp = 0
         for i in range(18, len(line_a) - 1):
             avg_string += "$"+str(i+1)+"+"
-            x += 1
-        avg_string = avg_string[0:-1] + ")/" + str(x)
+            xtmp += 1
+        avg_string = avg_string[0:-1] + ")/" + str(xtmp)
 
         gpst += 'wfile using 2:('+avg_string+') with lines title "mV\
                 (avg)" lw 2 lc rgbcolor "#cc3333" '
@@ -177,7 +176,6 @@ def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
 #}}}
 
 def else_gnuplot(): #{{{
-
     """other than lipo gnuplot 2nd chart"""
 
     gpst = ""
@@ -198,7 +196,6 @@ def else_gnuplot(): #{{{
 #}}}
 
 def nixx_gnuplot(): #{{{
-
     """NiCd and NiMH gnuplot 2nd chart"""
 
     gpst = ""
@@ -226,16 +223,17 @@ def nixx_gnuplot(): #{{{
 
 #}}}
 
-def get_balancer_range(f): #{{{
+def get_balancer_range(fhan): #{{{
+    """ calculate balancer range max-min """
 
     bmin = 0
     bmax = 0
     rangeval = 0
-    for  l in f.readlines():
-        if l[0] == "#":
+    for  ltmp in fhan.readlines():
+        if ltmp[0] == "#":
             continue
 
-        line_a = l.split("\xff")
+        line_a = ltmp.split("\xff")
         avg = 0
         div = 0.0
         for i in range(18, len(line_a) - 1): #average
@@ -248,9 +246,7 @@ def get_balancer_range(f): #{{{
             continue
 
 
-        index=17
         for val in line_a[18:-1]: # get min and max
-            index += 1
             if (long(val) - avg) < bmin:
                 bmin = long(val) - avg
             elif (long(val) - avg) > bmax:
@@ -272,27 +268,27 @@ def gnuplot(): #{{{
 
     filesplit() #delete and generate new .dat files
 
-    g = Gnuplot.Gnuplot(debug=0)
+    gpl = Gnuplot.Gnuplot(debug=0)
 
     qiv_files = ""
-    dirList=os.listdir(cfg.tmp_dir)
-    dirList.sort()
+    dir_list = os.listdir(cfg.tmp_dir)
+    dir_list.sort()
     print "\n* [Gnu-Plotting] ************************************************"
-    for fname in dirList:
+    for fname in dir_list:
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg.gewaehlter_ausgang)+\
                 "-" and fname [8:12] == ".dat":
             qiv_files += cfg.chart_dir + "/" + fname[:-4] + ".png "
 
-            f = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
+            fhan = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
             while True: #ignore other than real data lines
-                l = f.readline()
-                if l[0] != "#":
+                lin = fhan.readline()
+                if lin[0] != "#":
                     break
-            f.close()
+            fhan.close()
             if platform.system() == "Windows":
-                line_a = l.split(" ")
+                line_a = lin.split(" ")
             else:
-                line_a = l.split("\xff")
+                line_a = lin.split("\xff")
 
             phasenr = long(line_a[9])
             atyp_i = long(line_a[12])
@@ -319,69 +315,69 @@ def gnuplot(): #{{{
             rangeval = -1 # stays like that when no balancer attached
             #lipo -> Balancer graph TODO what when no balancer?
             if atyp_i == 5 and len(line_a) > 19:
-                f = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
-                rangeval = get_balancer_range(f)
-                f.close()
+                fhan = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
+                rangeval = get_balancer_range(fhan)
+                fhan.close()
 
             if phasenr >= 1 and phasenr <= 5:
                 titel = "LADEN" + titel_plus
-                g('set yrange [0:*];')
+                gpl('set yrange [0:*];')
             elif phasenr >= 7 and phasenr < 9:
                 titel = "ENTLADEN" + titel_little
-                g('set yrange [*:0];')
+                gpl('set yrange [*:0];')
             elif phasenr == 10:
                 titel = "PAUSE - Entladespannung erreicht" + titel_little
-                g('set yrange [*:*];')
+                gpl('set yrange [*:*];')
             elif phasenr == 0:
                 titel = "STOP (Erhaltungladung)" + titel_plus
-                g('set yrange [*:*];')
+                gpl('set yrange [*:*];')
             else:
                 titel = "Unbekannte Phase <"+str(phasenr)+">" + titel_plus
-                g('set yrange [*:*];')
+                gpl('set yrange [*:*];')
 
-            g('set terminal png size 1280, 1024;')
+            gpl('set terminal png size 1280, 1024;')
             #gnuplot does not like MS-Windoof's \
-            g('set output "' + (cfg.chart_dir).replace('\\','/') +\
+            gpl('set output "' + (cfg.chart_dir).replace('\\','/') +\
             "/" + fname[:-4] + '.png"')
 
-            g('set xdata time;')
+            gpl('set xdata time;')
 
             if platform.system() == "Windows":
-                g("set datafile separator ' ';")
+                gpl("set datafile separator ' ';")
             else:
-                g("set datafile separator '\xff';")
+                gpl("set datafile separator '\xff';")
 
-            g('set timefmt "%H:%M:%S";')
-            g('set grid')
+            gpl('set timefmt "%H:%M:%S";')
+            gpl('set grid')
 
             #set bmargin 5
-            g('set lmargin 10')
-            g('set rmargin 10')
+            gpl('set lmargin 10')
+            gpl('set rmargin 10')
             #set tmargin 5
 
-            g('set multiplot;')
+            gpl('set multiplot;')
 
-            g('set key box')
-            g('set ylabel "Laden mA / Kapazitaet mAh"')
-            g('set ytics nomirror;')
+            gpl('set key box')
+            gpl('set ylabel "Laden mA / Kapazitaet mAh"')
+            gpl('set ytics nomirror;')
 
-            g('set y2range [-10:70];')
-            g('set y2label "Grad Celsius";')
-            g('set y2tics border;')
+            gpl('set y2range [-10:70];')
+            gpl('set y2label "Grad Celsius";')
+            gpl('set y2tics border;')
 
-            g('set nolabel;')
-            g('set xtics axis;')
+            gpl('set nolabel;')
+            gpl('set xtics axis;')
 
-            g('set size 1.0,0.45;')
-            g('set origin 0.0,0.5;')
+            gpl('set size 1.0,0.45;')
+            gpl('set origin 0.0,0.5;')
 
 
             #gnuplot does not like MS-Windoof's \
-            g('wfile="' + cfg.tmp_dir.replace('\\', '/') + "/" + fname + '";')
-            g('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
+            gpl('wfile="' + cfg.tmp_dir.replace('\\', '/') + "/" + fname + '";')
+            gpl('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
-            g('plot \
+            gpl('plot \
                 wfile using 2:4 with lines title "mA" lw 2 lc rgbcolor\
                 "#009900" , \
                 wfile using 2:5 smooth bezier with lines title "mAh" lw\
@@ -391,22 +387,22 @@ def gnuplot(): #{{{
                 wfile using 2:18 smooth bezier with lines title "KK C"\
                 axes x1y2 lc rgbcolor "#222222";')
 
-            g('set nolabel;')
-            g('set notitle;')
+            gpl('set nolabel;')
+            gpl('set notitle;')
 
-            g('set size 1.0,0.45;')
-            g('set origin 0.0,0.0;')
+            gpl('set size 1.0,0.45;')
+            gpl('set origin 0.0,0.0;')
 
             if atyp_i == 5:
-                g(lipo_gnuplot(line_a, rangeval, anz_z))
+                gpl(lipo_gnuplot(line_a, rangeval, anz_z))
             elif atyp_i == 0 or atyp_i == 1:
-                g(nixx_gnuplot())
+                gpl(nixx_gnuplot())
             else:
-                g(else_gnuplot())
+                gpl(else_gnuplot())
 
-            g('set nomultiplot;')
-            g('reset')
-            print "Generated:  "+"%44s"%(cfg.chart_dir + "/" +\
+            gpl('set nomultiplot;')
+            gpl('reset')
+            print "Generated:  "+"%44s" % (cfg.chart_dir + "/"+\
                     fname[-27:-4])+".png"
         else:
             continue
@@ -416,9 +412,9 @@ def gnuplot(): #{{{
         args = shlex.split(qiv_files)
         arguments = ' '.join(str(n) for n in args)
         if platform.system() == "Windows":
-            for x in args:
-                # os.startfile(x)
-                thread.start_new_thread(os.startfile,(x,))
+            for xtmp in args:
+                # os.startfile(xtmp)
+                thread.start_new_thread(os.startfile,(xtmp,))
                 break #one is enough for eg. irfanview
         else:
             thread.start_new_thread(os.system,(cfg.picture_exe+' '+arguments,))
