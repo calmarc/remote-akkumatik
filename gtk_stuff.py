@@ -211,16 +211,16 @@ def akkupara_dialog(): #{{{
             dialog.vbox.pack_start(label, True, True, 8)
             label.show()
 
-            tb = gtk.Entry()
-            tb.set_max_length(20)
-            tb.show()
-            dialog.vbox.pack_start(tb, True, True, 8)
+            tbx = gtk.Entry()
+            tbx.set_max_length(20)
+            tbx.show()
+            dialog.vbox.pack_start(tbx, True, True, 8)
 
             # run the dialog
             retval = dialog.run()
 
             if retval == -3: #OK
-                txt = tb.get_text()
+                txt = tbx.get_text()
 
                 #check if there is that name already - possibly remove it then
                 i = 0
@@ -382,12 +382,12 @@ def akkupara_dialog(): #{{{
             #shoveling into r but with integer values now (besides of first)
             rtmp = []
             flag = True
-            for xy in tmp:
+            for xyx in tmp:
                 if flag == True:
-                    rtmp.append(str(xy))
+                    rtmp.append(str(xyx))
                     flag = False
                 else:
-                    rtmp.append(int(xy))
+                    rtmp.append(int(xyx))
             ret.append(rtmp)
 
         fha.close()
@@ -605,7 +605,7 @@ def akkupara_dialog(): #{{{
         hex_str += helper.get_pos_hex(cb_atyp.get_active_text(), cfg.AKKU_TYP)
         hex_str += helper.get_pos_hex(cb_prog.get_active_text(), cfg.AMPROGRAMM)
         hex_str += helper.get_pos_hex(cb_lart.get_active_text(), cfg.LADEART)
-        hex_str +=\
+        hex_str += \
                 helper.get_pos_hex(cb_stromw.get_active_text(), cfg.STROMWAHL)
 
         tmp = cb_stoppm.get_active_text()
