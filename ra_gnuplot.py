@@ -10,9 +10,129 @@ import thread
 import cfg
 import helper
 
-##########################################
+##########################################}}}
 #GnuPlotting stuff{{{
 ##########################################
+
+def filesplit(fh): #{{{
+    """Create files for gnuplot"""
+
+    file_line = 0
+    line_counter1 = 0
+    line_counter2 = 0
+    oldline = ""
+    file_zaehler1 = 1
+    file_zaehler2 = 1
+    flag1 = False
+    flag2 = False
+    ausgang1_part = ""
+    ausgang2_part = ""
+    previous_line1 = ""
+    previousline2 = ""
+    current_time1 = 0
+    previous_time1 = 0
+    current_time2 = 0
+    previous_time2 = 0
+
+    print "\n* [Serial Splitting] ************************************************"
+
+    for file in os.listdir(cfg.tmp_dir):
+        if len(file) == 12 and file[0:4] == "Akku":
+            os.remove(cfg.tmp_dir + "/" + file)
+
+    cfg.file_block = True #stop getting more serial data
+    cfg.fser.close()
+
+    if os.path.getsize(cfg.tmp_dir + '/serial-akkumatik.dat') < 10:
+        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
+        print "Not sufficient Serial Data avaiable"
+        cfg.file_block = False
+        return
+
+    cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'rb')
+
+    for line in cfg.fser.readlines(): #get all lines in one step
+        if cfg.file_block == True:
+            cfg.fser.close()
+            cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
+            cfg.file_block = False #allow further getting serial adding..
+
+        if line[0:1] == "1":
+
+            current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+
+            previous_line1 = line
+
+            line_counter1 += 1
+
+            if current_time1 < previous_time1:
+                fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                fh1 = helper.open_file(fname, "wb+")
+
+                if platform.system() == "Windows":
+                    ausgang1_part = ausgang1_part.replace('\xff', " ")
+
+                fh1.write(ausgang1_part)
+                fh1.close()
+                print "Generated:  " + "%48s" % (fname[-47:])
+                file_zaehler1 += 1
+                ausgang1_part = line
+                line_counter1 = 0
+            else:
+                ausgang1_part += line
+
+            previous_time1 = current_time1
+
+        elif line[0:1] == "2": #"2"
+
+            current_time2 = long(line[2:4]) * 60 + long(line[5:7]) * 60 + long(line[8:10]) #in seconds
+
+            previousline2 = line
+
+            line_counter2 += 1
+            if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
+                fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                fh2 = helper.open_file(fname, "wb+")
+
+                if platform.system() == "Windows":
+                    ausgang2_part = ausgang2_part.replace('\xff', " ")
+
+                fh2.write(ausgang2_part)
+                fh2.close()
+                print "Generated:  " + "%48s" % (fname[-47:])
+                file_zaehler2 += 1
+                ausgang2_part = line
+                line_counter2 = 0
+            else:
+                ausgang2_part += line
+
+            previous_time2 = current_time2
+
+        else:
+            print "\n= [Spez Line...] ============================================================"
+            print "SPEZ: " + line
+
+    if len(ausgang1_part) > 0:
+        fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+        fh1 = helper.open_file(fname, "wb+")
+
+        if platform.system() == "Windows":
+            ausgang1_part = ausgang1_part.replace('\xff', " ")
+
+        fh1.write(ausgang1_part)
+        fh1.close()
+        print "Generated: " + "%28s" % (fname[-27:])
+    if len(ausgang2_part) > 0:
+        fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+        fh2 = helper.open_file(fname, "wb+")
+
+        if platform.system() == "Windows":
+            ausgang2_part = ausgang2_part.replace('\xff', " ")
+
+        fh2.write(ausgang2_part)
+        print "Generated: " + "%28s" % (fname[-27:])
+
+#}}}
 
 def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
 

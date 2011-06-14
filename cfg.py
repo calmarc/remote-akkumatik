@@ -52,7 +52,8 @@ chart_dir = ""
 
 #main gtk windows
 gtk_window = None
-
+button_start = None # could be transfered from main-window to read_line.. together with labels.. but...
+button_stop = None
 
 #serial connection and file to write it
 serial_port = ""

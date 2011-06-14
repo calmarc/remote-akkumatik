@@ -7,18 +7,173 @@ import pango
 import gobject
 
 import os
+import platform
 
 #own import
 import cfg
 import helper
+import ra_gnuplot
 
-#
+
+##########################################
+# Main Window{{{
+##########################################
+def main_window():
+    def delete_event(widget, event, data=None):
+        return False
+
+    def destroy(widget, data=None):
+        gtk.main_quit()
+
+    def buttoncb (widget, data):
+
+        if data == "Chart":
+            ra_gnuplot.gnuplot()
+            #matplot()
+
+        elif data == "Exit":
+            gtk.main_quit()
+
+        elif data == "Ausg":
+            if cfg.gewaehlter_ausgang == 1: #toggle ausgang
+                cfg.gewaehlter_ausgang = 2
+                cfg.button_start.set_sensitive(False)
+                cfg.button_stop.set_sensitive(False)
+            else:
+                cfg.gewaehlter_ausgang = 1
+                cfg.button_start.set_sensitive(False)
+                cfg.button_stop.set_sensitive(False)
+        elif data == "Start":
+            cfg.command_abort = False #reset
+            if cfg.gewaehlter_ausgang == 1: #toggle ausgang
+                helper.akkumatik_command("44", data)
+            else:
+                helper.akkumatik_command("48", data)
+
+        elif data == "Stop":
+            cfg.command_abort = False #reset
+            if cfg.gewaehlter_ausgang == 1: #toggle ausgang
+                helper.akkumatik_command("41", data)
+            else:
+                helper.akkumatik_command("42", data)
+
+        elif data == "Akku_Settings":
+            (cmd1, cmd2)  =  gtk_stuff.akkupara_dialog()
+            if not cmd1:
+                return
+
+            cfg.command_abort = False #reset
+
+            helper.akkumatik_command(cmd1, "Übertragen")
+
+            if cmd2 != "":
+                time.sleep(1.0) #else threads may get out of order somehow
+                helper.akkumatik_command(cmd2, "Start")
+
+    def draw_pixbuf(widget, event):
+        path = cfg.exe_dir + '/bilder/Display.jpg'
+        pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], pixbuf, 0, 0, 0,0)
+
+
+    cfg.gtk_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+    cfg.gtk_window.set_title('Akkumatic Remote Display')
+    cfg.gtk_window.set_size_request(966,168)
+    cfg.gtk_window.set_default_size(966,168)
+    cfg.gtk_window.set_position(gtk.WIN_POS_CENTER)
+
+    cfg.gtk_window.connect("delete_event", delete_event)
+    cfg.gtk_window.connect("destroy", destroy)
+    cfg.gtk_window.set_border_width(8)
+
+    # overall hbox
+    hbox = gtk.HBox()
+    cfg.gtk_window.add(hbox)
+    hbox.connect('expose-event', draw_pixbuf)
+
+    # akkumatik display label
+    label = gtk.Label()
+    if platform.system() == "Windows": #TODO check once if that fits...
+        label.modify_font(pango.FontDescription("mono 25"))
+    else:
+        label.modify_font(pango.FontDescription("mono 22"))
+
+    gfixed = gtk.Fixed()
+    gfixed.put(label, 48 , 38)
+
+    hbox.pack_start(gfixed, False, False, 0)
+
+    label2 = gtk.Label()
+    if platform.system() == "Windows": #TODO check once if that fits...
+        label2.modify_font(pango.FontDescription("mono 15"))
+    else:
+        label2.modify_font(pango.FontDescription("mono 12"))
+
+    label2.set_size_request(364,100)
+    gfixed.put(label2, 436, 33)
+
+    #vbox for buttons
+    vbox = gtk.VBox()
+    hbox.pack_end(vbox, False, False, 0)
+
+    # hbox for radios
+    hbox = gtk.HBox()
+    vbox.pack_start(hbox, True, True, 0)
+
+    # TODO nicht wirklich toll diese Radios
+    r1button = gtk.RadioButton(None, None)
+    r1button.connect("toggled", buttoncb , "Ausg")
+    hbox.pack_start(r1button, True, True, 0)
+
+    label_ausgang = gtk.Label("1   2")
+    hbox.pack_start(label_ausgang, True, True, 0)
+
+    r2button = gtk.RadioButton(r1button, None)
+    hbox.pack_start(r2button, True, True, 0)
+
+    if cfg.gewaehlter_ausgang == 1:
+        r1button.set_active(True)
+    else:
+        r2button.set_active(True)
+
+    #hbox fuer 'start/stop'
+    hbox = gtk.HBox()
+    vbox.pack_start(hbox, True, True, 0)
+
+    cfg.button_start = gtk.Button("Start")
+    cfg.button_start.connect("clicked", buttoncb, "Start")
+    hbox.pack_start(cfg.button_start, False, True, 0)
+    cfg.button_start.set_sensitive(False)
+
+    cfg.button_stop = gtk.Button("Stop")
+    cfg.button_stop.connect("clicked", buttoncb, "Stop")
+    hbox.pack_end(cfg.button_stop, False, True, 0)
+    cfg.button_stop.set_sensitive(False)
+
+    vbox.pack_start(gtk.HSeparator(), False, True, 5)
+
+    button = gtk.Button("Akku Para")
+    button.connect("clicked", buttoncb, "Akku_Settings")
+    vbox.pack_start(button, False, True, 0)
+
+    button = gtk.Button("Chart")
+    button.connect("clicked", buttoncb, "Chart")
+    vbox.pack_start(button, False, True, 0)
+
+    button = gtk.Button("Exit")
+    button.set_size_request(98,20)
+    button.connect("clicked", buttoncb, "Exit")
+    vbox.pack_end(button, False, True, 0)
+
+    vbox.pack_end(gtk.HSeparator(), False, True, 5)
+
+    return (label, label2)
+
 ##########################################}}}
 # Akku Parameter Dialog{{{
 ##########################################
 
 def akkupara_dialog(): #{{{
-
 
     def save_akkulist():
         fh = helper.open_file(cfg.exe_dir + "/liste_akkus.dat", "wb")
