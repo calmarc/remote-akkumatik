@@ -165,7 +165,7 @@ def read_line(labels): #{{{
         if phase == 0: #dann 'Fehlercode' zwangsweise ...?
             if tmp_zellen >= 54: # FEHLER
                 output = cfg.FEHLERCODE[tmp_zellen - 50]
-                output_data(output, labels[0], "", label[1])
+                output_data(output, labels[0], "", labels[1])
                 return True
 
             if tmp_zellen >= 50: #'gute' codes
