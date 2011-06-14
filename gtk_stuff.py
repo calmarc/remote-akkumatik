@@ -424,13 +424,6 @@ def akkupara_dialog(): #{{{
 
     if retval == -3 or retval == 2: #OK or uebertragen got pressed
 
-        #since akkumatik is not sending this stuff from its own (yet)
-        cfg.kapazitaet[cfg.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
-        cfg.ladelimit[cfg.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
-        cfg.entladelimit[cfg.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
-        cfg.menge[cfg.gewaehlter_ausgang] = int(sp_menge.get_value())
-        cfg.zyklen[cfg.gewaehlter_ausgang] = int(sp_zyklen.get_value())
-
         hex_str = str(30 + cfg.gewaehlter_ausgang) #kommando 31 or 32
         hex_str += helper.get_pos_hex(cb_atyp.get_active_text(),cfg.AKKU_TYP)
         hex_str += helper.get_pos_hex(cb_prog.get_active_text(),cfg.AMPROGRAMM)
@@ -449,6 +442,12 @@ def akkupara_dialog(): #{{{
         hex_str += helper.get_16bit_hex(int(sp_menge.get_value()))
         hex_str += helper.get_16bit_hex(int(sp_zyklen.get_value()))
 
+        #since akkumatik is not sending this stuff from its own (yet)
+        cfg.kapazitaet[cfg.gewaehlter_ausgang] = int(sp_kapazitaet.get_value())
+        cfg.ladelimit[cfg.gewaehlter_ausgang] = int(sp_ladelimit.get_value())
+        cfg.entladelimit[cfg.gewaehlter_ausgang] = int(sp_entladelimit.get_value())
+        cfg.menge[cfg.gewaehlter_ausgang] = int(sp_menge.get_value())
+        cfg.zyklen[cfg.gewaehlter_ausgang] = int(sp_zyklen.get_value())
 
         #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode u08 stop_mode
         #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
@@ -460,4 +459,4 @@ def akkupara_dialog(): #{{{
             else:
                 hex_str2 = "48"
 
-    return (hex_str, hex_str2)
+        return (hex_str, hex_str2)

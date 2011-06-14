@@ -46,7 +46,7 @@ def get_16bit_hex(integer):
 def akkumatik_command(string, what):
 
     def command_thread(tname, str_tuple): #{{{
-        
+
         (com_str, what) = str_tuple
         cfg.threadlock.acquire() #TODO make it how it *should be* instead of that here...
 
@@ -93,7 +93,7 @@ def akkumatik_command(string, what):
 
     #try:
     #thread.start_new_thread(command_thread, ("Issue_Command", chr(2) + string + chr(checksum) + chr(3), cfg.threadlock, cfg.ser))
-    thread.start_new_thread(command_thread, ("Issue_Command", (chr(2) + string + chr(checksum) + chr(3), what)))
+    thread.start_new_thread(command_thread, (what, (chr(2) + string + chr(checksum) + chr(3), what)))
     #except:
     #    print "Error: unable to start thread"
 

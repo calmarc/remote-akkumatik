@@ -518,7 +518,7 @@ def read_line(args): #{{{
 
     cfg.oldtime[int(daten[0])] = curtime
 
-    try: 
+    try:
         if yeswrite:
             cfg.fser.write(lin)
     except  ValueError, e:
@@ -563,7 +563,7 @@ def read_line(args): #{{{
         zyklus = long(daten[10]) #Zyklus
         sp = long(daten[11]) #Aktive Akkuspeicher
 
-        cfg.atyp[cfg.gewaehlter_ausgang] = int(daten[12]) #Akkutyp
+        cfg.atyp[cfg.gewaehlter_ausgang] = long(daten[12]) #Akkutyp
         atyp_str = cfg.AKKU_TYP[long(daten[12])] #Akkutyp
 
         cfg.prg[cfg.gewaehlter_ausgang] = long(daten[13]) #Programm

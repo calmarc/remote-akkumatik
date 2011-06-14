@@ -1,7 +1,7 @@
 # coding=utf-8
 #
 # well... actually - all around variables (also knows an 'globals' shrug)
- 
+
 ##########################################
 #Konstanten
 
@@ -21,6 +21,7 @@ prg = [0,0,0]
 lart = [0,0,0]
 stromw = [0,0,0]
 stoppm = [0,0,0]
+
 # gespeichert vom dialog
 kapazitaet =  [0,0,0]
 ladelimit =  [0,0,0]
