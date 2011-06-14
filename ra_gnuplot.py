@@ -14,7 +14,7 @@ import helper
 #GnuPlotting stuff{{{
 ##########################################
 
-def filesplit(fh): #{{{
+def filesplit(): #{{{
     """Create files for gnuplot"""
 
     file_line = 0
@@ -40,11 +40,11 @@ def filesplit(fh): #{{{
         if len(file) == 12 and file[0:4] == "Akku":
             os.remove(cfg.tmp_dir + "/" + file)
 
-    cfg.file_block = True #stop getting more serial data
+    cfg.file_block = True #Block (on read_line) while doing stuff here
     cfg.fser.close()
 
     if os.path.getsize(cfg.tmp_dir + '/serial-akkumatik.dat') < 10:
-        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen
+        cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab') #reopen (append) and return
         print "Not sufficient Serial Data avaiable"
         cfg.file_block = False
         return
@@ -67,7 +67,7 @@ def filesplit(fh): #{{{
 
             if current_time1 < previous_time1:
                 fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-                fh1 = helper.open_file(fname, "wb+")
+                fh1 = helper.open_file(fname, "w+b")
 
                 if platform.system() == "Windows":
                     ausgang1_part = ausgang1_part.replace('\xff', " ")
@@ -92,7 +92,7 @@ def filesplit(fh): #{{{
             line_counter2 += 1
             if line[2:10] == "00:00:01" and line_counter2 > 1: #only write when did not just begun
                 fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-                fh2 = helper.open_file(fname, "wb+")
+                fh2 = helper.open_file(fname, "w+b")
 
                 if platform.system() == "Windows":
                     ausgang2_part = ausgang2_part.replace('\xff', " ")
@@ -114,23 +114,23 @@ def filesplit(fh): #{{{
 
     if len(ausgang1_part) > 0:
         fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
-        fh1 = helper.open_file(fname, "wb+")
+        fh1 = helper.open_file(fname, "w+b")
 
         if platform.system() == "Windows":
             ausgang1_part = ausgang1_part.replace('\xff', " ")
 
         fh1.write(ausgang1_part)
         fh1.close()
-        print "Generated: " + "%28s" % (fname[-27:])
+        print "Generated:  " + "%48s" % (fname[-47:])
     if len(ausgang2_part) > 0:
         fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
-        fh2 = helper.open_file(fname, "wb+")
+        fh2 = helper.open_file(fname, "w+b")
 
         if platform.system() == "Windows":
             ausgang2_part = ausgang2_part.replace('\xff', " ")
 
         fh2.write(ausgang2_part)
-        print "Generated: " + "%28s" % (fname[-27:])
+        print "Generated:  " + "%48s" % (fname[-47:])
 
 #}}}
 
@@ -268,6 +268,8 @@ def get_balancer_range(f): #{{{
 
 def gnuplot(): #{{{
     """Create charts"""
+
+    filesplit() #delete and generate new .dat files
 
     g = Gnuplot.Gnuplot(debug=0)
 

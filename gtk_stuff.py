@@ -14,7 +14,7 @@ import time
 import cfg
 import helper
 import ra_gnuplot
-
+#import ra_matplot
 
 ##########################################
 # Main Window{{{
@@ -30,7 +30,7 @@ def main_window():
 
         if data == "Chart":
             ra_gnuplot.gnuplot()
-            #matplot()
+            #ra_matplot.matplot()
 
         elif data == "Exit":
             gtk.main_quit()
@@ -47,7 +47,7 @@ def main_window():
         elif data == "Start":
             cfg.command_abort = False #reset
             if cfg.gewaehlter_ausgang == 1: #toggle ausgang
-                helper.akkumatik_command("44", data)
+                helper.akkumatik_command("44", data) #data = something like "Start"
             else:
                 helper.akkumatik_command("48", data)
 
@@ -167,6 +167,8 @@ def main_window():
     vbox.pack_end(button, False, True, 0)
 
     vbox.pack_end(gtk.HSeparator(), False, True, 5)
+
+    cfg.gtk_window.show_all() # after file-open (what is needed on plotting)... hm?
 
     return (label, label2)
 
@@ -377,8 +379,7 @@ def akkupara_dialog(): #{{{
         return ret
 
     #######################################
-    #GTK Akku parameter dialog main cfg.gtk_window
-
+    #GTK Akku parameter dialog main window
     dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
             + str(cfg.gewaehlter_ausgang), cfg.gtk_window,\
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,\
@@ -609,7 +610,7 @@ def akkupara_dialog(): #{{{
         #u16 zellenzahl u16 capacity u16 i_lade u16 i_entl u16 menge u16 zyklenzahl
 
         hex_str2 = ""
-        if retval == -3: #Additionally start
+        if retval == -3: #Additionally start the thing
             if cfg.gewaehlter_ausgang == 1:
                 hex_str2 = "44"
             else:

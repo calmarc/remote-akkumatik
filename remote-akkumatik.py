@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-#{{{imports
 import os
 import sys
 import errno
@@ -17,33 +16,17 @@ import gtk
 import pango
 import gobject
 
-
 import serial
 import platform
-
-#import matplotlib.pyplot as plt
 
 #own import
 import cfg
 import gtk_stuff
 import helper
-import ra_gnuplot
 
-#}}}
-
-
-##########################################}}}
-#Matplot stuff{{{
 ##########################################
-#def matplot():
-    #plt.plot([1,2,3,4])
-    #plt.ylabel('some numbers')
-    #plt.show()
-
-##########################################}}}
 #Serial + output stuff{{{
 ##########################################
-
 def output_data(output, label, output2, label2): #{{{
 
     label.set_markup('<span foreground="#444444">'+ output + '</span>')
@@ -52,7 +35,6 @@ def output_data(output, label, output2, label2): #{{{
         gtk.main_iteration()
 
 #}}}
-
 def read_line(args): #{{{
     """Read serial data (called via interval via gobject.timeout_add) and print it to display"""
 
@@ -273,7 +255,6 @@ def read_line(args): #{{{
     return True
 
 #}}}
-
 def serial_setup(): #{{{
 
     print "* [ Serial Port ] ***********************************"
@@ -313,13 +294,12 @@ def serial_setup(): #{{{
     return cfg.ser
 
 #}}}
-
 def serial_file_setup(): #{{{
 
     if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
         f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'ab')
     elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
-        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'wb+')
+        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
     else:
         print "\n********************************************************"
         sys.stdout.write("New serial-collecting (3 seconds to abort (Ctrl-C)): ")
@@ -331,14 +311,11 @@ def serial_file_setup(): #{{{
             time.sleep(1.0)
         sys.stdout.write("\n\n")
         sys.stdout.flush()
-        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'wb+')
+        f = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'w+b')
 
     return f
 
 #}}}
-
-#}}}
-
 ##########################################}}}
 if __name__ == '__main__': #{{{
 ##########################################
@@ -353,10 +330,11 @@ if __name__ == '__main__': #{{{
     ##########################################
     #Variablen
 
-    #TODO put into whre needed? or before dialog calling...?
     cfg.threadlock = thread.allocate_lock()
 
-    cfg.exe_dir = sys.path[0].replace('\\',"/")
+    cfg.exe_dir = sys.path[0].replace('\\',"/") #TODO should not be neede.. in fact
+    cfg.tmp_dir = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
+    cfg.chart_dir = cfg.tmp_dir
 
     #Defaults
     cfg.picture_exe = '/usr/local/bin/qiv'
@@ -365,9 +343,6 @@ if __name__ == '__main__': #{{{
     else:
         cfg.serial_port = '/dev/ttyS0'
 
-    #e.g for windoofs \'s  (TODO: should not be needed here however)
-    cfg.tmp_dir = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
-    cfg.chart_dir = cfg.tmp_dir
 
     if os.path.exists(cfg.exe_dir + "/config.txt"):
         fh = helper.open_file(cfg.exe_dir + "/config.txt", "r")
@@ -379,7 +354,7 @@ if __name__ == '__main__': #{{{
             if split[0].strip().lower()[0] == "#":
                 continue
             elif split[0].strip().lower() == "viewer":
-                cfg.picture_exe = split[1].strip().replace("\\","/") #windows hm...
+                cfg.picture_exe = split[1].strip().replace("\\","/") #TODO: windows hm... really needed?
             elif split[0].strip().lower() == "cfg.serial_port":
                 cfg.serial_port = split[1].strip()
             elif split[0].strip().lower() == "chart_path":
@@ -415,16 +390,15 @@ if __name__ == '__main__': #{{{
                 raw_input("\n\nPress the enter key to exit.")
                 sys.exit()
 
-    (label, label2) = gtk_stuff.main_window()
-
     cfg.ser = serial_setup()
     cfg.fser = serial_file_setup()
 
-    cfg.gtk_window.show_all() # after file-open (what is needed on plotting)...
+    #why not putting label's also into cfg....
+    (label, label2) = gtk_stuff.main_window()
 
     #finally begin collecting
+    #TODO: faster when data-uploading via memoery-thing?
     gobject.timeout_add(100, read_line, (label, label2)) # some tuning around with that value possibly
-    #TODO: not fast enough when data-uploading.... via memoery-thing
 
     gtk.main()
 
