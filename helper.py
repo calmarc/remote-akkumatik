@@ -56,17 +56,17 @@ def akkumatik_command(string, what):
 
         (com_str, what) = str_tuple
         #TODO make it how it *should be* instead of that here...
-        cfg.threadlock.acquire()
+        cfg.THREADLOCK.acquire()
 
-        if cfg.command_abort == True: #skip on further soon to arrive commands
-            cfg.threadlock.release()
+        if cfg.COMMAND_ABORT == True: #skip on further soon to arrive commands
+            cfg.THREADLOCK.release()
             return
 
-        cfg.command_wait = True
+        cfg.COMMAND_WAIT = True
         try:
-            #cfg.ser.setDTR(True)
-            cfg.ser.write(com_str)
-            #cfg.ser.setDTR(False) #TODO Testing. not really knowing what I do
+            #cfg.SER.setDTR(True)
+            cfg.SER.write(com_str)
+            #cfg.SER.setDTR(False) #TODO Testing. not really knowing what I do
         except serial.SerialException, err:
             print "%s", err
 
@@ -80,7 +80,7 @@ def akkumatik_command(string, what):
             sys.stdout.flush()
             i += 1
             #put on True before sending. - here waiting for False
-            if cfg.command_wait == False:
+            if cfg.COMMAND_WAIT == False:
                 sys.stdout.write(" OK\n")
                 sys.stdout.flush()
                 okk = True
@@ -89,8 +89,8 @@ def akkumatik_command(string, what):
         if okk == False:
             sys.stdout.write(" Failed\n")
             sys.stdout.flush()
-            cfg.command_abort = True #skip on further soon to arrive commands
-        cfg.threadlock.release()
+            cfg.COMMAND_ABORT = True #skip on further soon to arrive commands
+        cfg.THREADLOCK.release()
 
     #}}}
 

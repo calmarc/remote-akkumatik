@@ -24,16 +24,16 @@ def matplot():
         return int(tstring[:2])*3600 + int(tstring[3:5])*60 + int(tstring[6:8])
 
     qiv_files = ""
-    dirList = os.listdir(cfg.tmp_dir)
+    dirList = os.listdir(cfg.TMP_DIR)
     dirList.sort()
     print "\n* [Mat-Plotting] ****************************************************"
 
     ip = 0
     for fname in dirList:
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg..gewaehlter_ausgang) + "-" and fname [8:12] == ".dat":
-            qiv_files += cfg.chart_dir + "/" + fname[:-4] + ".png "
+            qiv_files += cfg.CHART_DIR + "/" + fname[:-4] + ".png "
 
-            f = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
+            f = helper.open_file(cfg.TMP_DIR + "/" + fname, "r")
             while True: #ignore other than real data lines
                 l = f.readline()
                 break
@@ -64,7 +64,7 @@ def matplot():
             titel_little = " ["+anz_z_str+atyp_str+"] - "
 
             #if atyp == 5 and len(line_a) > 19: #lipo -> Balancer graph TODO what when no balancer?
-                #f = cfg.open_file(cfg.tmp_dir + "/" + fname, "r")
+                #f = cfg.open_file(cfg.TMP_DIR + "/" + fname, "r")
                 #rangeval = cfg.get_balancer_range(f)
                 #f.close()
 
@@ -80,7 +80,7 @@ def matplot():
                 titel = "Unbekannte Phase <"+str(phasenr)+">" + titel_plus
 
             # file to array
-            fh  = cfg.open_file(cfg.tmp_dir + "/" + fname, "r")
+            fh  = cfg.open_file(cfg.TMP_DIR + "/" + fname, "r")
             total_a = []
             for thing in fh.readlines():
                 if platform.system() == "Windows":

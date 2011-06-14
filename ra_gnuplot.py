@@ -29,29 +29,29 @@ def filesplit(): #{{{
 
     print "\n* [Serial Splitting] ********************************************"
 
-    for fil in os.listdir(cfg.tmp_dir):
+    for fil in os.listdir(cfg.TMP_DIR):
         if len(fil) == 12 and fil[0:4] == "Akku":
-            os.remove(cfg.tmp_dir + "/" + fil)
+            os.remove(cfg.TMP_DIR + "/" + fil)
 
-    cfg.file_block = True #Block (on read_line) while doing stuff here
-    cfg.fser.close()
+    cfg.FILE_BLOCK = True #Block (on read_line) while doing stuff here
+    cfg.FSER.close()
 
-    if os.path.getsize(cfg.tmp_dir + '/serial-akkumatik.dat') < 10:
+    if os.path.getsize(cfg.TMP_DIR + '/serial-akkumatik.dat') < 10:
         #reopen (append) and return
-        cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat', 'ab')
+        cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', 'ab')
         print "Not sufficient Serial Data avaiable"
-        cfg.file_block = False
+        cfg.FILE_BLOCK = False
         return
 
-    cfg.fser = helper.open_file(cfg.tmp_dir + '/serial-akkumatik.dat', 'rb')
+    cfg.FSER = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'rb')
 
-    for line in cfg.fser.readlines(): #get all lines in one step
-        if cfg.file_block == True:
-            cfg.fser.close()
+    for line in cfg.FSER.readlines(): #get all lines in one step
+        if cfg.FILE_BLOCK == True:
+            cfg.FSER.close()
             #reopen
-            cfg.fser = helper.open_file(cfg.tmp_dir+'/serial-akkumatik.dat', \
+            cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', \
                     'ab')
-            cfg.file_block = False #allow further getting serial adding..
+            cfg.FILE_BLOCK = False #allow further getting serial adding..
 
         if line[0:1] == "1":
 
@@ -60,7 +60,7 @@ def filesplit(): #{{{
 
 
             if current_time1 < previous_time1:
-                fname = cfg.tmp_dir+'/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+                fname = cfg.TMP_DIR+'/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
                 fh1 = helper.open_file(fname, "w+b")
 
                 if platform.system() == "Windows":
@@ -84,7 +84,7 @@ def filesplit(): #{{{
             line_counter2 += 1
             #only write when did not just begun
             if line[2:10] == "00:00:01" and line_counter2 > 1:
-                fname = cfg.tmp_dir+'/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+                fname = cfg.TMP_DIR+'/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
                 fh2 = helper.open_file(fname, "w+b")
 
                 if platform.system() == "Windows":
@@ -104,7 +104,7 @@ def filesplit(): #{{{
             print "SPEZ: " + line
 
     if len(ausgang1_part) > 0:
-        fname = cfg.tmp_dir + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
+        fname = cfg.TMP_DIR + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
         fh1 = helper.open_file(fname, "w+b")
 
         if platform.system() == "Windows":
@@ -114,7 +114,7 @@ def filesplit(): #{{{
         fh1.close()
         print "Generated:  " + "%48s" % (fname[-47:])
     if len(ausgang2_part) > 0:
-        fname = cfg.tmp_dir + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
+        fname = cfg.TMP_DIR + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
         fh2 = helper.open_file(fname, "w+b")
 
         if platform.system() == "Windows":
@@ -181,7 +181,7 @@ def else_gnuplot(): #{{{
     gpst = ""
 
     gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+\
-            str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
+            str(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG])+' Zellen)"\n'
     gpst +=  'set yrange [*:*];\n'
     gpst +=  'set ytics nomirror;\n'
 
@@ -201,7 +201,7 @@ def nixx_gnuplot(): #{{{
     gpst = ""
 
     gpst +=  'set ylabel "mVolt Pro Zelle (Avg. von '+\
-            str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])+' Zellen)"\n'
+            str(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG])+' Zellen)"\n'
     gpst +=  'set ytics nomirror;\n'
 
     gpst += 'set y2range [*:*];\n'
@@ -209,12 +209,12 @@ def nixx_gnuplot(): #{{{
     gpst += 'set y2tics border;\n'
 
     #e.g on restarts + anz-zellen >=50 (errorstuff)
-    if cfg.anzahl_zellen[cfg.gewaehlter_ausgang] == 0:
+    if cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG] == 0:
         gpst +=  'set yrange [*:*];\n'
         divisor = "1"
     else:
         gpst +=  'set yrange [600:1899];\n'
-        divisor = str(cfg.anzahl_zellen[cfg.gewaehlter_ausgang])
+        divisor = str(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG])
 
     gpst += 'plot wfile using 2:($3/'+divisor+') with lines title "mVolt"\
            lw 2 lc rgbcolor "#ff0000", wfile using 2:7 with lines title "mOhm"\
@@ -271,15 +271,15 @@ def gnuplot(): #{{{
     gpl = Gnuplot.Gnuplot(debug=0)
 
     qiv_files = ""
-    dir_list = os.listdir(cfg.tmp_dir)
+    dir_list = os.listdir(cfg.TMP_DIR)
     dir_list.sort()
     print "\n* [Gnu-Plotting] ************************************************"
     for fname in dir_list:
-        if fname[0:4] == "Akku" and fname[4:6] == str(cfg.gewaehlter_ausgang)+\
+        if fname[0:4] == "Akku" and fname[4:6] == str(cfg.GEWAEHLTER_AUSGANG)+\
                 "-" and fname [8:12] == ".dat":
-            qiv_files += cfg.chart_dir + "/" + fname[:-4] + ".png "
+            qiv_files += cfg.CHART_DIR + "/" + fname[:-4] + ".png "
 
-            fhan = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
+            fhan = helper.open_file(cfg.TMP_DIR + "/" + fname, "r")
             while True: #ignore other than real data lines
                 lin = fhan.readline()
                 if lin[0] != "#":
@@ -315,7 +315,7 @@ def gnuplot(): #{{{
             rangeval = -1 # stays like that when no balancer attached
             #lipo -> Balancer graph TODO what when no balancer?
             if atyp_i == 5 and len(line_a) > 19:
-                fhan = helper.open_file(cfg.tmp_dir + "/" + fname, "r")
+                fhan = helper.open_file(cfg.TMP_DIR + "/" + fname, "r")
                 rangeval = get_balancer_range(fhan)
                 fhan.close()
 
@@ -337,7 +337,7 @@ def gnuplot(): #{{{
 
             gpl('set terminal png size 1280, 1024;')
             #gnuplot does not like MS-Windoof's \
-            gpl('set output "' + (cfg.chart_dir).replace('\\','/') +\
+            gpl('set output "' + (cfg.CHART_DIR).replace('\\','/') +\
             "/" + fname[:-4] + '.png"')
 
             gpl('set xdata time;')
@@ -373,7 +373,7 @@ def gnuplot(): #{{{
 
 
             #gnuplot does not like MS-Windoof's \
-            gpl('wfile="' + cfg.tmp_dir.replace('\\', '/') + "/" + fname + '";')
+            gpl('wfile="' + cfg.TMP_DIR.replace('\\', '/') + "/" + fname + '";')
             gpl('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
 
 
@@ -402,7 +402,7 @@ def gnuplot(): #{{{
 
             gpl('set nomultiplot;')
             gpl('reset')
-            print "Generated:  "+"%44s" % (cfg.chart_dir + "/"+\
+            print "Generated:  "+"%44s" % (cfg.CHART_DIR + "/"+\
                     fname[-27:-4])+".png"
         else:
             continue
@@ -417,7 +417,7 @@ def gnuplot(): #{{{
                 thread.start_new_thread(os.startfile,(xtmp,))
                 break #one is enough for eg. irfanview
         else:
-            thread.start_new_thread(os.system,(cfg.picture_exe+' '+arguments,))
+            thread.start_new_thread(os.system,(cfg.PICTURE_EXE+' '+arguments,))
 
 #}}}
 
