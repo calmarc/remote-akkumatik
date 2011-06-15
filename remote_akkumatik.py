@@ -36,7 +36,6 @@ def output_data(output, label, output2, label2): #{{{
         gtk.main_iteration()
 
 #}}}
-
 def generate_output_strs(daten): #{{{
     """Create the strings for the Display (labels) """
 

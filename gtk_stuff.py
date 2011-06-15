@@ -105,10 +105,14 @@ def main_window():
     else:
         label.modify_font(pango.FontDescription("mono 22"))
 
-    gfixed = gtk.Fixed()
-    gfixed.put(label, 48 , 38)
+    label.set_size_request(370, 92)
+    label.set_alignment(0, 0)
+    label.set_justify(gtk.JUSTIFY_LEFT)
 
-    hbox.pack_start(gfixed, False, False, 0)
+    gfixed = gtk.Fixed()
+    hbox.pack_start(gfixed, True, True, 0)
+
+    gfixed.put(label, 48 , 36)
 
     label2 = gtk.Label()
     if platform.system() == "Windows": #TODO check once if that fits...
@@ -117,7 +121,9 @@ def main_window():
         label2.modify_font(pango.FontDescription("mono 12"))
 
     label2.set_size_request(364, 100)
-    gfixed.put(label2, 436, 33)
+    label2.set_alignment(0, 0)
+    label2.set_justify(gtk.JUSTIFY_LEFT)
+    gfixed.put(label2, 440, 33)
 
     #vbox for buttons
     vbox = gtk.VBox()
