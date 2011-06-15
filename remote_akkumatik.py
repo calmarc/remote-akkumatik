@@ -268,7 +268,7 @@ def serial_setup(): #{{{
             xonxoff=0,
             rtscts=0,
             dsrdtr = False,
-            timeout = 0.1, #some tuning around with that value possibly
+            timeout = 0.08, #some tuning around with that value possibly
             writeTimeout = 2.0)
 
         if platform.system() != "Windows":
