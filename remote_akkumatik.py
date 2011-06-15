@@ -112,8 +112,7 @@ def generate_output_strs(daten): #{{{
     if phase == 0: #dann 'Fehlercode' zwangsweise ...?
         if tmp_zellen >= 54: # FEHLER
             output = cfg.FEHLERCODE[tmp_zellen - 50]
-            output_data(output, labels[0], "", labels[1])
-            return True
+            return (output, "")
 
         if tmp_zellen >= 50: #'gute' codes
             phasedesc = "%-11s" % (cfg.FEHLERCODE[tmp_zellen - 50])
@@ -192,7 +191,6 @@ def generate_output_strs(daten): #{{{
 
     return (output, output2)
 #}}}
-
 def read_line(labels): #{{{
     """Read serial data (called via interval via 
     gobject.timeout_add) and print it to display"""
