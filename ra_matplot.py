@@ -44,17 +44,17 @@ def matplot():
             else:
                 line_a = l.split("\xff")
 
-            phasenr = long(line_a[9])
-            atyp = long(line_a[12])
+            phasenr = int(line_a[9])
+            atyp = int(line_a[12])
 
             #titel stuff
-            atyp_str = cfg.AKKU_TYP[long(line_a[12])] #Akkutyp
-            prg = cfg.AMPROGRAMM[long(line_a[13])] #Programm
-            lart = cfg.LADEART[long(line_a[14])] #Ladeart
-            stromw = cfg.STROMWAHL[long(line_a[15])] #stromwahl
-            stoppm = cfg.STOPPMETHODE[long(line_a[16])] #stromwahl
+            atyp_str = cfg.AKKU_TYP[int(line_a[12])] #Akkutyp
+            prg = cfg.AMPROGRAMM[int(line_a[13])] #Programm
+            lart = cfg.LADEART[int(line_a[14])] #Ladeart
+            stromw = cfg.STROMWAHL[int(line_a[15])] #stromwahl
+            stoppm = cfg.STOPPMETHODE[int(line_a[16])] #stromwahl
             #Stop >= 50?
-            anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+            anz_zellen = int(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
             if anz_zellen >= 40: # not really needed there in the title anyway.
                 anz_z_str = ""
             else:

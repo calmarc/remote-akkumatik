@@ -93,25 +93,25 @@ def read_line(labels): #{{{
 
     if (daten[0] == "1" and cfg.GEWAEHLTER_AUSGANG == 1) \
             or (daten[0] == "2" and cfg.GEWAEHLTER_AUSGANG == 2):
-        ausgang = str(long(daten[0][-1:])) #Ausgang
+        ausgang = str(int(daten[0][-1:])) #Ausgang
         zeit = daten[1] #Stunden Minuten Sekunden
-        lade_v = long(daten[2])/1000.0 #Akkuspannung mV
+        lade_v = int(daten[2])/1000.0 #Akkuspannung mV
         lade_v = "%6.3fV" % (lade_v) #format into string
-        ampere = long(daten[3]) #Strom A
+        ampere = int(daten[3]) #Strom A
         if ampere >= 1000 or ampere <= -1000:
             ampere = "%+.2fA" % (ampere/1000.0)
         else:
             ampere = "%imA" % (ampere)
 
-        amph = long(daten[4])/1000.0 #Ladungsmenge amph
-        vers_u = long(daten[5])/1000.0 #Versorungsspannung mV
-        rimohm_baldelta = long(daten[6]) #akku-unnen mOhm
-        c_bat = long(daten[7]) #Akkutemperatur
-        tmp_zellen = long(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+        amph = int(daten[4])/1000.0 #Ladungsmenge amph
+        vers_u = int(daten[5])/1000.0 #Versorungsspannung mV
+        rimohm_baldelta = int(daten[6]) #akku-unnen mOhm
+        c_bat = int(daten[7]) #Akkutemperatur
+        tmp_zellen = int(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
         if tmp_zellen < 50:
-            cfg.ANZAHL_ZELLEN[long(ausgang)] = tmp_zellen
+            cfg.ANZAHL_ZELLEN[int(ausgang)] = tmp_zellen
 
-        phase = long(daten[9]) #Ladephase 0-stop ...
+        phase = int(daten[9]) #Ladephase 0-stop ...
         if phase == 0:
             cfg.BUTTON_START.set_sensitive(True)
             cfg.BUTTON_STOP.set_sensitive(False)
@@ -123,36 +123,36 @@ def read_line(labels): #{{{
             cfg.BUTTON_STOP.set_sensitive(True)
 
         #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen
-        zyklus = long(daten[10]) #Zyklus
-        #sp = long(daten[11]) #Aktive Akkuspeicher
+        zyklus = int(daten[10]) #Zyklus
+        #sp = int(daten[11]) #Aktive Akkuspeicher
 
-        cfg.ATYP[cfg.GEWAEHLTER_AUSGANG] = long(daten[12]) #Akkutyp
-        atyp_str = cfg.AKKU_TYP[long(daten[12])] #Akkutyp
+        cfg.ATYP[cfg.GEWAEHLTER_AUSGANG] = int(daten[12]) #Akkutyp
+        atyp_str = cfg.AKKU_TYP[int(daten[12])] #Akkutyp
 
-        cfg.PRG[cfg.GEWAEHLTER_AUSGANG] = long(daten[13]) #Programm
-        prg_str = cfg.AMPROGRAMM[long(daten[13])] #Programm
+        cfg.PRG[cfg.GEWAEHLTER_AUSGANG] = int(daten[13]) #Programm
+        prg_str = cfg.AMPROGRAMM[int(daten[13])] #Programm
 
         try:
-            cfg.LART[cfg.GEWAEHLTER_AUSGANG] = long(daten[14]) #Ladeart
-            lart_str = cfg.LADEART[long(daten[14])] #Ladeart
+            cfg.LART[cfg.GEWAEHLTER_AUSGANG] = int(daten[14]) #Ladeart
+            lart_str = cfg.LADEART[int(daten[14])] #Ladeart
         except IndexError, err:
             print "%s" % err
-            print "-> %i" % long(daten[14])
+            print "-> %i" % int(daten[14])
             time.sleep(10)
             sys.exit()
 
-        cfg.STROMW[cfg.GEWAEHLTER_AUSGANG] = long(daten[15]) #stromwahl
-        stromw_str = cfg.STROMWAHL[long(daten[15])] #stromwahl
+        cfg.STROMW[cfg.GEWAEHLTER_AUSGANG] = int(daten[15]) #stromwahl
+        stromw_str = cfg.STROMWAHL[int(daten[15])] #stromwahl
 
-        cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG] = long(daten[16]) #stromwahl
-        stoppm_str = cfg.STOPPMETHODE[long(daten[16])] #stromwahl
+        cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG] = int(daten[16]) #stromwahl
+        stoppm_str = cfg.STOPPMETHODE[int(daten[16])] #stromwahl
 
-        c_kk = long(daten[17]) #KK Celsius
+        c_kk = int(daten[17]) #KK Celsius
 
         tmp_a = []
         for cell in daten[18:-1]:
             try:
-                tmp_a.append(long(cell))
+                tmp_a.append(int(cell))
             except IndexError:
                 print "00:00:00 to long error"
                 print daten
@@ -213,9 +213,7 @@ def read_line(labels): #{{{
                 rimohm_baldelta = "∆..mV "
             cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
             lart_str = "[LiPo]"
-            stromw_str = "[LiPo]"
             stoppm_str = "[LiPo]"
-
 
         output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v, \
                 zeit, ampere, amph)

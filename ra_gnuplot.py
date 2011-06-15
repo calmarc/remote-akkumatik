@@ -55,8 +55,8 @@ def filesplit(): #{{{
 
         if line[0:1] == "1":
 
-            current_time1 = long(line[2:4]) * 60 + long(line[5:7]) * 60 +\
-                    long(line[8:10]) #in seconds
+            current_time1 = int(line[2:4]) * 60 + int(line[5:7]) * 60 +\
+                    int(line[8:10]) #in seconds
 
 
             if current_time1 < previous_time1:
@@ -78,8 +78,8 @@ def filesplit(): #{{{
 
         elif line[0:1] == "2": #"2"
 
-            #current_time2 = long(line[2:4]) * 60 + long(line[5:7])\
-            #        * 60 + long(line[8:10]) #in seconds
+            #current_time2 = int(line[2:4]) * 60 + int(line[5:7])\
+            #        * 60 + int(line[8:10]) #in seconds
 
             line_counter2 += 1
             #only write when did not just begun
@@ -237,7 +237,7 @@ def get_balancer_range(fhan): #{{{
         avg = 0
         div = 0.0
         for i in range(18, len(line_a) - 1): #average
-            avg += long(line_a[i])
+            avg += int(line_a[i])
             div += 1
 
         if div > 0.0:
@@ -247,10 +247,10 @@ def get_balancer_range(fhan): #{{{
 
 
         for val in line_a[18:-1]: # get min and max
-            if (long(val) - avg) < bmin:
-                bmin = long(val) - avg
-            elif (long(val) - avg) > bmax:
-                bmax = long(val) - avg
+            if (int(val) - avg) < bmin:
+                bmin = int(val) - avg
+            elif (int(val) - avg) > bmax:
+                bmax = int(val) - avg
 
         if abs(bmin) > bmax: # get higher of limits
             rangeval = abs(bmin)
@@ -290,17 +290,17 @@ def gnuplot(): #{{{
             else:
                 line_a = lin.split("\xff")
 
-            phasenr = long(line_a[9])
-            atyp_i = long(line_a[12])
+            phasenr = int(line_a[9])
+            atyp_i = int(line_a[12])
 
             #titel stuff
-            atyp_str = cfg.AKKU_TYP[long(line_a[12])] #Akkutyp
-            prg_str = cfg.AMPROGRAMM[long(line_a[13])] #Programm
-            lart_str = cfg.LADEART[long(line_a[14])] #Ladeart
-            stromw_str = cfg.STROMWAHL[long(line_a[15])] #stromwahl
-            stoppm_str = cfg.STOPPMETHODE[long(line_a[16])] #stromwahl
+            atyp_str = cfg.AKKU_TYP[int(line_a[12])] #Akkutyp
+            prg_str = cfg.AMPROGRAMM[int(line_a[13])] #Programm
+            lart_str = cfg.LADEART[int(line_a[14])] #Ladeart
+            stromw_str = cfg.STROMWAHL[int(line_a[15])] #stromwahl
+            stoppm_str = cfg.STOPPMETHODE[int(line_a[16])] #stromwahl
             #Stop >= 50?
-            anz_zellen = long(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+            anz_zellen = int(line_a[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
             anz_z = anz_zellen
             if anz_zellen >= 40: # not really needed there in the title anyway.
                 anz_z_str = ""
