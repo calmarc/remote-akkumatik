@@ -125,6 +125,22 @@ def main_window():
     label2.set_justify(gtk.JUSTIFY_LEFT)
     gfixed.put(label2, 440, 33)
 
+    cfg.LABEL_STATUS = gtk.Label("TEAD999999999999999999####")
+    if platform.system() == "Windows": #TODO check once if that fits...
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 15"))
+    else:
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 12"))
+
+    cfg.LABEL_STATUS.set_size_request(774, 18)
+    cfg.LABEL_STATUS.set_alignment(0, 0)
+    cfg.LABEL_STATUS.set_justify(gtk.JUSTIFY_LEFT)
+    cfg.EVENT_BOX_LSTATUS = gtk.EventBox()
+    cfg.EVENT_BOX_LSTATUS.add(cfg.LABEL_STATUS)
+    cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
+            cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#aaaaaa"))
+
+    gfixed.put(cfg.EVENT_BOX_LSTATUS, 36, 138)
+
     #vbox for buttons
     vbox = gtk.VBox()
     hbox.pack_end(vbox, False, False, 0)
@@ -182,6 +198,7 @@ def main_window():
 
     # after file-open (what is needed on plotting)... hm?
     cfg.GTK_WINDOW.show_all()
+    cfg.LABEL_STATUS.hide()
 
     return (label, label2)
 

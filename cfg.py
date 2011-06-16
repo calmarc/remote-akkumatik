@@ -64,6 +64,8 @@ GTK_WINDOW = None
 # could be transfered from main-window to read_line.. together with labels..
 BUTTON_START = None
 BUTTON_STOP = None
+LABEL_STATUS = None
+EVENT_BOX_LSTATUS = None
 
 #serial connection and file to write it
 SERIAL_PORT = ""
