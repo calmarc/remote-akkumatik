@@ -71,3 +71,4 @@ EVENT_BOX_LSTATUS = None
 SERIAL_PORT = ""
 SER = None
 FSER = None
+FLOG = None

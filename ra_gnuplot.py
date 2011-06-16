@@ -27,7 +27,9 @@ def filesplit(): #{{{
     current_time1 = 0
     previous_time1 = 0
 
-    print "\n* [Serial Splitting] ********************************************"
+    tmp = "\n* [Serial Splitting] ********************************************"
+    print (tmp)
+    cfg.FLOG.write(tmp + '\n')
 
     for fil in os.listdir(cfg.TMP_DIR):
         if len(fil) == 12 and fil[0:4] == "Akku":
@@ -39,7 +41,9 @@ def filesplit(): #{{{
     if os.path.getsize(cfg.TMP_DIR + '/serial-akkumatik.dat') < 10:
         #reopen (append) and return
         cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', 'ab')
-        print "Not sufficient Serial Data avaiable"
+        tmp = "Not sufficient Serial Data avaiable"
+        print (tmp)
+        cfg.FLOG.write(tmp + '\n')
         cfg.FILE_BLOCK = False
         return
 
@@ -68,7 +72,12 @@ def filesplit(): #{{{
 
                 fh1.write(ausgang1_part)
                 fh1.close()
-                print "Generated:  " + "%48s" % (fname[-47:])
+
+                tmp = "Generated:  " + "%48s" % (fname[-47:])
+                print (tmp)
+                cfg.FLOG.write(tmp + '\n')
+
+                cfg.FILE_BLOCK = False
                 file_zaehler1 += 1
                 ausgang1_part = line
             else:
@@ -92,7 +101,10 @@ def filesplit(): #{{{
 
                 fh2.write(ausgang2_part)
                 fh2.close()
-                print "Generated:  " + "%48s" % (fname[-47:])
+                tmp = "Generated:  " + "%48s" % (fname[-47:])
+                print (tmp)
+                cfg.FLOG.write(tmp + '\n')
+
                 file_zaehler2 += 1
                 ausgang2_part = line
                 line_counter2 = 0
@@ -100,8 +112,10 @@ def filesplit(): #{{{
                 ausgang2_part += line
 
         else:
-            print "\n= [Spez Line...] ========================================"
-            print "SPEZ: " + line
+            tmp = "\n= [Spez Line...] ========================================"
+            tmp += "SPEZ: " + line
+            print (tmp)
+            cfg.FLOG.write(tmp + '\n')
 
     if len(ausgang1_part) > 0:
         fname = cfg.TMP_DIR + '/Akku1-'+ "%02i" % (file_zaehler1)+'.dat'
@@ -112,7 +126,9 @@ def filesplit(): #{{{
 
         fh1.write(ausgang1_part)
         fh1.close()
-        print "Generated:  " + "%48s" % (fname[-47:])
+        tmp = "Generated:  " + "%48s" % (fname[-47:])
+        print (tmp)
+        cfg.FLOG.write(tmp + '\n')
     if len(ausgang2_part) > 0:
         fname = cfg.TMP_DIR + '/Akku2-'+ "%02i" % (file_zaehler2)+'.dat'
         fh2 = helper.open_file(fname, "w+b")
@@ -121,7 +137,9 @@ def filesplit(): #{{{
             ausgang2_part = ausgang2_part.replace('\xff', " ")
 
         fh2.write(ausgang2_part)
-        print "Generated:  " + "%48s" % (fname[-47:])
+        tmp = "Generated:  " + "%48s" % (fname[-47:])
+        print (tmp)
+        cfg.FLOG.write(tmp + '\n')
 
 #}}}
 
@@ -273,7 +291,10 @@ def gnuplot(): #{{{
     qiv_files = ""
     dir_list = os.listdir(cfg.TMP_DIR)
     dir_list.sort()
-    print "\n* [Gnu-Plotting] ************************************************"
+    tmp = "\n* [Gnu-Plotting] ************************************************"
+    print (tmp)
+    cfg.FLOG.write(tmp + '\n')
+
     for fname in dir_list:
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg.GEWAEHLTER_AUSGANG)+\
                 "-" and fname [8:12] == ".dat":
@@ -402,8 +423,10 @@ def gnuplot(): #{{{
 
             gpl('set nomultiplot;')
             gpl('reset')
-            print "Generated:  "+"%44s" % (cfg.CHART_DIR + "/"+\
+            tmp = "Generated:  "+"%44s" % (cfg.CHART_DIR + "/"+\
                     fname[-27:-4])+".png"
+            print (tmp)
+            cfg.FLOG.write(tmp + '\n')
         else:
             continue
 

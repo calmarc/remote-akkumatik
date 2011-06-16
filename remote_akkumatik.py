@@ -82,9 +82,11 @@ def generate_output_strs(daten): #{{{
         cfg.LART[cfg.GEWAEHLTER_AUSGANG] = int(daten[14]) #Ladeart
         lart_str = cfg.LADEART[int(daten[14])] #Ladeart
     except IndexError, err:
-        print "%s" % err
-        print "-> %i" % int(daten[14])
-        time.sleep(10)
+        tmp = "%s\n" % err
+        tmo += "-> %i\n\n" % int(daten[14])
+        print (tmp)
+        cfg.FLOG.write(tmp)
+        time.sleep(5)
         sys.exit()
 
     cfg.STROMW[cfg.GEWAEHLTER_AUSGANG] = int(daten[15]) #stromwahl
@@ -100,9 +102,11 @@ def generate_output_strs(daten): #{{{
         try:
             tmp_a.append(int(cell))
         except IndexError:
-            print "00:00:00 to long error"
-            print daten
-            print "----------------------"
+            tmp = "00:00:00 to long error\n"
+            tmp += daten + '\n'
+            tmp +=  "----------------------\n\n"
+            print (tmp)
+            cfg.FLOG.write(tmp)
 
     balance_delta = -1
     if len(tmp_a) > 0:
@@ -195,13 +199,17 @@ def read_line(labels): #{{{
     gobject.timeout_add) and print it to display"""
 
     if cfg.FILE_BLOCK == True:
-        print "* [Debug] ********************* Blocked serial input"
+        tmp = "* [Debug] ********************* Blocked serial input\n"
+        print tmp
+        cfg.FLOG.write(tmp)
         return True
 
     try:
         lin = cfg.SER.readline()
     except serial.SerialException, err:
-        print "%s" % err
+        tmp = "%s\n\n" % err
+        print (tmp)
+        cfg.FLOG.write(tmp)
         return True
 
     daten = lin.split('\xff')
@@ -239,8 +247,11 @@ def read_line(labels): #{{{
         if yeswrite:
             cfg.FSER.write(lin)
     except  ValueError, err:
-        print "%s" % err
-        print "Should not happen, but reopening file anyway"
+        tmp = "%s\n" % err
+        tmp += "Should not happen, but reopening file anyway\n\n"
+        print(tmp)
+        cfg.FLOG.write(tmp)
+
         cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', 'ab')
         return True
 
@@ -255,12 +266,8 @@ def read_line(labels): #{{{
 def serial_setup(): #{{{
     """ try to connect to the serial port """
 
-    print "* [ Serial Port ] ***********************************"
-    if platform.system() == "Windows":
-        print ("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
-    else:
-        sys.stdout.write("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
-        sys.stdout.flush()
+    tmp = "* [ Serial Port ] ***********************************\n"
+    tmp += ("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
     if platform.system() == "Windows":
         #needen on comx>10 - seems to work
         cfg.SERIAL_PORT = '\\\\.\\' + cfg.SERIAL_PORT
@@ -282,24 +289,18 @@ def serial_setup(): #{{{
             cfg.SER.open()
 
         cfg.SER.isOpen()
-
-        if platform.system() == "Windows":
-            print ("OK")
-        else:
-            sys.stdout.write("OK\n\n")
-            sys.stdout.flush()
+        tmp += "OK\n"
 
     except serial.SerialException, err:
-        if platform.system() == "Windows":
-            print ("Failed")
-        else:
-            sys.stdout.write("Failed\n\n")
-            sys.stdout.flush()
+        tmp += "Failed\n"
 
-        print "Program abort: \"%s\"" % err
+        tmp += "Program abort: \"%s\"\n" % err
         time.sleep(3)
+        cfg.FLOG.write(tmp)
+        cfg.FLOG.close()
         sys.exit()
 
+    cfg.FLOG.write(tmp)
     return cfg.SER
 
 #}}}
@@ -308,27 +309,13 @@ def serial_file_setup(): #{{{
 
     if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
         fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'ab')
+        cfg.FLOG.write("%s opened (append binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
     elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
         fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
+        cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
     else:
-        print "\n********************************************************"
-        if platform.system() == "Windows":
-            print ("New collecting (3 seconds to abort (Ctrl-C)): ")
-        else:
-            sys.stdout.write("New collecting (3 seconds to abort (Ctrl-C)): ")
-            sys.stdout.flush()
-        time.sleep(1.0)
-        for i in range(1, 4):
-            if platform.system() == "Windows":
-                print ("... ")
-            else:
-                sys.stdout.write("..." + str(i))
-                sys.stdout.flush()
-            time.sleep(1.0)
-        if platform.system() != "Windows":
-            sys.stdout.write("\n\n")
-            sys.stdout.flush()
         fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
+        cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
 
     return fhser
 
@@ -347,11 +334,14 @@ if __name__ == '__main__': #{{{
     ##########################################
     #Variablen
 
+
     cfg.THREADLOCK = thread.allocate_lock()
 
     cfg.EXE_DIR = sys.path[0].replace('\\',"/") #TODO neede?
     cfg.TMP_DIR = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
     cfg.CHART_DIR = cfg.TMP_DIR
+
+    cfg.FLOG = helper.open_file(cfg.EXE_DIR + '/log.txt', 'w')
 
     #Defaults
     cfg.PICTURE_EXE = '/usr/local/bin/qiv'
@@ -379,11 +369,13 @@ if __name__ == '__main__': #{{{
             elif split[0].strip().lower() == "tmp_path":
                 cfg.TMP_DIR = split[1].strip().replace("\\","/")
 
-    print "* [ Config ] ***********************************"
-    print "Picture viewer: %s" % (cfg.PICTURE_EXE)
-    print "Serial Port:    %s" % (cfg.SERIAL_PORT)
-    print "Chart Path:     %s" % (cfg.CHART_DIR)
-    print "Tmp Path:       %s" % (cfg.TMP_DIR)
+    tmp = "* [ Config ] ***********************************\n"
+    tmp += "Picture viewer: %s\n" % (cfg.PICTURE_EXE)
+    tmp += "Serial Port:    %s\n" % (cfg.SERIAL_PORT)
+    tmp += "Chart Path:     %s\n" % (cfg.CHART_DIR)
+    tmp += "Tmp Path:       %s\n\n" % (cfg.TMP_DIR)
+    cfg.FLOG.write(tmp)
+    print tmp
 
     if not os.path.isdir(cfg.TMP_DIR):
         try:
@@ -392,9 +384,11 @@ if __name__ == '__main__': #{{{
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                print "Unable to create [%s] directory" \
+                tmp = "Unable to create [%s] directory" \
                         % cfg.TMP_DIR, "Ending program.\n", errx
-                raw_input("\n\nPress the enter key to exit.")
+                print tmp
+                cfg.FLOG.write(tmp)
+                cfg.FLOG.close()
                 sys.exit()
 
     if not os.path.isdir(cfg.CHART_DIR):
@@ -404,23 +398,26 @@ if __name__ == '__main__': #{{{
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                print "Unable to create [%s] directory" \
-                        % cfg.CHART_DIR, "Ending program.\n", errx
-                raw_input("\n\nPress the enter key to exit.")
+                tmp = "Unable to create [%s] directory" \
+                        % cfg.TMP_DIR, "Ending program.\n", errx
+                print tmp
+                cfg.FLOG.write(tmp)
+                cfg.FLOG.close()
                 sys.exit()
 
     cfg.SER = serial_setup()
     cfg.FSER = serial_file_setup()
 
-    #why not putting label's also into cfg....
+    #TODO: why not putting label's also into cfg....
     (LABEL, LABEL2) = gtk_stuff.main_window()
 
     #finally begin collecting
     #TODO: faster when data-uploading via memoery-thing?
     # some tuning around with that value possibly
-    gobject.timeout_add(100, read_line, (LABEL, LABEL2))
+    gobject.timeout_add(120, read_line, (LABEL, LABEL2))
 
     gtk.main()
+    cfg.FLOG.close()
 
 #}}}
 #vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :

@@ -53,15 +53,19 @@ def main_window():
             if cfg.GEWAEHLTER_AUSGANG == 1: #toggle ausgang
                 #data = something like "Start"
                 helper.akkumatik_command("44", data)
+                cfg.FLOG.write("Sending Command 44\n")
             else:
                 helper.akkumatik_command("48", data)
+                cfg.FLOG.write("Sending Command 48\n")
 
         elif data == "Stop":
             cfg.COMMAND_ABORT = False #reset
             if cfg.GEWAEHLTER_AUSGANG == 1: #toggle ausgang
                 helper.akkumatik_command("41", data)
+                cfg.FLOG.write("Sending Command 41\n")
             else:
                 helper.akkumatik_command("42", data)
+                cfg.FLOG.write("Sending Command 42\n")
 
         elif data == "Akku_Settings":
             (cmd1, cmd2) = akkupara_dialog()
@@ -71,10 +75,12 @@ def main_window():
             cfg.COMMAND_ABORT = False #reset
 
             helper.akkumatik_command(cmd1, "Übertragen")
+            cfg.FLOG.write("Sending Command %s \"Übertragen\"\n" % cmd1)
 
             if cmd2 != "":
-                time.sleep(1.0) #else threads may get out of order somehow
+                time.sleep(0.6) #else threads may get out of order somehow
                 helper.akkumatik_command(cmd2, "Start")
+                cfg.FLOG.write("Sending Command %s \"Start\"\n" % cmd2)
 
     def draw_pixbuf(widget, event):
         """ add the picture to the window """
@@ -251,7 +257,9 @@ def akkupara_dialog(): #{{{
                     if item[0] == txt:
                         akkulist.pop(i)
                         cb_akkulist.remove_text(i)
-                        print 'Akkuparameter: "%s" wurden ueberschrieben' % txt
+                        tmp = 'Akkuparameter: "%s" wurden ueberschrieben' % txt
+                        print (tmp)
+                        cfg.FLOG.write(tmp + '\n')
                         break
                     i += 1
 
@@ -270,6 +278,15 @@ def akkupara_dialog(): #{{{
 
                 #sort on 'name'
                 akkulist.sort(key = lambda x: x[0].lower())
+
+                for item in akkulist:
+                    if item[0] == txt:
+                        tmp = "Parameter: "
+                        tmp +=  ", ".join(str(x) for x in item) + '\n'
+                        tmp += "Gespeichert als %s" % txt
+                        tmp += '\n'
+                        cfg.FLOG.write(tmp)
+                        break
 
                 #find new item in new ordered list
                 i = 0
@@ -314,6 +331,7 @@ def akkupara_dialog(): #{{{
             if retval == -3: #OK
                 akkulist.pop(active_i) #gtk synchron to akkulist (should)
                 cb_akkulist.remove_text(active_i)
+                cfg.FLOG.write("Akku-Parameter geloescht '" + akkulist[active_i][0] + '\'\n\n')
 
             dialog.destroy()
 
@@ -398,8 +416,10 @@ def akkupara_dialog(): #{{{
             tmp = item.split('\xff')
             #tmp = tmp[:-1] # remove -  last is newline
             if len(tmp) != 12:
-                print "Some Error in liste_akkus.dat - is " +\
+                tmp = "Some Error in liste_akkus.dat - is " +\
                         str(len(tmp)) + " - should be 12"
+                print (tmp)
+                cfg.FLOG.write(tmp + '\n')
                 continue
 
             #shoveling into r but with integer values now (besides of first)

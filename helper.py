@@ -16,8 +16,12 @@ def open_file(file_name, mode):
     try:
         the_file = open(file_name, mode)
     except(IOError), err:
-        print "Unable to open the file", file_name, "Ending program.\n", err
-        raw_input("\n\nPress the enter key to exit.")
+        tmp = "Unable to open the file " + file_name + '\n'
+        tmp += err + '\n'
+        tmp += "Ending program.\n"
+        print (tmp)
+        cfg.FLOG.write(tmp)
+
         sys.exit()
     else:
         return the_file
@@ -69,7 +73,9 @@ def akkumatik_command(string, what):
             cfg.SER.write(com_str)
             #cfg.SER.setDTR(False) #TODO Testing. not really knowing what I do
         except serial.SerialException, err:
-            print "%s", err
+            tmp = "%s" % err
+            print (tmp)
+            cfg.FLOG.write(tmp)
 
         okk = False
         i = 0
