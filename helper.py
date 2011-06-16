@@ -73,8 +73,11 @@ def akkumatik_command(string, what):
 
         okk = False
         i = 0
-        sys.stdout.write("Waiting for Command <%s> Ack: " % (what))
-        sys.stdout.flush()
+        if platform.system() == "Windows":
+            print ("Waiting for Command <%s> Ack: " % (what))
+        else:
+            sys.stdout.write("Waiting for Command <%s> Ack: " % (what))
+            sys.stdout.flush()
         #Status
         label_txt = "[%s]: " % (what)
         cfg.LABEL_STATUS.show()
@@ -83,8 +86,11 @@ def akkumatik_command(string, what):
             gtk.main_iteration()
         while i < 49:
             time.sleep(0.1)
-            sys.stdout.write(".")
-            sys.stdout.flush()
+            if platform.system() == "Windows":
+                print (".")
+            else:
+                sys.stdout.write(".")
+                sys.stdout.flush()
             label_txt += "."
             cfg.LABEL_STATUS.set_text(label_txt)
             while gtk.events_pending():
@@ -92,8 +98,11 @@ def akkumatik_command(string, what):
             i += 1
             #put on True before sending. - here waiting for False
             if cfg.COMMAND_WAIT == False:
-                sys.stdout.write(" OK\n")
-                sys.stdout.flush()
+                if platform.system() == "Windows":
+                    print ("OK")
+                else:
+                    sys.stdout.write(" OK\n")
+                    sys.stdout.flush()
                 okk = True
                 #Status
                 label_txt += " OK"
@@ -106,8 +115,11 @@ def akkumatik_command(string, what):
                 break
 
         if okk == False:
-            sys.stdout.write(" Failed\n")
-            sys.stdout.flush()
+            if platform.system() == "Windows":
+                print (" Failed")
+            else:
+                sys.stdout.write(" Failed\n")
+                sys.stdout.flush()
             cfg.COMMAND_ABORT = True #skip on further soon to arrive commands
             #Status
             cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \

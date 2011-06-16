@@ -256,8 +256,11 @@ def serial_setup(): #{{{
     """ try to connect to the serial port """
 
     print "* [ Serial Port ] ***********************************"
-    sys.stdout.write("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
-    sys.stdout.flush()
+    if platform.system() == "Windows":
+        print ("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
+    else:
+        sys.stdout.write("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
+        sys.stdout.flush()
     if platform.system() == "Windows":
         #needen on comx>10 - seems to work
         cfg.SERIAL_PORT = '\\\\.\\' + cfg.SERIAL_PORT
@@ -280,12 +283,19 @@ def serial_setup(): #{{{
 
         cfg.SER.isOpen()
 
-        sys.stdout.write("OK\n\n")
-        sys.stdout.flush()
+        if platform.system() == "Windows":
+            print ("OK")
+        else:
+            sys.stdout.write("OK\n\n")
+            sys.stdout.flush()
 
     except serial.SerialException, err:
-        sys.stdout.write("Failed\n\n")
-        sys.stdout.flush()
+        if platform.system() == "Windows":
+            print ("Failed")
+        else:
+            sys.stdout.write("Failed\n\n")
+            sys.stdout.flush()
+
         print "Program abort: \"%s\"" % err
         time.sleep(3)
         sys.exit()
@@ -302,15 +312,22 @@ def serial_file_setup(): #{{{
         fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
     else:
         print "\n********************************************************"
-        sys.stdout.write("New collecting (3 seconds to abort (Ctrl-C)): ")
-        sys.stdout.flush()
+        if platform.system() == "Windows":
+            print ("New collecting (3 seconds to abort (Ctrl-C)): ")
+        else:
+            sys.stdout.write("New collecting (3 seconds to abort (Ctrl-C)): ")
+            sys.stdout.flush()
         time.sleep(1.0)
         for i in range(1, 4):
-            sys.stdout.write("..." + str(i))
-            sys.stdout.flush()
+            if platform.system() == "Windows":
+                print ("... ")
+            else:
+                sys.stdout.write("..." + str(i))
+                sys.stdout.flush()
             time.sleep(1.0)
-        sys.stdout.write("\n\n")
-        sys.stdout.flush()
+        if platform.system() != "Windows":
+            sys.stdout.write("\n\n")
+            sys.stdout.flush()
         fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
 
     return fhser
