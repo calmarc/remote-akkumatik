@@ -307,14 +307,11 @@ def serial_setup(): #{{{
 def serial_file_setup(): #{{{
     """ setup the file to store the serial data into """
 
-    if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'ab')
-        cfg.FLOG.write("%s opened (append binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
-    elif len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
+    if len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
         fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
         cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
     else:
-        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
+        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'ab')
         cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
 
     return fhser
@@ -374,8 +371,8 @@ if __name__ == '__main__': #{{{
     tmp += "Serial Port:    %s\n" % (cfg.SERIAL_PORT)
     tmp += "Chart Path:     %s\n" % (cfg.CHART_DIR)
     tmp += "Tmp Path:       %s\n\n" % (cfg.TMP_DIR)
-    cfg.FLOG.write(tmp)
     print tmp
+    cfg.FLOG.write(tmp)
 
     if not os.path.isdir(cfg.TMP_DIR):
         try:
