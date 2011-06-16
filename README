@@ -23,6 +23,13 @@ Anyway, remote-akkumatik opens MS's default picture viewer.
 Please check the final settings on the Akkumatik-Charger -
 or in other words, you can use this software, but on your own risk.
 
+== MS Windows ==
+
+Start remote_akkumatik.pyw instaed of remote_akkumatik.py
+                        ^^^
+When you want no console. (It should automatikally load
+pythonw.exe what does not show the console normally).
+
 == TODO ==
 
 Matplot as alternative to gnuplot
