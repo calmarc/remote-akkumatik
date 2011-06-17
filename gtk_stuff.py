@@ -1,5 +1,7 @@
 # coding=utf-8
+# Copyright (c) 2010, Marco Candrian
 """ graphical stuff (GTK) """
+
 
 import pygtk
 pygtk.require('2.0')

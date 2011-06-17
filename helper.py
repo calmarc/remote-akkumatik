@@ -1,4 +1,5 @@
 # coding=utf-8
+# Copyright (c) 2010, Marco Candrian
 """ Helper/Utility stuff """
 
 import sys

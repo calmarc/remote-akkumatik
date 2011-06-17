@@ -1,4 +1,5 @@
 # coding=utf-8
+# Copyright (c) 2010, Marco Candrian
 """ print charts via gnuplot """
 
 import Gnuplot, Gnuplot.funcutils

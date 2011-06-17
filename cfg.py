@@ -1,5 +1,7 @@
 # coding=utf-8
+# Copyright (c) 2010, Marco Candrian
 """ Config (globals... *shrug*) stuff """
+
 
 ##########################################
 #Konstanten

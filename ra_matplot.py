@@ -1,3 +1,4 @@
+# Copyright (c) 2010, Marco Candrian
 import matplotlib.pyplot as plt
 
 #own import

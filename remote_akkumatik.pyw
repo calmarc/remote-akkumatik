@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding=utf-8
+# Copyright (c) 2010, Marco Candrian
 """ remote akkumatik program for Stefan Estners Akkumatik """
+
 
 import os
 import sys
