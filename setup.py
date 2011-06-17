@@ -5,13 +5,8 @@ import shutil
 import sys
 
 Mydata_files = []
-for files in os.listdir('C:/Python26/gnuplot'):
-	f1 = 'C:\\Python26\\gnuplot\\' + files
-	if os.path.isfile(f1): # skip directories
-		f2 = 'gnuplot', [f1]
-		Mydata_files.append(f2)
-
 Mydata_files.append(('bilder', ['bilder/Display.jpg']))
+
 path= sys.path[0].replace('\\','/')
 try:
 	shutil.copytree("C:/Python26/gnuplot",  path+ "/dist/gnuplot/")
