@@ -126,8 +126,8 @@ def main_window():
     label2.set_alignment(0, 0)
     label2.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
-        gfixed.put(label2, 440, 31)
-        label2.modify_font(pango.FontDescription("mono bold 13"))
+        gfixed.put(label2, 440, 33)
+        label2.modify_font(pango.FontDescription("mono bold 14"))
     else:
         label2.modify_font(pango.FontDescription("mono 12"))
         gfixed.put(label2, 440, 33)
@@ -145,7 +145,7 @@ def main_window():
 
     gfixed.put(cfg.EVENT_BOX_LSTATUS, 36, 136)
     if platform.system() == "Windows": #TODO check once if that fits...
-        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 13"))
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 14"))
     else:
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 12"))
 
