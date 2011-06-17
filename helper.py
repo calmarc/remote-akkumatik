@@ -18,11 +18,9 @@ def open_file(file_name, mode):
         the_file = open(file_name, mode)
     except(IOError), err:
         tmp = "Unable to open the file " + file_name + '\n'
-        tmp += err + '\n'
+        tmp += str(err) + '\n'
         tmp += "Ending program.\n"
         print (tmp)
-        cfg.FLOG.write(tmp)
-
         sys.exit()
     else:
         return the_file

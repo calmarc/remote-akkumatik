@@ -336,8 +336,8 @@ if __name__ == '__main__': #{{{
     cfg.THREADLOCK = thread.allocate_lock()
 
     cfg.EXE_DIR = sys.path[0].replace('\\',"/") #TODO neede?
-    if sys.path[0].endswith("\\library.zip"):  #for py2exe
-        cfg.EXE_DIR = sys.path[0][0:-12]
+    if sys.path[0].endswith("\\library.zip\\gtk-2.0"):  #for py2exe
+        cfg.EXE_DIR = sys.path[0][0:-20]
 
     cfg.TMP_DIR = tempfile.gettempdir().replace("\\","/") + "/remote-akkumatik"
     cfg.CHART_DIR = cfg.TMP_DIR
