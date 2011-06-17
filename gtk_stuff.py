@@ -105,49 +105,49 @@ def main_window():
     hbox.connect('expose-event', draw_pixbuf)
 
     # akkumatik display label
+    gfixed = gtk.Fixed()
+    hbox.pack_start(gfixed, True, True, 0)
+    
+    #Left part of display
     label = gtk.Label()
-    if platform.system() == "Windows": #TODO check once if that fits...
-        label.modify_font(pango.FontDescription("mono bold 25"))
-    else:
-        label.modify_font(pango.FontDescription("mono 22"))
-
     label.set_size_request(370, 92)
     label.set_alignment(0, 0)
     label.set_justify(gtk.JUSTIFY_LEFT)
-
-    gfixed = gtk.Fixed()
-    hbox.pack_start(gfixed, True, True, 0)
-
-
-    label2 = gtk.Label()
     if platform.system() == "Windows": #TODO check once if that fits...
-        label2.modify_font(pango.FontDescription("mono bold 15"))
+        label.modify_font(pango.FontDescription("mono bold 25"))
         gfixed.put(label, 48 , 40)
     else:
-        label2.modify_font(pango.FontDescription("mono 12"))
+        label.modify_font(pango.FontDescription("mono 22"))
         gfixed.put(label, 48 , 36)
 
+    #Right part of display
+    label2 = gtk.Label()
     label2.set_size_request(364, 100)
     label2.set_alignment(0, 0)
     label2.set_justify(gtk.JUSTIFY_LEFT)
-
-    cfg.LABEL_STATUS = gtk.Label()
     if platform.system() == "Windows": #TODO check once if that fits...
         gfixed.put(label2, 440, 31)
-        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 15"))
+        label2.modify_font(pango.FontDescription("mono bold 13"))
     else:
-        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 12"))
+        label2.modify_font(pango.FontDescription("mono 12"))
         gfixed.put(label2, 440, 33)
 
+    #Status of display
+    cfg.LABEL_STATUS = gtk.Label()
     cfg.LABEL_STATUS.set_size_request(774, 22)
     cfg.LABEL_STATUS.set_alignment(0, 0)
     cfg.LABEL_STATUS.set_justify(gtk.JUSTIFY_LEFT)
+
     cfg.EVENT_BOX_LSTATUS = gtk.EventBox()
     cfg.EVENT_BOX_LSTATUS.add(cfg.LABEL_STATUS)
     cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
             cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#aaaaaa"))
 
     gfixed.put(cfg.EVENT_BOX_LSTATUS, 36, 136)
+    if platform.system() == "Windows": #TODO check once if that fits...
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 13"))
+    else:
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 12"))
 
     #vbox for buttons
     vbox = gtk.VBox()
