@@ -215,7 +215,6 @@ def main_window():
 ##########################################}}}
 # Akku Parameter Dialog{{{
 ##########################################
-
 def akkupara_dialog(): #{{{
     """ The Akkuparameter Dialog """
 
@@ -358,6 +357,15 @@ def akkupara_dialog(): #{{{
                 sp_menge.set_value(int(item[10]))
                 sp_zyklen.set_value(int(item[11]))
                 break
+
+    def combo_prog_stoppm_cb(data=None):
+        """ enable/disable sp_menge depenging if stoppm ->lademenge or not """
+        val = cb_stoppm.get_active_text()
+
+        if val == "Lademenge": #TODO replace these things with cfg.LAD[...] once
+            sp_menge.set_sensitive(True)
+        else:
+            sp_menge.set_sensitive(False)
 
     def combo_prog_stromw_cb(data=None):
         """ when the program or stromwahl changed """
@@ -557,6 +565,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
     cb_stoppm.set_active(cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG])
+    cb_stoppm.connect("changed", combo_prog_stoppm_cb)
     cb_stoppm.show()
     vbox.pack_start(cb_stoppm, True, True, 0)
 
@@ -641,6 +650,7 @@ def akkupara_dialog(): #{{{
 
     combo_atyp_cb("", lipo_flag)
     combo_prog_stromw_cb(None)
+    combo_prog_stoppm_cb(None)
 
     # run the dialog
     retval = dialog.run()
