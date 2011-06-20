@@ -46,7 +46,7 @@ Source: "C:\Dokumente und Einstellungen\calmar\Desktop\calmarc-remote-akkumatik\
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{cm:UninstallProgram,remote_akkumatik.exe}"; Filename: "{uninstallexe}"
+Name: "{group}\{cm:UninstallProgram,...}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
@@ -54,18 +54,15 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, "&", "&&")}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment";
-    ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\gnuplot\bin;";
-    Check: NeedsAddPath('{app}\gnuplot\bin\')
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\gnuplot\bin"; Check: NeedsAddPath('{app}\gnuplot\bin')
 
 [Code]
 function NeedsAddPath(Param: string): boolean;
 var
   OrigPath: string;
 begin
-  if not RegQueryStringValue(HKEY_LOCAL_MACHINE,
-    'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
-    'Path', OrigPath)
+  if not RegQueryStringValue(HKEY_LOCAL_MACHINE, 
+       'SYSTEM\CurrentControlSet\Control\Session Manager\Environment','Path', OrigPath)
   then begin
     Result := True;
     exit;

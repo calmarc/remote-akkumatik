@@ -6,6 +6,8 @@ import sys
 
 Mydata_files = []
 Mydata_files.append(('bilder', ['bilder/Display.jpg']))
+Mydata_files.append(('', ['config.txt']))
+Mydata_files.append(('', ['README']))
 
 path= sys.path[0].replace('\\','/')
 try:
@@ -18,8 +20,8 @@ setup(
     description = 'Remote Akkumatik Display/Control/Chart',
     version = '0.5',
 
-#    windows = [
-    console = [
+    windows = [
+#    console = [
                   {
                       'script': 'remote_akkumatik.py',
                       'icon_resources': [(1, "ra.ico")],
