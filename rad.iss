@@ -27,6 +27,8 @@ SetupIconFile=C:\Dokumente und Einstellungen\calmar\Desktop\calmarc-remote-akkum
 Compression=lzma
 SolidCompression=yes
 ChangesEnvironment=yes
+;UninstallDisplayIcon={app}\MyProg.exe,1
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -49,12 +51,17 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,...}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+; IconFilename: "{app}\myicon.ico"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, "&", "&&")}}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\gnuplot\bin"; Check: NeedsAddPath('{app}\gnuplot\bin')
+
+#[UninstallDelete]
+#Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\gnuplot\bin"; Check: NeedsAddPath('{app}\gnuplot\bin')
+
 
 [Code]
 function NeedsAddPath(Param: string): boolean;
