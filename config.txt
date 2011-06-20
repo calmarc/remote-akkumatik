@@ -22,3 +22,4 @@
 #chart_path = D:/Akkumatik
 
 #tmp_path =  /tmp/remote-akkumatik
+

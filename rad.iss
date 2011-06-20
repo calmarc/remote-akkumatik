@@ -71,3 +71,88 @@ begin
   // Pos() returns 0 if not found
   Result := Pos(';' + ExpandConstant(Param) + ';', ';' + OrigPath + ';') = 0;
 end;
+
+les]
+Source: "compiler:Examples\MyProg.exe"; DestDir: "{app}";
+ 
+[Code]
+// Registrypfad zu den Umgebungsvariablen des Systems
+const
+ SystemEnvironmentVarsPath = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+ 
+function UpdateSystemPathVariable: boolean;
+var
+ PathVariable,
+ tmp       : string;
+begin
+ // Originalwert auslesen, ...
+ Result      := RegQueryStringValue(HKLM,SystemEnvironmentVarsPath,'Path',PathVariable);
+ tmp       := ExpandConstant('{app}');
+ 
+ // ... & prüfen, ob der Pfad dieses Setups evtl. schon drin
+ // steht
+ if(Result) and (Pos(UpperCase(tmp),UpperCase(PathVariable)) = 0) then
+ begin
+  // ggf. ein Semikolon anhängen, ...
+  if PathVariable[length(PathVariable)] <> ';' then
+   PathVariable := PathVariable + ';';
+ 
+  // ... & das Anwendungsverzeichnis anhängen, ...
+  PathVariable  := PathVariable + tmp;
+ 
+  // ... & den neuen Wert in die Registry schreiben
+  Result     := RegWriteStringValue(HKLM,SystemEnvironmentVarsPath,'Path',PathVariable);
+ end;
+end;
+ 
+function ResetSystemPathVariable: boolean;
+var
+ PathVariable,
+ tmp       : string;
+ PathIndex    : integer;
+begin
+ // Originalwert der PATH-Variablen auslesen
+ Result      := RegQueryStringValue(HKLM,SystemEnvironmentVarsPath,'Path',PathVariable);
+ 
+ if Result then
+ begin
+  // Prüfen, ob der Ordner dieses Setups drin steh
+  tmp      := ExpandConstant('{app}');
+  PathIndex   := Pos(UpperCase(tmp),UpperCase(PathVariable));
+ 
+  if PathIndex > 0 then
+  begin
+   // Den Pfad der Anwendung entfernen, ...
+   Delete(PathVariable,PathIndex,length(tmp));
+   
+   // ... & den neuen Wert in die Registry schreiben
+   Result    := RegWriteStringValue(HKLM,SystemEnvironmentVarsPath,'Path',PathVariable);
+  end;
+ end;
+end;
+ 
+procedure CurStepChanged(CurrentStep: TSetupStep);
+begin
+ // Nach der Installation versuchen, die PATH-Variable zu aktualisieren
+ if CurrentStep = ssPostInstall then
+ begin
+ // Klappt das nicht, Fehlermeldung anzeigen
+  if not UpdateSystemPathVariable then
+   MsgBox('Fehler beim Eintragen des Pfades in die PATH-Umgebungsvariable.' + #13#10 +
+    'Bitte tragen Sie den Pfad "' + ExpandConstant('{app}') + '" manuell ein.',
+    mbError,MB_OK);
+ end;
+end;
+ 
+procedure CurUninstallStepChanged(CurrentStep: TUninstallStep);
+begin
+ // Während der Deinstallation versuchen, die PATH-Variable zurückzusetzen
+ if CurrentStep = usUninstall then
+ begin
+ // Klappt das nicht, Fehlermeldung anzeigen
+  if not ResetSystemPathVariable then
+   MsgBox('Fehler beim Zurücksetzen der PATH-Umgebungsvariable.' + #13#10 +
+    'Bitte entfernen Sie den Pfad "' + ExpandConstant('{app}') + '" manuell.',
+    mbError,MB_OK);
+ end
+end; 
