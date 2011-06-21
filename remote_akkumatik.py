@@ -60,7 +60,7 @@ def generate_output_strs(daten): #{{{
     except ValueError, err:
         tmp = "Should really not happen. Please report this line to the maintainer\n"
         tmp += "(generate_output_strs) ValueError: %s\n" % str(err)
-        tmp += ", ".join([for str(x) in daten])
+        tmp += ", ".join([str(x) for x in daten])
         tmp += "\n"
         print (tmp)
         cfg.FLOG.write(tmp)
@@ -237,7 +237,7 @@ def read_line(labels): #{{{
             daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
             cfg.COMMAND_WAIT = False # Kommando kam an
 
-    if lin[:1] == "#" or len(daten[0]) != 1 or len(daten) < 19 or len(daten> > 31:
+    if lin[:1] == "#" or len(daten[0]) != 1 or len(daten) < 19 or len(daten) > 31:
         return True
 
     curtime = lin[2:10]
