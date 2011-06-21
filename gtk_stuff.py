@@ -149,7 +149,7 @@ def main_window():
     if platform.system() == "Windows": #TODO check once if that fits...
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 14"))
     else:
-        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 12"))
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 12"))
 
     #vbox for buttons
     vbox = gtk.VBox()
