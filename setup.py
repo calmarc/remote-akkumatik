@@ -37,3 +37,4 @@ setup(
 
     data_files= Mydata_files
 )
+# vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :

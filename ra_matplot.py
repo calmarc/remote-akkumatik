@@ -114,3 +114,5 @@ def matplot():
             fig.canvas.draw()
             fig.show()
             ip += 1
+
+# vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :

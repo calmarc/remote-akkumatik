@@ -444,4 +444,4 @@ def gnuplot(): #{{{
             thread.start_new_thread(os.system,(cfg.PICTURE_EXE+' '+arguments,))
 
 #}}}
-
+# vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :

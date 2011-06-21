@@ -41,21 +41,30 @@ def output_data(output, label, output2, label2): #{{{
 def generate_output_strs(daten): #{{{
     """Create the strings for the Display (labels) """
 
-    ausgang = str(int(daten[0][-1:])) #Ausgang
-    zeit = daten[1] #Stunden Minuten Sekunden
-    lade_v = int(daten[2])/1000.0 #Akkuspannung mV
-    lade_v = "%6.3fV" % (lade_v) #format into string
-    ampere = int(daten[3]) #Strom A
-    if ampere >= 1000 or ampere <= -1000:
-        ampere = "%+.2fA" % (ampere/1000.0)
-    else:
-        ampere = "%imA" % (ampere)
+    try:
+        ausgang = str(int(daten[0][-1:])) #Ausgang
+        zeit = daten[1] #Stunden Minuten Sekunden
+        lade_v = int(daten[2])/1000.0 #Akkuspannung mV
+        lade_v = "%6.3fV" % (lade_v) #format into string
+        ampere = int(daten[3]) #Strom A
+        if ampere >= 1000 or ampere <= -1000:
+            ampere = "%+.2fA" % (ampere/1000.0)
+        else:
+            ampere = "%imA" % (ampere)
 
-    amph = int(daten[4])/1000.0 #Ladungsmenge amph
-    vers_u = int(daten[5])/1000.0 #Versorungsspannung mV
-    rimohm_baldelta = int(daten[6]) #akku-unnen mOhm
-    c_bat = int(daten[7]) #Akkutemperatur
-    tmp_zellen = int(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+        amph = int(daten[4])/1000.0 #Ladungsmenge amph
+        vers_u = int(daten[5])/1000.0 #Versorungsspannung mV
+        rimohm_baldelta = int(daten[6]) #akku-unnen mOhm
+        c_bat = int(daten[7]) #Akkutemperatur
+        tmp_zellen = int(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+    except ValueError, err:
+        tmp = "Should really not happen. Please report this line to the maintainer\n"
+        tmp += "(generate_output_strs) ValueError: %s\n" % str(err)
+        tmp += ", ".join([for str(x) in daten])
+        tmp += "\n"
+        print (tmp)
+        cfg.FLOG.write(tmp)
+
     if tmp_zellen < 50:
         cfg.ANZAHL_ZELLEN[int(ausgang)] = tmp_zellen
 
@@ -228,7 +237,7 @@ def read_line(labels): #{{{
             daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
             cfg.COMMAND_WAIT = False # Kommando kam an
 
-    if lin[:1] == "#" or len(daten[0]) != 1 or len(daten) < 19:
+    if lin[:1] == "#" or len(daten[0]) != 1 or len(daten) < 19 or len(daten> > 31:
         return True
 
     curtime = lin[2:10]
@@ -421,4 +430,4 @@ if __name__ == '__main__': #{{{
     cfg.FLOG.close()
 
 #}}}
-#vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
+# vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :

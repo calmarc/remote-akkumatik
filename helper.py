@@ -134,3 +134,4 @@ def akkumatik_command(string, what):
     #except:
     #    print "Error: unable to start thread"
 
+# vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
