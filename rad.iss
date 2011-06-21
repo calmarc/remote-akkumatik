@@ -53,28 +53,6 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, "&", "&&")}}"; Flags: nowait postinstall skipifsilent
 
-[Registry]
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\gnuplot\bin"; Check: NeedsAddPath('{app}\gnuplot\bin')
-
-[Code]
-function NeedsAddPath(Param: string): Boolean;
-var
-  OrigPath: string;
-begin
-  if not RegQueryStringValue(HKEY_LOCAL_MACHINE, 
-       'SYSTEM\CurrentControlSet\Control\Session Manager\Environment','Path', OrigPath)
-  then begin
-    Result := True;
-    exit;
-  end;
-  // look for the path with leading and trailing semicolon
-  // Pos() returns 0 if not found
-  Result := Pos(';' + ExpandConstant(Param) + ';', ';' + OrigPath + ';') = 0;
-end;
-
-les]
-Source: "compiler:Examples\MyProg.exe"; DestDir: "{app}";
- 
 [Code]
 // Registrypfad zu den Umgebungsvariablen des Systems
 const
@@ -87,7 +65,7 @@ var
 begin
  // Originalwert auslesen, ...
  Result      := RegQueryStringValue(HKLM,SystemEnvironmentVarsPath,'Path',PathVariable);
- tmp       := ExpandConstant('{app}');
+ tmp       := ExpandConstant('{app}\gnuplot\bin');
  
  // ... & prüfen, ob der Pfad dieses Setups evtl. schon drin
  // steht
@@ -117,7 +95,7 @@ begin
  if Result then
  begin
   // Prüfen, ob der Ordner dieses Setups drin steh
-  tmp      := ExpandConstant('{app}');
+  tmp      := ExpandConstant('{app}\gnuplot\bin');
   PathIndex   := Pos(UpperCase(tmp),UpperCase(PathVariable));
  
   if PathIndex > 0 then
