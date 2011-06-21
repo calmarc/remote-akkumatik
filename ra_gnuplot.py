@@ -330,8 +330,8 @@ def gnuplot(): #{{{
             else:
                 anz_z_str = str(anz_zellen) + "x"
 
-            titel_plus = " ["+anz_z_str+atyp_str+", "+prg_str+", "+lart_str+",\
-                    "+stromw_str+", "+stoppm_str+"] - "
+            titel_plus = " ["+anz_z_str+atyp_str+", "+prg_str+", "+lart_str+", " \
+                    +stromw_str+", "+stoppm_str+"] - "
             titel_little = " ["+anz_z_str+atyp_str+"] - "
 
             rangeval = -1 # stays like that when no balancer attached
