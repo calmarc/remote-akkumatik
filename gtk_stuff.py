@@ -18,6 +18,18 @@ import helper
 import ra_gnuplot
 #import ra_matplot
 
+
+##########################################
+# Main Window{{{
+##########################################
+def message_dialog(parent, string):
+    dialog = gtk.MessageDialog(parent, gtk.DIALOG_MODAL |
+                gtk.DIALOG_DESTROY_WITH_PARENT,gtk.MESSAGE_INFO, gtk.BUTTONS_OK, string)
+
+    dialog.run()
+    dialog.destroy()
+
+#}}}
 ##########################################
 # Main Window{{{
 ##########################################
@@ -149,7 +161,7 @@ def main_window():
     if platform.system() == "Windows": #TODO check once if that fits...
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 14"))
     else:
-        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono 12"))
+        cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 12"))
 
     #vbox for buttons
     vbox = gtk.VBox()
@@ -700,3 +712,4 @@ def akkupara_dialog(): #{{{
 
     return(None, None)
 # vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
+#

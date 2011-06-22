@@ -13,7 +13,7 @@ tmp_path =  /tmp/remote-akkumatik
 --
 
 While Remote-Akkumatik is tweaked for irfan-view on Windows,
-in a sense that it open only the first generated .png.
+in a sense that it opens only the first generated .png.
 Irfan-view itself provides then the others to click to.
 
 Anyway, remote-akkumatik opens MS's default picture viewer.
