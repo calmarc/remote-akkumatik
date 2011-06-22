@@ -12,6 +12,7 @@ import thread
 #own import
 import cfg
 import helper
+import gtk_stuff
 
 ##########################################}}}
 #GnuPlotting stuff{{{
@@ -46,6 +47,7 @@ def filesplit(): #{{{
         print (tmp)
         cfg.FLOG.write(tmp + '\n')
         cfg.FILE_BLOCK = False
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         return
 
     cfg.FSER = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'rb')
