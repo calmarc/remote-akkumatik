@@ -313,6 +313,8 @@ def serial_setup(): #{{{
         time.sleep(3)
         cfg.FLOG.write(tmp)
         cfg.FLOG.close()
+        gtk_stuff.message_dialog(None, tmp)
+        time.sleep(10)
         sys.exit()
 
     cfg.FLOG.write(tmp)
@@ -376,7 +378,7 @@ if __name__ == '__main__': #{{{
                 continue
             elif split[0].strip().lower() == "viewer":
                 cfg.PICTURE_EXE = split[1].strip().replace("\\","/") #TODO:?
-            elif split[0].strip().lower() == "cfg.SERIAL_PORT":
+            elif split[0].strip().lower() == "serial_port":
                 cfg.SERIAL_PORT = split[1].strip()
             elif split[0].strip().lower() == "chart_path":
                 cfg.CHART_DIR = split[1].strip().replace("\\","/")
