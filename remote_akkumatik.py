@@ -64,6 +64,7 @@ def generate_output_strs(daten): #{{{
         tmp += "\n"
         print (tmp)
         cfg.FLOG.write(tmp)
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
 
     if tmp_zellen < 50:
         cfg.ANZAHL_ZELLEN[int(ausgang)] = tmp_zellen
@@ -97,6 +98,7 @@ def generate_output_strs(daten): #{{{
         tmo += "-> %i\n\n" % int(daten[14])
         print (tmp)
         cfg.FLOG.write(tmp)
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         time.sleep(5)
         sys.exit()
 
@@ -118,6 +120,7 @@ def generate_output_strs(daten): #{{{
             tmp +=  "----------------------\n\n"
             print (tmp)
             cfg.FLOG.write(tmp)
+            gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
 
     balance_delta = -1
     if len(tmp_a) > 0:
@@ -221,6 +224,7 @@ def read_line(labels): #{{{
         tmp = "%s\n\n" % err
         print (tmp)
         cfg.FLOG.write(tmp)
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         return True
 
     daten = lin.split('\xff')
@@ -262,7 +266,7 @@ def read_line(labels): #{{{
         tmp += "Should not happen, but reopening file anyway\n\n"
         print(tmp)
         cfg.FLOG.write(tmp)
-
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', 'ab')
         return True
 
@@ -344,7 +348,7 @@ if __name__ == '__main__': #{{{
 
     cfg.THREADLOCK = thread.allocate_lock()
 
-    cfg.EXE_DIR = sys.path[0].replace('\\',"/") #TODO neede?
+    cfg.EXE_DIR = sys.path[0].replace('\\',"/") #TODO needed?
     if sys.path[0].endswith("\\library.zip\\gtk-2.0"):  #for py2exe
         cfg.EXE_DIR = sys.path[0][0:-20]
 
@@ -399,8 +403,9 @@ if __name__ == '__main__': #{{{
                 print tmp
                 cfg.FLOG.write(tmp)
                 cfg.FLOG.close()
+                gtk_stuff.message_dialog(None, tmp)
+                time.sleep(10)
                 sys.exit()
-
     if not os.path.isdir(cfg.CHART_DIR):
         try:
             os.mkdir(cfg.CHART_DIR)
@@ -413,6 +418,8 @@ if __name__ == '__main__': #{{{
                 print tmp
                 cfg.FLOG.write(tmp)
                 cfg.FLOG.close()
+                gtk_stuff.message_dialog(None, tmp)
+                time.sleep(10)
                 sys.exit()
 
     cfg.SER = serial_setup()

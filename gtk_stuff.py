@@ -173,6 +173,7 @@ def main_window():
 
     # TODO nicht wirklich toll diese Radios
     r1button = gtk.RadioButton(None, None)
+    r1button.set_size_request(0, 30)
     r1button.connect("toggled", buttoncb , "Ausg")
     hbox.pack_start(r1button, True, True, 0)
 
@@ -180,6 +181,7 @@ def main_window():
     hbox.pack_start(label_ausgang, True, True, 0)
 
     r2button = gtk.RadioButton(r1button, None)
+    r2button.set_size_request(0, 30)
     hbox.pack_start(r2button, True, True, 0)
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
