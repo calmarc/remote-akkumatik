@@ -20,7 +20,7 @@ import ra_gnuplot
 
 
 ##########################################
-# Main Window{{{
+# Message Box{{{
 ##########################################
 def message_dialog(parent, string):
     dialog = gtk.MessageDialog(parent, gtk.DIALOG_MODAL |
@@ -29,8 +29,7 @@ def message_dialog(parent, string):
     dialog.run()
     dialog.destroy()
 
-#}}}
-##########################################
+##########################################}}}
 # Main Window{{{
 ##########################################
 def main_window():
