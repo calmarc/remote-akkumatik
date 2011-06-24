@@ -74,10 +74,11 @@ def generate_output_strs(daten): #{{{
         cfg.BUTTON_START.set_sensitive(True)
         cfg.BUTTON_STOP.set_sensitive(False)
     else:
-        if phase == 10: #Pause
-            cfg.BUTTON_START.set_sensitive(True)
-        else:
-            cfg.BUTTON_START.set_sensitive(False)
+        #TODO start while pause does restart.. not wanted
+        #if phase == 10: #Pause
+            #cfg.BUTTON_START.set_sensitive(True)
+        #else:
+        cfg.BUTTON_START.set_sensitive(False)
         cfg.BUTTON_STOP.set_sensitive(True)
 
     #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen

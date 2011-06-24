@@ -20,7 +20,7 @@ import ra_gnuplot
 
 
 ##########################################
-# Main Window{{{
+# Message Box{{{
 ##########################################
 def message_dialog(parent, string):
     dialog = gtk.MessageDialog(parent, gtk.DIALOG_MODAL |
@@ -29,8 +29,7 @@ def message_dialog(parent, string):
     dialog.run()
     dialog.destroy()
 
-#}}}
-##########################################
+##########################################}}}
 # Main Window{{{
 ##########################################
 def main_window():
@@ -43,6 +42,44 @@ def main_window():
         """ Detroy """
         gtk.main_quit()
 
+    def eventcb(widget, event, data):
+        """ callback function - eventboxes containing Akku-Ausgang pics """
+
+        #will enable later on serial-lines accordingly
+        cfg.BUTTON_START.set_sensitive(False)
+        cfg.BUTTON_STOP.set_sensitive(False)
+
+        if data == "1":
+            cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
+            cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
+            cfg.GEWAEHLTER_AUSGANG = 1
+        else:
+            cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
+            cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
+            cfg.GEWAEHLTER_AUSGANG = 2
+
+    def event_enter_cb(widget, event, data):
+        """ hover effect - hover when _off """
+        if data == "1":
+            if cfg.GEWAEHLTER_AUSGANG == 2:
+                cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_hover.png")
+        else:
+            if cfg.GEWAEHLTER_AUSGANG == 1:
+                cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_hover.png")
+    def event_leave_cb(widget, event, data):
+        """ hover effect 2 - reset """
+        if data == "1":
+            if cfg.GEWAEHLTER_AUSGANG == 1:
+                cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
+            else:
+                cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
+        else:
+            if cfg.GEWAEHLTER_AUSGANG == 2:
+                cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
+            else:
+                cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
+
+
     def buttoncb (widget, data):
         """ callback function from the main display buttons """
 
@@ -53,15 +90,6 @@ def main_window():
         elif data == "Exit":
             gtk.main_quit()
 
-        elif data == "Ausg":
-            if cfg.GEWAEHLTER_AUSGANG == 1: #toggle ausgang
-                cfg.GEWAEHLTER_AUSGANG = 2
-                cfg.BUTTON_START.set_sensitive(False)
-                cfg.BUTTON_STOP.set_sensitive(False)
-            else:
-                cfg.GEWAEHLTER_AUSGANG = 1
-                cfg.BUTTON_START.set_sensitive(False)
-                cfg.BUTTON_STOP.set_sensitive(False)
         elif data == "Start":
             cfg.COMMAND_ABORT = False #reset
             if cfg.GEWAEHLTER_AUSGANG == 1: #toggle ausgang
@@ -167,58 +195,79 @@ def main_window():
     vbox = gtk.VBox()
     hbox.pack_end(vbox, False, False, 0)
 
-    # hbox for radios
+    # hbox for Akku1/2
     hbox = gtk.HBox()
     vbox.pack_start(hbox, True, True, 0)
 
-    # TODO nicht wirklich toll diese Radios
-    r1button = gtk.RadioButton(None, None)
-    r1button.set_size_request(0, 30)
-    r1button.connect("toggled", buttoncb , "Ausg")
-    hbox.pack_start(r1button, True, True, 0)
+    evbox = gtk.EventBox()
+    cfg.IMG_AKKU1 = gtk.Image()
+    cfg.IMG_AKKU1.set_size_request(20, 48)
+    evbox.add(cfg.IMG_AKKU1)
+    evbox.connect("button-press-event", eventcb, "1")
+    #hover effect
+    evbox.connect("enter-notify-event", event_enter_cb, "1")
+    evbox.connect("leave-notify-event", event_leave_cb, "1")
+    hbox.pack_start(evbox, False, False, 0)
 
-    label_ausgang = gtk.Label("1   2")
-    hbox.pack_start(label_ausgang, True, True, 0)
+    label_ausgang = gtk.Label("1")
+    hbox.pack_start(label_ausgang, False, False, 0)
 
-    r2button = gtk.RadioButton(r1button, None)
-    r2button.set_size_request(0, 30)
-    hbox.pack_start(r2button, True, True, 0)
+    evbox = gtk.EventBox()
+    cfg.IMG_AKKU2 = gtk.Image()
+    cfg.IMG_AKKU2.set_size_request(20, 48)
+    evbox.add(cfg.IMG_AKKU2)
+    evbox.connect("button-press-event", eventcb, "2")
+    evbox.connect("enter-notify-event", event_enter_cb, "2")
+    evbox.connect("leave-notify-event", event_leave_cb, "2")
+    hbox.pack_end(evbox, False, False, 0)
+
+    label_ausgang = gtk.Label("2")
+    hbox.pack_end(label_ausgang, False, False, 0)
+
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
-        r1button.set_active(True)
+        cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
+        cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
     else:
-        r2button.set_active(True)
+        cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
+        cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
 
     #hbox fuer 'start/stop'
     hbox = gtk.HBox()
-    vbox.pack_start(hbox, True, True, 0)
+    vbox.pack_start(hbox, False, False, 0)
+
 
     cfg.BUTTON_START = gtk.Button("Start")
+    cfg.BUTTON_START.child.modify_font(pango.FontDescription("mono 10"))
     cfg.BUTTON_START.connect("clicked", buttoncb, "Start")
     hbox.pack_start(cfg.BUTTON_START, False, True, 0)
     cfg.BUTTON_START.set_sensitive(False)
 
     cfg.BUTTON_STOP = gtk.Button("Stop")
+    cfg.BUTTON_STOP.child.modify_font(pango.FontDescription("mono 10"))
     cfg.BUTTON_STOP.connect("clicked", buttoncb, "Stop")
     hbox.pack_end(cfg.BUTTON_STOP, False, True, 0)
     cfg.BUTTON_STOP.set_sensitive(False)
 
-    vbox.pack_start(gtk.HSeparator(), False, True, 5)
+    vbox.pack_start(gtk.HSeparator(), False, False, 2)
 
     button = gtk.Button("Akku Para")
+    button.child.modify_font(pango.FontDescription("mono 8"))
     button.connect("clicked", buttoncb, "Akku_Settings")
-    vbox.pack_start(button, False, True, 0)
+    vbox.pack_start(button, False, False, 0)
 
     button = gtk.Button("Chart")
+    button.child.modify_font(pango.FontDescription("mono 8"))
     button.connect("clicked", buttoncb, "Chart")
-    vbox.pack_start(button, False, True, 0)
+    vbox.pack_start(button, False, False, 0)
 
     button = gtk.Button("Exit")
+    button.child.modify_font(pango.FontDescription("mono 8"))
     button.set_size_request(98, 20)
     button.connect("clicked", buttoncb, "Exit")
-    vbox.pack_end(button, False, True, 0)
+    vbox.pack_end(button, False, False, 0)
 
-    vbox.pack_end(gtk.HSeparator(), False, True, 5)
+    vbox.pack_end(gtk.HSeparator(), False, True, 2)
 
     # after file-open (what is needed on plotting)... hm?
     cfg.GTK_WINDOW.show_all()

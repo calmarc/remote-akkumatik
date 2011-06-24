@@ -19,7 +19,7 @@
 
 #serial_port = COM1
 
-#chart_path = D:/Akkumatik
+#chart_path = D:\Akkumatik
 
-#tmp_path =  /tmp/remote-akkumatik
+#tmp_path =  C:\.......
 
