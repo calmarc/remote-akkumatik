@@ -200,6 +200,7 @@ def main_window():
     vbox.pack_start(hbox, True, True, 0)
 
     evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
     cfg.IMG_AKKU1 = gtk.Image()
     cfg.IMG_AKKU1.set_size_request(20, 48)
     evbox.add(cfg.IMG_AKKU1)
@@ -213,6 +214,7 @@ def main_window():
     hbox.pack_start(label_ausgang, False, False, 0)
 
     evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
     cfg.IMG_AKKU2 = gtk.Image()
     cfg.IMG_AKKU2.set_size_request(20, 48)
     evbox.add(cfg.IMG_AKKU2)
@@ -223,7 +225,6 @@ def main_window():
 
     label_ausgang = gtk.Label("2")
     hbox.pack_end(label_ausgang, False, False, 0)
-
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
         cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
