@@ -181,6 +181,7 @@ def main_window():
     cfg.LABEL_STATUS.set_justify(gtk.JUSTIFY_LEFT)
 
     cfg.EVENT_BOX_LSTATUS = gtk.EventBox()
+    cfg.EVENT_BOX_LSTATUS.set_visible_window(True)
     cfg.EVENT_BOX_LSTATUS.add(cfg.LABEL_STATUS)
     cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
             cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#aaaaaa"))
