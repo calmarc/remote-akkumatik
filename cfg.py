@@ -69,6 +69,9 @@ BUTTON_STOP = None
 LABEL_STATUS = None
 EVENT_BOX_LSTATUS = None
 
+IMG_AKKU1 = None
+IMG_AKKU2 = None
+
 #serial connection and file to write it
 SERIAL_PORT = ""
 SER = None
