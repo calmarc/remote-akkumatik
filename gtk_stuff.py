@@ -42,12 +42,12 @@ def main_window():
         """ Detroy """
         gtk.main_quit()
 
+    #AKKU OUTPUT Callbacks
     def eventcb(widget, event, data):
         """ callback function - eventboxes containing Akku-Ausgang pics """
 
-        #will enable later on serial-lines accordingly
-        cfg.BUTTON_START.set_sensitive(False)
-        cfg.BUTTON_STOP.set_sensitive(False)
+        #True later on generate_output_strs() again
+        cfg.START_STOP.set_sensitive(False)
 
         if data == "1":
             cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
@@ -79,7 +79,49 @@ def main_window():
             else:
                 cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
 
+    #START/STOP callbacks
+    def event_start_stop_cb(widget, event, data):
+        """ callback function - eventboxes containing START/STOP pics """
 
+        if not cfg.START_STOP.get_sensitive():
+            return
+
+        #True later on generate_output_strs() again
+        cfg.START_STOP.set_sensitive(False)
+
+        #not running -> send start
+        if cfg.PHASE == 0:
+            if cfg.GEWAEHLTER_AUSGANG == 1:
+                helper.akkumatik_command("44", "Start")
+                cfg.FLOG.write("Sending Command 44\n")
+            else:
+                helper.akkumatik_command("48", "Start")
+                cfg.FLOG.write("Sending Command 48\n")
+        else: #running -> send stop
+            if cfg.GEWAEHLTER_AUSGANG == 1:
+                helper.akkumatik_command("41", "Stop")
+                cfg.FLOG.write("Sending Command 41\n")
+            else:
+                helper.akkumatik_command("42", "Stop")
+                cfg.FLOG.write("Sending Command 42\n")
+
+    def event_start_stop_enter_cb(widget, event, data):
+        cfg.START_STOP_HOVER = True
+        if cfg.PHASE == 0:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start_hover.png")
+        else:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop_hover.png")
+
+    def event_start_stop_leave_cb(widget, event, data):
+        cfg.START_STOP_HOVER = False
+
+        if cfg.PHASE == 0:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start.png")
+        else:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop.png")
+
+
+    # other button callbacks
     def buttoncb (widget, data):
         """ callback function from the main display buttons """
 
@@ -89,25 +131,6 @@ def main_window():
 
         elif data == "Exit":
             gtk.main_quit()
-
-        elif data == "Start":
-            cfg.COMMAND_ABORT = False #reset
-            if cfg.GEWAEHLTER_AUSGANG == 1: #toggle ausgang
-                #data = something like "Start"
-                helper.akkumatik_command("44", data)
-                cfg.FLOG.write("Sending Command 44\n")
-            else:
-                helper.akkumatik_command("48", data)
-                cfg.FLOG.write("Sending Command 48\n")
-
-        elif data == "Stop":
-            cfg.COMMAND_ABORT = False #reset
-            if cfg.GEWAEHLTER_AUSGANG == 1: #toggle ausgang
-                helper.akkumatik_command("41", data)
-                cfg.FLOG.write("Sending Command 41\n")
-            else:
-                helper.akkumatik_command("42", data)
-                cfg.FLOG.write("Sending Command 42\n")
 
         elif data == "Akku_Settings":
             (cmd1, cmd2) = akkupara_dialog()
@@ -149,7 +172,7 @@ def main_window():
     # akkumatik display label
     gfixed = gtk.Fixed()
     hbox.pack_start(gfixed, True, True, 0)
-    
+
     #Left part of display
     label = gtk.Label()
     label.set_size_request(370, 92)
@@ -196,10 +219,11 @@ def main_window():
     vbox = gtk.VBox()
     hbox.pack_end(vbox, False, False, 0)
 
-    # hbox for Akku1/2
+    # hbox for Akku1+2 and start/stop
     hbox = gtk.HBox()
-    vbox.pack_start(hbox, True, True, 0)
+    vbox.pack_start(hbox, False, False, 0)
 
+    #AKKU1
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
     cfg.IMG_AKKU1 = gtk.Image()
@@ -214,6 +238,19 @@ def main_window():
     label_ausgang = gtk.Label("1")
     hbox.pack_start(label_ausgang, False, False, 0)
 
+    #START/STOP
+    evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
+    cfg.START_STOP = gtk.Image()
+    cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start.png")
+    cfg.START_STOP.set_sensitive(False)
+    evbox.add(cfg.START_STOP)
+    evbox.connect("button-press-event", event_start_stop_cb, "StartStop")
+    evbox.connect("enter-notify-event", event_start_stop_enter_cb, "StartStop")
+    evbox.connect("leave-notify-event", event_start_stop_leave_cb, "StartStop")
+    hbox.pack_start(evbox, True, True, 2)
+
+    #AKKU1
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
     cfg.IMG_AKKU2 = gtk.Image()
@@ -228,43 +265,35 @@ def main_window():
     hbox.pack_end(label_ausgang, False, False, 0)
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
-        cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
-        cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
+        cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang_off.png")
+        cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang.png")
     else:
-        cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
-        cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang.png")
-
-    #hbox fuer 'start/stop'
-    hbox = gtk.HBox()
-    vbox.pack_start(hbox, False, False, 0)
-
-
-    cfg.BUTTON_START = gtk.Button("Start")
-    cfg.BUTTON_START.child.modify_font(pango.FontDescription("mono 10"))
-    cfg.BUTTON_START.connect("clicked", buttoncb, "Start")
-    hbox.pack_start(cfg.BUTTON_START, False, True, 0)
-    cfg.BUTTON_START.set_sensitive(False)
-
-    cfg.BUTTON_STOP = gtk.Button("Stop")
-    cfg.BUTTON_STOP.child.modify_font(pango.FontDescription("mono 10"))
-    cfg.BUTTON_STOP.connect("clicked", buttoncb, "Stop")
-    hbox.pack_end(cfg.BUTTON_STOP, False, True, 0)
-    cfg.BUTTON_STOP.set_sensitive(False)
+        cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang_off.png")
+        cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang.png")
 
     vbox.pack_start(gtk.HSeparator(), False, False, 2)
 
-    button = gtk.Button("Akku Para")
-    button.child.modify_font(pango.FontDescription("mono 8"))
-    button.connect("clicked", buttoncb, "Akku_Settings")
-    vbox.pack_start(button, False, False, 0)
+    #hbox fuer 'parameter,chart'
+    hbox = gtk.HBox()
+    vbox.pack_start(hbox, False, False, 0)
 
-    button = gtk.Button("Chart")
-    button.child.modify_font(pango.FontDescription("mono 8"))
+    button = gtk.Button()
+    button.set_relief(gtk.RELIEF_HALF)
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR+"/bilder/akku.png")
+    button.add(image)
+    button.connect("clicked", buttoncb, "Akku_Settings")
+    hbox.pack_start(button, False, False, 0)
+
+    button = gtk.Button()
+    button.set_relief(gtk.RELIEF_HALF)
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR+"/bilder/chart.png")
+    button.add(image)
     button.connect("clicked", buttoncb, "Chart")
-    vbox.pack_start(button, False, False, 0)
+    hbox.pack_end(button, False, False, 0)
 
     button = gtk.Button("Exit")
-    button.child.modify_font(pango.FontDescription("mono 8"))
     button.set_size_request(98, 20)
     button.connect("clicked", buttoncb, "Exit")
     vbox.pack_end(button, False, False, 0)

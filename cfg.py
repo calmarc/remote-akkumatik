@@ -9,7 +9,7 @@
 AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
 AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", \
         "(E)L+E", "Sender", "Lagern"]
-LADEART = ["Konst", "Puls", "Reflex", "LiPo Fast"]
+LADEART = ["Konst", "Puls", "Reflex", "LiPo-Fast"]
 STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
 STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", \
         "Delta-Peak-3"]
@@ -45,6 +45,7 @@ OLDTIME = ["", "", ""]
 
 # which output is selected
 GEWAEHLTER_AUSGANG = 1
+PHASE = 0
 
 # some helper Flags
 FILE_BLOCK = False
@@ -64,8 +65,8 @@ CHART_DIR = ""
 #main gtk windows
 GTK_WINDOW = None
 # could be transfered from main-window to read_line.. together with labels..
-BUTTON_START = None
-BUTTON_STOP = None
+START_STOP = None
+START_STOP_HOVER = False
 LABEL_STATUS = None
 EVENT_BOX_LSTATUS = None
 
