@@ -156,8 +156,8 @@ def main_window():
 
     cfg.GTK_WINDOW = gtk.Window(gtk.WINDOW_TOPLEVEL)
     cfg.GTK_WINDOW.set_title('Akkumatic Remote Display')
-    cfg.GTK_WINDOW.set_size_request(966, 168)
-    cfg.GTK_WINDOW.set_default_size(966, 168)
+    cfg.GTK_WINDOW.set_size_request(962, 168)
+    cfg.GTK_WINDOW.set_default_size(962, 168)
     cfg.GTK_WINDOW.set_position(gtk.WIN_POS_CENTER)
 
     cfg.GTK_WINDOW.connect("delete_event", delete_event)
@@ -224,6 +224,7 @@ def main_window():
     vbox.pack_start(hbox, False, False, 0)
 
     #AKKU1
+
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
     cfg.IMG_AKKU1 = gtk.Image()
@@ -235,8 +236,6 @@ def main_window():
     evbox.connect("leave-notify-event", event_leave_cb, "1")
     hbox.pack_start(evbox, False, False, 0)
 
-    label_ausgang = gtk.Label("1")
-    hbox.pack_start(label_ausgang, False, False, 0)
 
     #START/STOP
     evbox = gtk.EventBox()
@@ -251,6 +250,7 @@ def main_window():
     hbox.pack_start(evbox, True, True, 2)
 
     #AKKU1
+
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
     cfg.IMG_AKKU2 = gtk.Image()
@@ -261,8 +261,6 @@ def main_window():
     evbox.connect("leave-notify-event", event_leave_cb, "2")
     hbox.pack_end(evbox, False, False, 0)
 
-    label_ausgang = gtk.Label("2")
-    hbox.pack_end(label_ausgang, False, False, 0)
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
         cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang_off.png")
