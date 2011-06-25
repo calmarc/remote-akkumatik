@@ -337,7 +337,6 @@ def main_window():
     hbox.pack_start(evbox, False, False, 0)
 
     #button = gtk.Button("Save")
-    #button.unset_flags(gtk.CAN_FOCUS)
     #button.set_size_request(28, 20)
     #button.connect("clicked", buttoncb, "Save")
     #hbox.pack_start(button, False, False, 0)
