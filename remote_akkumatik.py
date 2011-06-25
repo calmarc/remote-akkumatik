@@ -70,16 +70,12 @@ def generate_output_strs(daten): #{{{
         cfg.ANZAHL_ZELLEN[int(ausgang)] = tmp_zellen
 
     phase = int(daten[9]) #Ladephase 0-stop ...
+    cfg.PHASE = phase #info needed for START/STOP button
+    cfg.START_STOP.set_sensitive(True)
     if phase == 0:
-        cfg.BUTTON_START.set_sensitive(True)
-        cfg.BUTTON_STOP.set_sensitive(False)
+        cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start.png")
     else:
-        #TODO start while pause does restart.. not wanted
-        #if phase == 10: #Pause
-            #cfg.BUTTON_START.set_sensitive(True)
-        #else:
-        cfg.BUTTON_START.set_sensitive(False)
-        cfg.BUTTON_STOP.set_sensitive(True)
+        cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/stop.png")
 
     #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen
     zyklus = int(daten[10]) #Zyklus
@@ -176,8 +172,9 @@ def generate_output_strs(daten): #{{{
         else:
             rimohm_baldelta = "∆..mV "
         cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
-        lart_str = "[LiPo]"
-        stoppm_str = "[LiPo]"
+        #lart_str = "[LiPo]"
+        stoppm_str = ""
+        stromw_str = ""
 
     output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v, \
             zeit, ampere, amph)
