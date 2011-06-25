@@ -42,6 +42,47 @@ def main_window():
         """ Detroy """
         gtk.main_quit()
 
+    #Event Callbacks
+    def event_simple_cb(widget, event, data):
+        """ general event callback function """
+        if data == "para":
+            (cmd1, cmd2) = akkupara_dialog()
+            if not cmd1:
+                return
+
+            cfg.COMMAND_ABORT = False #reset
+
+            helper.akkumatik_command(cmd1, "Übertragen")
+            cfg.FLOG.write("Sending Command %s \"Übertragen\"\n" % cmd1)
+
+            if cmd2 != "":
+                time.sleep(0.6) #else threads may get out of order somehow
+                helper.akkumatik_command(cmd2, "Start")
+                cfg.FLOG.write("Sending Command %s \"Start\"\n" % cmd2)
+        elif data == "chart":
+            ra_gnuplot.gnuplot()
+            #ra_matplot.matplot()
+        elif data == "recycle":
+            cfg.FILE_BLOCK = True #stop reading in files (read_line)
+            cfg.FSER.close()
+            #truncates old file
+            cfg.FSER = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
+            cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
+            cfg.FILE_BLOCK = False
+            message_dialog(cfg.GTK_WINDOW, "...collecting data from scratch...")
+            return
+
+        elif data == "quit":
+            gtk.main_quit()
+
+    def event_simple_enter_cb(widget, event, data):
+        """ general event enter function """
+        widget.get_child().set_from_file(cfg.EXE_DIR + "/bilder/"+data+"_hover.png")
+
+    def event_simple_leave_cb(widget, event, data):
+        """ general event leave function """
+        widget.get_child().set_from_file(cfg.EXE_DIR + "/bilder/"+data+".png")
+
     #AKKU OUTPUT Callbacks
     def eventcb(widget, event, data):
         """ callback function - eventboxes containing Akku-Ausgang pics """
@@ -124,28 +165,7 @@ def main_window():
     # other button callbacks
     def buttoncb (widget, data):
         """ callback function from the main display buttons """
-
-        if data == "Chart":
-            ra_gnuplot.gnuplot()
-            #ra_matplot.matplot()
-
-        elif data == "Exit":
-            gtk.main_quit()
-
-        elif data == "Akku_Settings":
-            (cmd1, cmd2) = akkupara_dialog()
-            if not cmd1:
-                return
-
-            cfg.COMMAND_ABORT = False #reset
-
-            helper.akkumatik_command(cmd1, "Übertragen")
-            cfg.FLOG.write("Sending Command %s \"Übertragen\"\n" % cmd1)
-
-            if cmd2 != "":
-                time.sleep(0.6) #else threads may get out of order somehow
-                helper.akkumatik_command(cmd2, "Start")
-                cfg.FLOG.write("Sending Command %s \"Start\"\n" % cmd2)
+        return
 
     def draw_pixbuf(widget, event):
         """ add the picture to the window """
@@ -224,7 +244,6 @@ def main_window():
     vbox.pack_start(hbox, False, False, 0)
 
     #AKKU1
-
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
     cfg.IMG_AKKU1 = gtk.Image()
@@ -249,8 +268,7 @@ def main_window():
     evbox.connect("leave-notify-event", event_start_stop_leave_cb, "StartStop")
     hbox.pack_start(evbox, True, True, 2)
 
-    #AKKU1
-
+    #AKKU2
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
     cfg.IMG_AKKU2 = gtk.Image()
@@ -275,28 +293,69 @@ def main_window():
     hbox = gtk.HBox()
     vbox.pack_start(hbox, False, False, 0)
 
-    button = gtk.Button()
-    button.set_relief(gtk.RELIEF_HALF)
-    image = gtk.Image()
-    image.set_from_file(cfg.EXE_DIR+"/bilder/akku.png")
-    button.add(image)
-    button.connect("clicked", buttoncb, "Akku_Settings")
-    hbox.pack_start(button, False, False, 0)
 
-    button = gtk.Button()
-    button.set_relief(gtk.RELIEF_HALF)
+    #para
+    evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR+"/bilder/para.png")
+    image.set_size_request(55, 42)
+    evbox.add(image)
+    evbox.connect("button-press-event", event_simple_cb, "para")
+    evbox.connect("enter-notify-event", event_simple_enter_cb, "para")
+    evbox.connect("leave-notify-event", event_simple_leave_cb, "para")
+    hbox.pack_start(evbox, False, False, 0)
+
+    #chart
+    evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
     image = gtk.Image()
     image.set_from_file(cfg.EXE_DIR+"/bilder/chart.png")
-    button.add(image)
-    button.connect("clicked", buttoncb, "Chart")
-    hbox.pack_end(button, False, False, 0)
+    image.set_size_request(42, 42)
+    evbox.add(image)
+    evbox.connect("button-press-event", event_simple_cb, "chart")
+    evbox.connect("enter-notify-event", event_simple_enter_cb, "chart")
+    evbox.connect("leave-notify-event", event_simple_leave_cb, "chart")
+    hbox.pack_end(evbox, False, False, 0)
 
-    button = gtk.Button("Exit")
-    button.set_size_request(98, 20)
-    button.connect("clicked", buttoncb, "Exit")
-    vbox.pack_end(button, False, False, 0)
+    vbox.pack_start(gtk.HSeparator(), False, True, 8)
 
-    vbox.pack_end(gtk.HSeparator(), False, True, 8)
+    #hbox fuer 'data stuff'
+    hbox = gtk.HBox()
+    vbox.pack_start(hbox, False, False, 0)
+
+    #recycle
+    evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR+"/bilder/recycle.png")
+    #image.set_size_request(28, 20)
+    evbox.add(image)
+    evbox.connect("button-press-event", event_simple_cb, "recycle")
+    evbox.connect("enter-notify-event", event_simple_enter_cb, "recycle")
+    evbox.connect("leave-notify-event", event_simple_leave_cb, "recycle")
+    hbox.pack_start(evbox, False, False, 0)
+
+    #button = gtk.Button("Save")
+    #button.unset_flags(gtk.CAN_FOCUS)
+    #button.set_size_request(28, 20)
+    #button.connect("clicked", buttoncb, "Save")
+    #hbox.pack_start(button, False, False, 0)
+
+    evbox = gtk.EventBox()
+    evbox.set_visible_window(False)
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR+"/bilder/quit.png")
+    image.set_size_request(38, 30)
+    evbox.add(image)
+    evbox.connect("button-press-event", event_simple_cb, "quit")
+    evbox.connect("enter-notify-event", event_simple_enter_cb, "quit")
+    evbox.connect("leave-notify-event", event_simple_leave_cb, "quit")
+    hbox.pack_end(evbox, False, False, 0)
+
+    hbox.pack_end(gtk.VSeparator(), False, True, 2)
+
+    vbox.pack_start(gtk.HSeparator(), False, True, 8)
 
     # after file-open (what is needed on plotting)... hm?
     cfg.GTK_WINDOW.show_all()

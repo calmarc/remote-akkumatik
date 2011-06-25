@@ -130,7 +130,7 @@ def generate_output_strs(daten): #{{{
 
     if phase == 0: #dann 'Fehlercode' zwangsweise ...?
         if tmp_zellen >= 54: # FEHLER
-            output = cfg.FEHLERCODE[tmp_zellen - 50]
+            output = str(cfg.GEWAEHLTER_AUSGANG)+' '+cfg.FEHLERCODE[tmp_zellen - 50]
             return (output, "")
 
         if tmp_zellen >= 50: #'gute' codes
@@ -327,11 +327,11 @@ def serial_setup(): #{{{
 def serial_file_setup(): #{{{
     """ setup the file to store the serial data into """
 
-    if len(sys.argv) > 1 and (sys.argv[1] == "-c" or sys.argv[1] == "-C"):
-        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'ab')
+    if len(sys.argv) > 1 and (sys.argv[1] == "-n" or sys.argv[1] == "-N"):
+        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
         cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
     else:
-        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
+        fhser = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'ab')
         cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
 
     return fhser
@@ -343,7 +343,7 @@ if __name__ == '__main__': #{{{
     if len(sys.argv) > 1 and (sys.argv[1] == "-h" or sys.argv[1] == "-H" or sys.argv[1] == "--help"):
         print """Usage:
 
-    -c      Continue (add new arriving data to (potential) existing serial data)
+    -n      Begin from Scratch collecting Serial-Data
     -h      Print this."""
         sys.exit()
 
