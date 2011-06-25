@@ -5,7 +5,7 @@ import shutil
 import sys
 
 Mydata_files = []
-Mydata_files.append(('bilder', ['bilder/Display.jpg', 'bilder/akku.png', 'bilder/start.png', 'bilder/start_hover.png', 'bilder/stop.png', 'bilder/stop_hover.png', 'bilder/chart.png', 'bilder/Ausgang.png', 'bilder/Ausgang_hover.png', 'bilder/Ausgang_off.png']))
+Mydata_files.append(('bilder', ['bilder/Display.png', 'bilder/akku.png', 'bilder/start.png', 'bilder/start_hover.png', 'bilder/stop.png', 'bilder/stop_hover.png', 'bilder/chart.png', 'bilder/Ausgang.png', 'bilder/Ausgang_hover.png', 'bilder/Ausgang_off.png']))
 Mydata_files.append(('', ['config.txt']))
 Mydata_files.append(('', ['README']))
 
