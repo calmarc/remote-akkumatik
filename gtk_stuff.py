@@ -149,7 +149,7 @@ def main_window():
 
     def draw_pixbuf(widget, event):
         """ add the picture to the window """
-        path = cfg.EXE_DIR + '/bilder/Display.jpg'
+        path = cfg.EXE_DIR + '/bilder/Display.png'
         pixbuf = gtk.gdk.pixbuf_new_from_file(path)
         widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
                 pixbuf, 0, 0, 0,0)
