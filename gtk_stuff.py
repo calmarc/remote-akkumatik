@@ -79,7 +79,7 @@ def main_window():
             else:
                 cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_off.png")
 
-    #START/STOP Callbacks
+    #START/STOP callbacks
     def event_start_stop_cb(widget, event, data):
         """ callback function - eventboxes containing START/STOP pics """
 
@@ -105,7 +105,23 @@ def main_window():
                 helper.akkumatik_command("42", "Stop")
                 cfg.FLOG.write("Sending Command 42\n")
 
+    def event_start_stop_enter_cb(widget, event, data):
+        cfg.START_STOP_HOVER = True
+        if cfg.PHASE == 0:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start_hover.png")
+        else:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop_hover.png")
 
+    def event_start_stop_leave_cb(widget, event, data):
+        cfg.START_STOP_HOVER = False
+
+        if cfg.PHASE == 0:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start.png")
+        else:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop.png")
+
+
+    # other button callbacks
     def buttoncb (widget, data):
         """ callback function from the main display buttons """
 
@@ -156,7 +172,7 @@ def main_window():
     # akkumatik display label
     gfixed = gtk.Fixed()
     hbox.pack_start(gfixed, True, True, 0)
-    
+
     #Left part of display
     label = gtk.Label()
     label.set_size_request(370, 92)
@@ -230,8 +246,8 @@ def main_window():
     cfg.START_STOP.set_sensitive(False)
     evbox.add(cfg.START_STOP)
     evbox.connect("button-press-event", event_start_stop_cb, "StartStop")
-    #evbox.connect("enter-notify-event", event_enter_cb, "StartStop")
-    #evbox.connect("leave-notify-event", event_leave_cb, "StartStop")
+    evbox.connect("enter-notify-event", event_start_stop_enter_cb, "StartStop")
+    evbox.connect("leave-notify-event", event_start_stop_leave_cb, "StartStop")
     hbox.pack_start(evbox, True, True, 2)
 
     #AKKU1

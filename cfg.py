@@ -66,6 +66,7 @@ CHART_DIR = ""
 GTK_WINDOW = None
 # could be transfered from main-window to read_line.. together with labels..
 START_STOP = None
+START_STOP_HOVER = False
 LABEL_STATUS = None
 EVENT_BOX_LSTATUS = None
 

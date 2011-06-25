@@ -40,7 +40,6 @@ def output_data(output, label, output2, label2): #{{{
 #}}}
 def generate_output_strs(daten): #{{{
     """Create the strings for the Display (labels) """
-
     try:
         ausgang = str(int(daten[0][-1:])) #Ausgang
         zeit = daten[1] #Stunden Minuten Sekunden
@@ -73,9 +72,15 @@ def generate_output_strs(daten): #{{{
     cfg.PHASE = phase #info needed for START/STOP button
     cfg.START_STOP.set_sensitive(True)
     if phase == 0:
-        cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start.png")
+        if cfg.START_STOP_HOVER:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start_hover.png")
+        else:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start.png")
     else:
-        cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/stop.png")
+        if cfg.START_STOP_HOVER:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/stop_hover.png")
+        else:
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/stop.png")
 
     #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen
     zyklus = int(daten[10]) #Zyklus
