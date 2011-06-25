@@ -13,13 +13,13 @@ LADEART = ["Konst", "Puls", "Reflex", "LiPo-Fast"]
 STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
 STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", \
         "Delta-Peak-3"]
-FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "Fehler Timeout", \
-        "Fehler Lade-Menge", "Fehler Akku zu Heiss", \
-        "Fehler Versorgungsspannung", "Fehler Akkuspannung", \
-        "Fehler Zellenspannung", "Fehler Alarmeingang", "Fehler Stromregler", \
-        "Fehler Polung/Kurzschluss", "Fehler Regelfenster", \
-        "Fehler Messfenster", "Fehler Temperatur", "Fehler Tempsens", \
-        "Fehler Hardware"]
+FEHLERCODE = [ "Akku Stop", "Akku Voll", "Akku Leer", "", "FEHLER\nTimeout", \
+        "FEHLER\nLade-Menge", "FEHLER\nAkku zu Heiss", \
+        "FEHLER\nVersorgungsspannung", "FEHLER\nAkkuspannung", \
+        "FEHLER\nZellenspannung", "FEHLER\nAlarmeingang", "FEHLER\nStromregler", \
+        "FEHLER\nPolung/Kurzschluss", "FEHLER\nRegelfenster", \
+        "FEHLER\nMessfenster", "FEHLER\nTemperatur", "FEHLER\nTempsens", \
+        "FEHLER\nHardware"]
 LIPORGB = ["3399ff", "55ff00", "ff9922", "3311cc", "123456", "ff0000", \
         "3388cc", "cc8833", "88cc33", "ffff00", "ff00ff", "00ffff"]
 
