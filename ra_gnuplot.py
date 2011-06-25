@@ -173,8 +173,8 @@ def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
             xtmp += 1
         avg_string = avg_string[0:-1] + ")/" + str(xtmp)
 
-        gpst += 'wfile using 2:('+avg_string+') with lines title "mV\
-                (avg)" lw 2 lc rgbcolor "#cc3333" '
+        gpst += 'wfile using 2:('+avg_string+') with lines title "mV (avg)"\
+                lw 2 lc rgbcolor "#cc3333" '
 
         for i in range(18, len(line_a) - 1):
             gpst += ', wfile using 2:($'+str(i+1)+'-'+ str(avg_string)+')\
