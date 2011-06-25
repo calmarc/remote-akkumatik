@@ -269,7 +269,7 @@ def main_window():
         cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang_off.png")
         cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR+"/bilder/Ausgang.png")
 
-    vbox.pack_start(gtk.HSeparator(), False, False, 2)
+    vbox.pack_start(gtk.HSeparator(), False, False, 8)
 
     #hbox fuer 'parameter,chart'
     hbox = gtk.HBox()
@@ -296,7 +296,7 @@ def main_window():
     button.connect("clicked", buttoncb, "Exit")
     vbox.pack_end(button, False, False, 0)
 
-    vbox.pack_end(gtk.HSeparator(), False, True, 2)
+    vbox.pack_end(gtk.HSeparator(), False, True, 8)
 
     # after file-open (what is needed on plotting)... hm?
     cfg.GTK_WINDOW.show_all()

@@ -173,7 +173,7 @@ def generate_output_strs(daten): #{{{
     #TODO:  more elgegant...
     if cfg.ATYP[cfg.GEWAEHLTER_AUSGANG] == 5: #LiPo
         if len(daten) > 19:
-            rimohm_baldelta = "∆%2imV " % (balance_delta)
+            rimohm_baldelta = "∆%imV " % (balance_delta)
         else:
             rimohm_baldelta = "∆..mV "
         cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
