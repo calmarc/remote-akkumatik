@@ -298,7 +298,6 @@ def gnuplot(): #{{{
                 "-" and fname [8:12] == ".dat":
 
             size = os.path.getsize(cfg.TMP_DIR + "/" + fname)
-            print size
             if size < 12000: # byte - about 3 minutes minimum
                 #skip on too little data-packages
                 continue

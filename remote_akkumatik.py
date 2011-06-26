@@ -188,7 +188,7 @@ def generate_output_strs(daten): #{{{
     if zykll == "0":
         zykll = "-"
 
-    output2 ="%ix%s %2i° %s Z:%1i/%s\n" % \
+    output2 ="<span foreground=\"#444444\">%i</span>·<span foreground=\"#444444\">%s</span> %2i° %s Z:%1i/%s\n" % \
             (cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], atyp_str, c_bat,\
             rimohm_baldelta, zyklus, zykll)
     output2 +="%s %s %s %s\n" % (prg_str, lart_str, stromw_str, stoppm_str)
