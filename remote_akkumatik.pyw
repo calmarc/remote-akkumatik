@@ -193,8 +193,8 @@ def generate_output_strs(daten): #{{{
             rimohm_baldelta, zyklus, zykll)
 
     if prg_str == "Entladen":
-        stoppm_str = " *** "
-        lart_str = " **** "
+        stoppm_str = "**** "
+        lart_str = "**** "
 
     output2 +="%s %s %s %s\n" % (prg_str, lart_str, stromw_str, stoppm_str)
 
@@ -218,14 +218,14 @@ def generate_output_strs(daten): #{{{
     menge_str = "Menge:%smAh " % menge_str
 
     if stromw_str == "Auto":
-        llimit = " *** "
-        entll = " *** "
+        llimit = "**** "
+        entll = "**** "
     if prg_str == "Entladen":
-        llimit = " *** "
+        llimit = "**** "
     if prg_str == "Laden":
-        entll = " *** "
+        entll = "**** "
     if stoppm_str != "Lademenge" or prg_str == "Entladen":
-        menge_str = " *** "
+        menge_str = "**** "
 
     output2 +="%s %s %s\n" % (kapa , llimit, entll)
 
