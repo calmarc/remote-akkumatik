@@ -10,6 +10,7 @@ import gtk
 
 #own import
 import cfg
+import gtk_stuff
 
 def open_file(file_name, mode):
     """Open a file."""

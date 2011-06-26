@@ -23,6 +23,7 @@ import ra_gnuplot
 # Message Box{{{
 ##########################################
 def message_dialog(parent, string):
+    """ simple message dialog """
     dialog = gtk.MessageDialog(parent, gtk.DIALOG_MODAL |
                 gtk.DIALOG_DESTROY_WITH_PARENT,gtk.MESSAGE_INFO, gtk.BUTTONS_OK, string)
 
@@ -151,6 +152,7 @@ def main_window():
                 cfg.FLOG.write("Sending Command 42\n")
 
     def event_start_stop_enter_cb(widget, event, data):
+        """ enter event on start-stop button """
         cfg.START_STOP_HOVER = True
         if cfg.PHASE == 0:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start_hover.png")
@@ -158,18 +160,13 @@ def main_window():
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop_hover.png")
 
     def event_start_stop_leave_cb(widget, event, data):
+        """ leave event on start-stop button """
         cfg.START_STOP_HOVER = False
 
         if cfg.PHASE == 0:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start.png")
         else:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop.png")
-
-
-    # other button callbacks
-    def buttoncb (widget, data):
-        """ callback function from the main display buttons """
-        return
 
     def draw_pixbuf(widget, event):
         """ add the picture to the window """
@@ -339,11 +336,6 @@ def main_window():
     evbox.connect("enter-notify-event", event_simple_enter_cb, "recycle")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "recycle")
     hbox.pack_start(evbox, True, True, 0)
-
-    #button = gtk.Button("Save")
-    #button.set_size_request(28, 20)
-    #button.connect("clicked", buttoncb, "Save")
-    #hbox.pack_start(button, False, False, 0)
 
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
