@@ -230,25 +230,28 @@ def read_line(labels): #{{{
         gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         return True
 
-    daten = lin.split('\xff')
-
     ################*################
     #Clean/check lines before writing or so
 
     yeswrite = True
 
     #handle command-acknowledged string
-    if len(daten[0]) > 1:
-        while lin[0:2] == "A1": #more Ack.. can be there
-            lin = lin[5:]
-            daten[0] = daten[0][-1:] #last digit only (Ausgang) wird kaum gehen
-            cfg.COMMAND_WAIT = False # Kommando kam an
+    while lin[0:2] == "A1": #more than one Ack.. can be there
+        lin = lin[5:] #cut out
+        cfg.COMMAND_WAIT = False # Kommando kam an
+
+    daten = lin.split('\xff')
 
     if lin[:1] == "#" or len(daten[0]) != 1 or len(daten) < 19 or len(daten) > 31:
         return True
 
-    curtime = lin[2:10]
-    if len(curtime) != 8 or curtime[2] != ":" or curtime[5] != ":":
+    curtime = daten[1]
+    if len(curtime) != 8 or curtime[2] != ":":
+        tmp = "gebrochene serial-dings:" + lin + "\n"
+        tmp += "Curtime: <%s>" % curtime
+        print (tmp)
+        cfg.FLOG.write(tmp)
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         return True
 
     if curtime == "00:00:00": #not begun yet
