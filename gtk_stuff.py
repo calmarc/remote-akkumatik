@@ -802,52 +802,61 @@ def akkupara_dialog(): #{{{
     combo_prog_stromw_cb(None)
     combo_prog_stoppm_cb(None)
 
-    # run the dialog
-    retval = dialog.run()
+    hex_str = None
+    hex_str2 = None
+
+    while True:
+        # run the dialog
+        # reloading it multiple times seems to work flawlessly
+        retval = dialog.run()
+
+        if retval == -3 or retval == 2: #OK or uebertragen got pressed
+
+            #can easily happen, when loading stored parameters
+            #into akku 2 where no entladen is available
+            if cb_prog.get_active_text() == None:
+                message_dialog(dialog, "'Programm' ist nicht gewählt")
+                continue
+
+
+            hex_str = str(30 + cfg.GEWAEHLTER_AUSGANG) #kommando 31 or 32
+            hex_str += helper.get_pos_hex(cb_atyp.get_active_text(), cfg.AKKU_TYP)
+            hex_str += helper.get_pos_hex(cb_prog.get_active_text(), cfg.AMPROGRAMM)
+            hex_str += helper.get_pos_hex(cb_lart.get_active_text(), cfg.LADEART)
+            hex_str += \
+                    helper.get_pos_hex(cb_stromw.get_active_text(), cfg.STROMWAHL)
+
+            tmp = cb_stoppm.get_active_text()
+            if tmp == None: #replace lipo None need something
+                tmp = cfg.STOPPMETHODE[0] #"Lademenge"
+            hex_str += helper.get_pos_hex(tmp, cfg.STOPPMETHODE)
+
+            hex_str += helper.get_16bit_hex(int(sp_anzzellen.get_value()))
+            hex_str += helper.get_16bit_hex(int(sp_kapazitaet.get_value()))
+            hex_str += helper.get_16bit_hex(int(sp_ladelimit.get_value()))
+            hex_str += helper.get_16bit_hex(int(sp_entladelimit.get_value()))
+            hex_str += helper.get_16bit_hex(int(sp_menge.get_value()))
+            hex_str += helper.get_16bit_hex(int(sp_zyklen.get_value()))
+
+            #since akkumatik is not sending this stuff from its own (yet)
+            cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG] = int(sp_kapazitaet.get_value())
+            cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG] = int(sp_ladelimit.get_value())
+            cfg.ENTLADELIMIT[cfg.GEWAEHLTER_AUSGANG] = \
+                    int(sp_entladelimit.get_value())
+            cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = int(sp_menge.get_value())
+            cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG] = int(sp_zyklen.get_value())
+
+            #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode
+            #u08 stop_mode u16 zellenzahl u16 capacity u16 i_lade u16 i_entl
+            #u16 menge u16 zyklenzahl
+
+            if retval == -3: #Additionally start the thing
+                if cfg.GEWAEHLTER_AUSGANG == 1:
+                    hex_str2 = "44"
+                else:
+                    hex_str2 = "48"
+        break
     dialog.destroy()
+    return (hex_str, hex_str2)
 
-    if retval == -3 or retval == 2: #OK or uebertragen got pressed
-
-        hex_str = str(30 + cfg.GEWAEHLTER_AUSGANG) #kommando 31 or 32
-        hex_str += helper.get_pos_hex(cb_atyp.get_active_text(), cfg.AKKU_TYP)
-        hex_str += helper.get_pos_hex(cb_prog.get_active_text(), cfg.AMPROGRAMM)
-        hex_str += helper.get_pos_hex(cb_lart.get_active_text(), cfg.LADEART)
-        hex_str += \
-                helper.get_pos_hex(cb_stromw.get_active_text(), cfg.STROMWAHL)
-
-        tmp = cb_stoppm.get_active_text()
-        if tmp == None: #replace lipo None need something
-            tmp = cfg.STOPPMETHODE[0] #"Lademenge"
-        hex_str += helper.get_pos_hex(tmp, cfg.STOPPMETHODE)
-
-        hex_str += helper.get_16bit_hex(int(sp_anzzellen.get_value()))
-        hex_str += helper.get_16bit_hex(int(sp_kapazitaet.get_value()))
-        hex_str += helper.get_16bit_hex(int(sp_ladelimit.get_value()))
-        hex_str += helper.get_16bit_hex(int(sp_entladelimit.get_value()))
-        hex_str += helper.get_16bit_hex(int(sp_menge.get_value()))
-        hex_str += helper.get_16bit_hex(int(sp_zyklen.get_value()))
-
-        #since akkumatik is not sending this stuff from its own (yet)
-        cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG] = int(sp_kapazitaet.get_value())
-        cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG] = int(sp_ladelimit.get_value())
-        cfg.ENTLADELIMIT[cfg.GEWAEHLTER_AUSGANG] = \
-                int(sp_entladelimit.get_value())
-        cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = int(sp_menge.get_value())
-        cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG] = int(sp_zyklen.get_value())
-
-        #Kommando u08 Akkutyp u08 program u08 lade_mode u08 strom_mode
-        #u08 stop_mode u16 zellenzahl u16 capacity u16 i_lade u16 i_entl
-        #u16 menge u16 zyklenzahl
-
-        hex_str2 = ""
-        if retval == -3: #Additionally start the thing
-            if cfg.GEWAEHLTER_AUSGANG == 1:
-                hex_str2 = "44"
-            else:
-                hex_str2 = "48"
-
-        return (hex_str, hex_str2)
-
-    return(None, None)
 # vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
-#

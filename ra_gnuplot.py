@@ -145,7 +145,6 @@ def filesplit(): #{{{
         cfg.FLOG.write(tmp + '\n')
 
 #}}}
-
 def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
     """lipo gnuplot 2nd chart"""
 
@@ -195,7 +194,6 @@ def lipo_gnuplot(line_a, rangeval, anz_z): #{{{
     return (gpst)
 
 #}}}
-
 def else_gnuplot(): #{{{
     """other than lipo gnuplot 2nd chart"""
 
@@ -215,7 +213,6 @@ def else_gnuplot(): #{{{
     return gpst
 
 #}}}
-
 def nixx_gnuplot(): #{{{
     """NiCd and NiMH gnuplot 2nd chart"""
 
@@ -243,7 +240,6 @@ def nixx_gnuplot(): #{{{
     return gpst
 
 #}}}
-
 def get_balancer_range(fhan): #{{{
     """ calculate balancer range max-min """
 
@@ -283,7 +279,6 @@ def get_balancer_range(fhan): #{{{
     return rangeval
 
 #}}}
-
 def gnuplot(): #{{{
     """Create charts"""
 
@@ -301,6 +296,12 @@ def gnuplot(): #{{{
     for fname in dir_list:
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg.GEWAEHLTER_AUSGANG)+\
                 "-" and fname [8:12] == ".dat":
+
+            size = os.path.getsize(cfg.TMP_DIR + "/" + fname)
+            if size < 12000: # byte - about 3 minutes minimum
+                #skip on too little data-packages
+                continue
+
             qiv_files += cfg.CHART_DIR + "/" + fname[:-4] + ".png "
 
             fhan = helper.open_file(cfg.TMP_DIR + "/" + fname, "r")
