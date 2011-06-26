@@ -69,7 +69,7 @@ def main_window():
             cfg.FSER = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
             cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
             cfg.FILE_BLOCK = False
-            message_dialog(cfg.GTK_WINDOW, "...collecting data from scratch...")
+            message_dialog(cfg.GTK_WINDOW, "Old serial data disposed.")
             return
 
         elif data == "quit":
@@ -133,16 +133,20 @@ def main_window():
         #not running -> send start
         if cfg.PHASE == 0:
             if cfg.GEWAEHLTER_AUSGANG == 1:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("44", "Start")
                 cfg.FLOG.write("Sending Command 44\n")
             else:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("48", "Start")
                 cfg.FLOG.write("Sending Command 48\n")
         else: #running -> send stop
             if cfg.GEWAEHLTER_AUSGANG == 1:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("41", "Stop")
                 cfg.FLOG.write("Sending Command 41\n")
             else:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("42", "Stop")
                 cfg.FLOG.write("Sending Command 42\n")
 
@@ -334,7 +338,7 @@ def main_window():
     evbox.connect("button-press-event", event_simple_cb, "recycle")
     evbox.connect("enter-notify-event", event_simple_enter_cb, "recycle")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "recycle")
-    hbox.pack_start(evbox, False, False, 0)
+    hbox.pack_start(evbox, True, True, 0)
 
     #button = gtk.Button("Save")
     #button.set_size_request(28, 20)
@@ -350,7 +354,7 @@ def main_window():
     evbox.connect("button-press-event", event_simple_cb, "quit")
     evbox.connect("enter-notify-event", event_simple_enter_cb, "quit")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "quit")
-    hbox.pack_end(evbox, False, False, 0)
+    hbox.pack_end(evbox, False, True, 0)
 
     hbox.pack_end(gtk.VSeparator(), False, True, 2)
 
