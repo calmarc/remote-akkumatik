@@ -114,8 +114,8 @@ def akkumatik_command(string, what):
             while gtk.events_pending():
                 gtk.main_iteration()
             time.sleep(2.0)
-        cfg.THREADLOCK.release()
 
+        cfg.THREADLOCK.release()
         cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
                 cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#cccccc"))
         cfg.LABEL_STATUS.hide()

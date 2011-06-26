@@ -133,16 +133,20 @@ def main_window():
         #not running -> send start
         if cfg.PHASE == 0:
             if cfg.GEWAEHLTER_AUSGANG == 1:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("44", "Start")
                 cfg.FLOG.write("Sending Command 44\n")
             else:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("48", "Start")
                 cfg.FLOG.write("Sending Command 48\n")
         else: #running -> send stop
             if cfg.GEWAEHLTER_AUSGANG == 1:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("41", "Stop")
                 cfg.FLOG.write("Sending Command 41\n")
             else:
+                cfg.COMMAND_ABORT = False #reset
                 helper.akkumatik_command("42", "Stop")
                 cfg.FLOG.write("Sending Command 42\n")
 
