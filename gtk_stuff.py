@@ -177,8 +177,8 @@ def main_window():
 
     cfg.GTK_WINDOW = gtk.Window(gtk.WINDOW_TOPLEVEL)
     cfg.GTK_WINDOW.set_title('Akkumatic Remote Display')
-    cfg.GTK_WINDOW.set_size_request(962, 168)
-    cfg.GTK_WINDOW.set_default_size(962, 168)
+    cfg.GTK_WINDOW.set_size_request(917, 168)
+    cfg.GTK_WINDOW.set_default_size(917, 168)
     cfg.GTK_WINDOW.set_position(gtk.WIN_POS_CENTER)
 
     cfg.GTK_WINDOW.connect("delete_event", delete_event)
@@ -196,31 +196,31 @@ def main_window():
 
     #Left part of display
     label = gtk.Label()
-    label.set_size_request(370, 92)
+    label.set_size_request(342, 92)
     label.set_alignment(0, 0)
     label.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
         label.modify_font(pango.FontDescription("mono bold 25"))
-        gfixed.put(label, 48 , 40)
+        gfixed.put(label, 45, 40)
     else:
         label.modify_font(pango.FontDescription("mono 22"))
-        gfixed.put(label, 48 , 36)
+        gfixed.put(label, 45, 36)
 
     #Right part of display
     label2 = gtk.Label()
-    label2.set_size_request(364, 100)
+    label2.set_size_request(340, 100)
     label2.set_alignment(0, 0)
     label2.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
-        gfixed.put(label2, 446, 33)
+        gfixed.put(label2, 418, 33)
         label2.modify_font(pango.FontDescription("mono bold 14"))
     else:
         label2.modify_font(pango.FontDescription("mono 12"))
-        gfixed.put(label2, 446, 33)
+        gfixed.put(label2, 418, 33)
 
     #Status of display
     cfg.LABEL_STATUS = gtk.Label()
-    cfg.LABEL_STATUS.set_size_request(774, 22)
+    cfg.LABEL_STATUS.set_size_request(729, 22)
     cfg.LABEL_STATUS.set_alignment(0, 0)
     cfg.LABEL_STATUS.set_justify(gtk.JUSTIFY_LEFT)
 
@@ -230,7 +230,7 @@ def main_window():
     cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
             cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#aaaaaa"))
 
-    gfixed.put(cfg.EVENT_BOX_LSTATUS, 36, 136)
+    gfixed.put(cfg.EVENT_BOX_LSTATUS, 34, 136)
     if platform.system() == "Windows": #TODO check once if that fits...
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 14"))
     else:

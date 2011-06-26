@@ -46,7 +46,7 @@ def generate_output_strs(daten): #{{{
         ausgang = str(int(daten[0][-1:])) #Ausgang
         zeit = daten[1] #Stunden Minuten Sekunden
         lade_v = int(daten[2])/1000.0 #Akkuspannung mV
-        lade_v = "%6.3fV" % (lade_v) #format into string
+        lade_v = "%5.2fV" % (lade_v) #format into string
         ampere = int(daten[3]) #Strom A
         if ampere >= 1000 or ampere <= -1000:
             ampere = "%+.2fA" % (ampere/1000.0)
@@ -144,7 +144,7 @@ def generate_output_strs(daten): #{{{
             return (output, "")
 
         if tmp_zellen >= 50: #'gute' codes
-            phasedesc = "%-11s" % \
+            phasedesc = "%-10s" % \
                     (cfg.FEHLERCODE[tmp_zellen - 50])
             ausgang = ""
             lade_v = ""
@@ -190,7 +190,7 @@ def generate_output_strs(daten): #{{{
         cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
         stoppm_str = ""
 
-    output ="%s%s %s %s\n%-7s   %+6.3fAh" % \
+    output ="%s%s %s %s\n%-7s  %+6.3fAh" % \
             (ausgang, phasedesc, lade_v, \
             zeit, ampere, amph)
 
