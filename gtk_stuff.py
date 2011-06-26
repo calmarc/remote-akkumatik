@@ -23,6 +23,7 @@ import ra_gnuplot
 # Message Box{{{
 ##########################################
 def message_dialog(parent, string):
+    """ simple message dialog """
     dialog = gtk.MessageDialog(parent, gtk.DIALOG_MODAL |
                 gtk.DIALOG_DESTROY_WITH_PARENT,gtk.MESSAGE_INFO, gtk.BUTTONS_OK, string)
 
@@ -151,6 +152,7 @@ def main_window():
                 cfg.FLOG.write("Sending Command 42\n")
 
     def event_start_stop_enter_cb(widget, event, data):
+        """ enter event on start-stop button """
         cfg.START_STOP_HOVER = True
         if cfg.PHASE == 0:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start_hover.png")
@@ -158,18 +160,13 @@ def main_window():
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop_hover.png")
 
     def event_start_stop_leave_cb(widget, event, data):
+        """ leave event on start-stop button """
         cfg.START_STOP_HOVER = False
 
         if cfg.PHASE == 0:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/start.png")
         else:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop.png")
-
-
-    # other button callbacks
-    def buttoncb (widget, data):
-        """ callback function from the main display buttons """
-        return
 
     def draw_pixbuf(widget, event):
         """ add the picture to the window """
@@ -180,8 +177,8 @@ def main_window():
 
     cfg.GTK_WINDOW = gtk.Window(gtk.WINDOW_TOPLEVEL)
     cfg.GTK_WINDOW.set_title('Akkumatic Remote Display')
-    cfg.GTK_WINDOW.set_size_request(962, 168)
-    cfg.GTK_WINDOW.set_default_size(962, 168)
+    cfg.GTK_WINDOW.set_size_request(917, 168)
+    cfg.GTK_WINDOW.set_default_size(917, 168)
     cfg.GTK_WINDOW.set_position(gtk.WIN_POS_CENTER)
 
     cfg.GTK_WINDOW.connect("delete_event", delete_event)
@@ -199,31 +196,31 @@ def main_window():
 
     #Left part of display
     label = gtk.Label()
-    label.set_size_request(370, 92)
+    label.set_size_request(342, 92)
     label.set_alignment(0, 0)
     label.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
         label.modify_font(pango.FontDescription("mono bold 25"))
-        gfixed.put(label, 48 , 40)
+        gfixed.put(label, 45, 40)
     else:
         label.modify_font(pango.FontDescription("mono 22"))
-        gfixed.put(label, 48 , 36)
+        gfixed.put(label, 45, 36)
 
     #Right part of display
     label2 = gtk.Label()
-    label2.set_size_request(364, 100)
+    label2.set_size_request(340, 100)
     label2.set_alignment(0, 0)
     label2.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
-        gfixed.put(label2, 446, 33)
+        gfixed.put(label2, 418, 33)
         label2.modify_font(pango.FontDescription("mono bold 14"))
     else:
         label2.modify_font(pango.FontDescription("mono 12"))
-        gfixed.put(label2, 446, 33)
+        gfixed.put(label2, 418, 33)
 
     #Status of display
     cfg.LABEL_STATUS = gtk.Label()
-    cfg.LABEL_STATUS.set_size_request(774, 22)
+    cfg.LABEL_STATUS.set_size_request(729, 22)
     cfg.LABEL_STATUS.set_alignment(0, 0)
     cfg.LABEL_STATUS.set_justify(gtk.JUSTIFY_LEFT)
 
@@ -233,7 +230,7 @@ def main_window():
     cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
             cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#aaaaaa"))
 
-    gfixed.put(cfg.EVENT_BOX_LSTATUS, 36, 136)
+    gfixed.put(cfg.EVENT_BOX_LSTATUS, 34, 136)
     if platform.system() == "Windows": #TODO check once if that fits...
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 14"))
     else:
@@ -339,11 +336,6 @@ def main_window():
     evbox.connect("enter-notify-event", event_simple_enter_cb, "recycle")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "recycle")
     hbox.pack_start(evbox, True, True, 0)
-
-    #button = gtk.Button("Save")
-    #button.set_size_request(28, 20)
-    #button.connect("clicked", buttoncb, "Save")
-    #hbox.pack_start(button, False, False, 0)
 
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)

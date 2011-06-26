@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 # Copyright (c) 2010, Marco Candrian
-""" remote akkumatik program for Stefan Estners Akkumatik """
+"""remote akkumatik program for Stefan Estners Akkumatik"""
 
 
 import os
@@ -32,8 +32,10 @@ import helper
 def output_data(output, label, output2, label2): #{{{
     """ print the stuff to the display """
 
-    label.set_markup('<span foreground="#444444">'+ output + '</span>')
-    label2.set_markup('<span foreground="#339933">'+ output2 + '</span>')
+    label.set_markup('<span foreground="#444444">'+\
+            output + '</span>')
+    label2.set_markup('<span foreground="#339933">'+\
+            output2 + '</span>')
     while gtk.events_pending():
         gtk.main_iteration()
 
@@ -44,7 +46,7 @@ def generate_output_strs(daten): #{{{
         ausgang = str(int(daten[0][-1:])) #Ausgang
         zeit = daten[1] #Stunden Minuten Sekunden
         lade_v = int(daten[2])/1000.0 #Akkuspannung mV
-        lade_v = "%6.3fV" % (lade_v) #format into string
+        lade_v = "%5.2fV" % (lade_v) #format into string
         ampere = int(daten[3]) #Strom A
         if ampere >= 1000 or ampere <= -1000:
             ampere = "%+.2fA" % (ampere/1000.0)
@@ -52,13 +54,16 @@ def generate_output_strs(daten): #{{{
             ampere = "%imA" % (ampere)
 
         amph = int(daten[4])/1000.0 #Ladungsmenge amph
-        vers_u = int(daten[5])/1000.0 #Versorungsspannung mV
+        vers_u = int(daten[5])/1000.0 #Versorgungs-U mV
         rimohm_baldelta = int(daten[6]) #akku-unnen mOhm
         c_bat = int(daten[7]) #Akkutemperatur
-        tmp_zellen = int(daten[8]) #Zellenzahl / bei Stop -> 'Fehlercode'
+        #Zellenzahl / bei Stop -> 'Fehlercode'
+        tmp_zellen = int(daten[8])
     except ValueError, err:
-        tmp = "Should really not happen. Please report this line to the maintainer\n"
-        tmp += "(generate_output_strs) ValueError: %s\n" % str(err)
+        tmp = "Should not happen. Please report this line"
+        tmp += " to the maintainer\n"
+        tmp += "(generate_output_strs) ValueError: %s\n"\
+                % str(err)
         tmp += ", ".join([str(x) for x in daten])
         tmp += "\n"
         print (tmp)
@@ -73,14 +78,18 @@ def generate_output_strs(daten): #{{{
     cfg.START_STOP.set_sensitive(True)
     if phase == 0:
         if cfg.START_STOP_HOVER:
-            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start_hover.png")
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+\
+                    "/bilder/start_hover.png")
         else:
-            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/start.png")
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+\
+                    "/bilder/start.png")
     else:
         if cfg.START_STOP_HOVER:
-            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/stop_hover.png")
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+\
+                    "/bilder/stop_hover.png")
         else:
-            cfg.START_STOP.set_from_file(cfg.EXE_DIR+"/bilder/stop.png")
+            cfg.START_STOP.set_from_file(cfg.EXE_DIR+\
+                    "/bilder/stop.png")
 
     #TODO 'beim Formieren' also sonst immer 0? dann output2 anpassen
     zyklus = int(daten[10]) #Zyklus
@@ -97,7 +106,7 @@ def generate_output_strs(daten): #{{{
         lart_str = cfg.LADEART[int(daten[14])] #Ladeart
     except IndexError, err:
         tmp = "%s\n" % err
-        tmo += "-> %i\n\n" % int(daten[14])
+        tmp += "-> %i\n\n" % int(daten[14])
         print (tmp)
         cfg.FLOG.write(tmp)
         gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
@@ -130,23 +139,25 @@ def generate_output_strs(daten): #{{{
 
     if phase == 0: #dann 'Fehlercode' zwangsweise ...?
         if tmp_zellen >= 54: # FEHLER
-            output = str(cfg.GEWAEHLTER_AUSGANG)+' '+cfg.FEHLERCODE[tmp_zellen - 50]
+            output = str(cfg.GEWAEHLTER_AUSGANG)+' '+\
+                    cfg.FEHLERCODE[tmp_zellen - 50]
             return (output, "")
 
         if tmp_zellen >= 50: #'gute' codes
-            phasedesc = "%-11s" % (cfg.FEHLERCODE[tmp_zellen - 50])
+            phasedesc = "%-10s" % \
+                    (cfg.FEHLERCODE[tmp_zellen - 50])
             ausgang = ""
             lade_v = ""
 
         else:
-            phasedesc = "?????" # should never happen possibly
+            phasedesc = "?????" # should not happen possibly
 
-    # 51 VOLL   Ladevorgang wurde korrekt beendet, Akku ist voll geladen
-    # 52 LEER   Entladevorgang wurde korrekt beendet, Akku ist leer
-    # TODO: 52 od 51 + "x..." FERTIG Lipo-Lagerprogramm wurde korrekt 
-    #         beendet, Akku ist fertig zum Lagern
-    # TODO: 52 od 51 + "x ": ? MENGE  Vorgang wurde durch eingestelltes 
-    #        Mengenlimit beendet
+    # 51 VOLL   Ladevorgang wurde korrekt beendet, Akku voll
+    # 52 LEER   Entladevorgang korrekt beendet, Akku leer
+    # TODO: 52 od 51 + "x..." FERTIG Lipo-Lagerprogramm 
+    #    wurde korrekt beendet, Akku ist fertig zum Lagern
+    # TODO: 52 od 51 + "x ": ? MENGE  Vorgang wurde durch
+    #                 eingestelltes  Mengenlimit beendet
     # 50 STOP Vorgang wurde manuell (vorzeitig) beendet
     # FEHLER Vorgang wurde fehlerhaft beendet
 
@@ -179,7 +190,8 @@ def generate_output_strs(daten): #{{{
         cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
         stoppm_str = ""
 
-    output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v, \
+    output ="%s%s %s %s\n%-7s  %+6.3fAh" % \
+            (ausgang, phasedesc, lade_v, \
             zeit, ampere, amph)
 
     zykll = str(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG])
@@ -194,8 +206,8 @@ def generate_output_strs(daten): #{{{
 
     #first line
     output2 ="<span foreground=\"#444444\">%i</span>·<span foreground=\"#444444\">%s</span> %s %i° %s\n" % \
-            (cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], atyp_str, kapa, c_bat,\
-            rimohm_baldelta)
+            (cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG],\
+            atyp_str, kapa, c_bat, rimohm_baldelta)
 
     menge_str = str(cfg.MENGE[cfg.GEWAEHLTER_AUSGANG])
     if stoppm_str == "Lademenge":
@@ -236,7 +248,8 @@ def generate_output_strs(daten): #{{{
     output2 +="%s: %s %s\n" % (stromw_str, llimit, entll)
 
     #forth line
-    output2 +="§:%1i/%s VerU:%5.2fV %2i°KK\n" % (zyklus, zykll, vers_u, c_kk)
+    output2 +="§:%1i/%s VerU:%5.2fV %2i°KK\n" % \
+            (zyklus, zykll, vers_u, c_kk)
 
     return (output, output2)
 #}}}
@@ -384,7 +397,6 @@ if __name__ == '__main__': #{{{
     ##########################################
     #Variablen
 
-
     cfg.THREADLOCK = thread.allocate_lock()
 
     cfg.EXE_DIR = sys.path[0].replace('\\',"/") #TODO needed?
@@ -402,7 +414,6 @@ if __name__ == '__main__': #{{{
         cfg.SERIAL_PORT = 'COM1'
     else:
         cfg.SERIAL_PORT = '/dev/ttyS0'
-
 
     if os.path.exists(cfg.EXE_DIR + "/config.txt"):
         FCONF = helper.open_file(cfg.EXE_DIR + "/config.txt", "r")

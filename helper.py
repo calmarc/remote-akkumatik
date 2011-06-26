@@ -10,6 +10,7 @@ import gtk
 
 #own import
 import cfg
+import gtk_stuff
 
 def open_file(file_name, mode):
     """Open a file."""
@@ -28,7 +29,7 @@ def open_file(file_name, mode):
 
 #command stuff
 def get_pos_hex(string, konst_arr):
-    """ hm """
+    """ special akkumatik computation """
 
     position = konst_arr.index(string)
     string = "%02x" % (position)
@@ -79,12 +80,14 @@ def akkumatik_command(string, what):
         okk = False
         i = 0
         #Status
-        label_txt = "[%s]: " % (what)
+        if len(what) > 6:
+            what = what[:6]
+        label_txt = "[%-5s]: " % (what)
         cfg.LABEL_STATUS.show()
         cfg.LABEL_STATUS.set_text(label_txt)
         while gtk.events_pending():
             gtk.main_iteration()
-        while i < 49:
+        while i < 50:
             time.sleep(0.1)
             label_txt += "."
             cfg.LABEL_STATUS.set_text(label_txt)
