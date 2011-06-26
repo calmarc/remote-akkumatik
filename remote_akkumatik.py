@@ -175,7 +175,7 @@ def generate_output_strs(daten): #{{{
         if len(daten) > 19:
             rimohm_baldelta = "∆%imV " % (balance_delta)
         else:
-            rimohm_baldelta = "∆..mV "
+            rimohm_baldelta = "∆*mV "
         cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
         stoppm_str = ""
 
@@ -184,7 +184,7 @@ def generate_output_strs(daten): #{{{
 
     zykll = str(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG])
     if zykll == "0":
-        zykll = "-"
+        zykll = "*"
 
     kapa = str(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG])
     if kapa != "0":
@@ -217,9 +217,9 @@ def generate_output_strs(daten): #{{{
 
     #either zero or not available the info
     if llimit == "0":
-        llimit = "-"
+        llimit = "*"
     if entll == "0":
-        entll = "-"
+        entll = "*"
 
     llimit = "I&#8593;:%smA"  % llimit
     entll = "I&#8595;:%smA"  % entll

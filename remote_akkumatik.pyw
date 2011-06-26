@@ -175,18 +175,16 @@ def generate_output_strs(daten): #{{{
         if len(daten) > 19:
             rimohm_baldelta = "∆%imV " % (balance_delta)
         else:
-            rimohm_baldelta = "∆..mV "
+            rimohm_baldelta = "∆*mV "
         cfg.MENGE[cfg.GEWAEHLTER_AUSGANG] = 0
-        #lart_str = "[LiPo]"
         stoppm_str = ""
-        stromw_str = ""
 
     output ="%s%s %s %s\n%-7s   %+6.3fAh" % (ausgang, phasedesc, lade_v, \
             zeit, ampere, amph)
 
     zykll = str(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG])
     if zykll == "0":
-        zykll = "-"
+        zykll = "*"
 
     kapa = str(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG])
     if kapa != "0":
@@ -194,6 +192,7 @@ def generate_output_strs(daten): #{{{
     else:
         kapa = "{****}"
 
+    #first line
     output2 ="<span foreground=\"#444444\">%i</span>·<span foreground=\"#444444\">%s</span> %s %i° %s\n" % \
             (cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], atyp_str, kapa, c_bat,\
             rimohm_baldelta)
@@ -210,6 +209,7 @@ def generate_output_strs(daten): #{{{
         stoppm_str = ""
         lart_str = "**** "
 
+    #second line
     output2 +="%s %s %s\n" % (prg_str, lart_str, stoppm_str)
 
     llimit = str(cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG])
@@ -217,12 +217,12 @@ def generate_output_strs(daten): #{{{
 
     #either zero or not available the info
     if llimit == "0":
-        llimit = "-"
+        llimit = "*"
     if entll == "0":
-        entll = "-"
+        entll = "*"
 
-    llimit = "I-Laden:%smA"  % llimit
-    entll = "I-Entl.:%smA"  % entll
+    llimit = "I&#8593;:%smA"  % llimit
+    entll = "I&#8595;:%smA"  % entll
 
     if stromw_str == "Auto":
         llimit = "**** "
@@ -232,9 +232,11 @@ def generate_output_strs(daten): #{{{
     if prg_str == "Laden":
         entll = "**** "
 
+    #third line
     output2 +="%s: %s %s\n" % (stromw_str, llimit, entll)
 
-    output2 +="Zyklus:%1i/%s VerU:%5.2fV %2i°KK\n" % (zyklus, zykll, vers_u, c_kk)
+    #forth line
+    output2 +="§:%1i/%s VerU:%5.2fV %2i°KK\n" % (zyklus, zykll, vers_u, c_kk)
 
     return (output, output2)
 #}}}

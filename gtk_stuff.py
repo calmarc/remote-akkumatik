@@ -550,7 +550,7 @@ def akkupara_dialog(): #{{{
             cb_lart.append_text(cfg.LADEART[3])
             cb_lart.set_active(0)
 
-            cb_stromw.set_active(1)
+            cb_stromw.set_active(2) #fest
             cb_stromw.set_sensitive(False)
             cb_stoppm.set_active(-1)
             cb_stoppm.set_sensitive(False)
