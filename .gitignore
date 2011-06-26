@@ -1,6 +1,12 @@
+*.pyc
+.remote_akkumatik.py.swp
 bilder/Display.jpg.bak
 bilder/dcim/
 bilder/diplay.gif
+bilder/ra128.ico
+bilder/ra16.ico
+bilder/ra32.ico
+bilder/ra64.ico
 liste_akkus.dat
-*.pyc
 log.txt
+
