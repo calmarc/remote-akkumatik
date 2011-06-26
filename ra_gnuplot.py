@@ -40,14 +40,10 @@ def filesplit(): #{{{
     cfg.FILE_BLOCK = True #Block (on read_line) while doing stuff here
     cfg.FSER.close()
 
-    if os.path.getsize(cfg.TMP_DIR + '/serial-akkumatik.dat') < 10:
+    if os.path.getsize(cfg.TMP_DIR + '/serial-akkumatik.dat') < 12000:
         #reopen (append) and return
         cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', 'ab')
-        tmp = "Not sufficient Serial Data avaiable"
-        print (tmp)
-        cfg.FLOG.write(tmp + '\n')
         cfg.FILE_BLOCK = False
-        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
         return
 
     cfg.FSER = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'rb')
@@ -297,8 +293,8 @@ def gnuplot(): #{{{
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg.GEWAEHLTER_AUSGANG)+\
                 "-" and fname [8:12] == ".dat":
 
-            size = os.path.getsize(cfg.TMP_DIR + "/" + fname)
-            if size < 12000: # byte - about 3 minutes minimum
+            #byte - about 3 minutes minimum
+            if os.path.getsize(cfg.TMP_DIR + "/" + fname) < 12000:
                 #skip on too little data-packages
                 continue
 
@@ -445,6 +441,9 @@ def gnuplot(): #{{{
                 break #one is enough for eg. irfanview
         else:
             thread.start_new_thread(os.system,(cfg.PICTURE_EXE+' '+arguments,))
+    else:
+        tmp = "Not sufficient Serial Data available"
+        gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
 
 #}}}
 # vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
