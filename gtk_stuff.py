@@ -215,11 +215,11 @@ def main_window():
     label2.set_alignment(0, 0)
     label2.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
-        gfixed.put(label2, 440, 33)
+        gfixed.put(label2, 446, 33)
         label2.modify_font(pango.FontDescription("mono bold 14"))
     else:
         label2.modify_font(pango.FontDescription("mono 12"))
-        gfixed.put(label2, 440, 33)
+        gfixed.put(label2, 446, 33)
 
     #Status of display
     cfg.LABEL_STATUS = gtk.Label()
@@ -550,7 +550,7 @@ def akkupara_dialog(): #{{{
             cb_lart.append_text(cfg.LADEART[3])
             cb_lart.set_active(0)
 
-            cb_stromw.set_active(1)
+            cb_stromw.set_active(2) #fest
             cb_stromw.set_sensitive(False)
             cb_stoppm.set_active(-1)
             cb_stoppm.set_sensitive(False)
