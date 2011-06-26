@@ -55,7 +55,7 @@ def main_window():
             helper.akkumatik_command(cmd1, "Übertragen")
             cfg.FLOG.write("Sending Command %s \"Übertragen\"\n" % cmd1)
 
-            if cmd2 != "":
+            if cmd2:
                 time.sleep(0.6) #else threads may get out of order somehow
                 helper.akkumatik_command(cmd2, "Start")
                 cfg.FLOG.write("Sending Command %s \"Start\"\n" % cmd2)

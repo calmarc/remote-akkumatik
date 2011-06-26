@@ -68,13 +68,13 @@ def akkumatik_command(string, what):
 
         cfg.COMMAND_WAIT = True
         try:
-            #cfg.SER.setDTR(True)
             cfg.SER.write(com_str)
-            #cfg.SER.setDTR(False) #TODO Testing. not really knowing what I do
         except serial.SerialException, err:
             tmp = "%s" % err
+            tmp += ":" + com_str + ", "+ what
             print (tmp)
             cfg.FLOG.write(tmp)
+            gtk_stuff.message_dialog(None, tmp)
 
         okk = False
         i = 0

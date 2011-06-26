@@ -248,6 +248,8 @@ def read_line(labels): #{{{
         return True
 
     curtime = lin[2:10]
+    if len(curtime) != 8 or curtime[2] != ":" or curtime[5] != ":":
+        return True
 
     if curtime == "00:00:00": #not begun yet
         yeswrite = False
