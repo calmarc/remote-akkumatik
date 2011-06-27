@@ -772,10 +772,8 @@ def akkupara_dialog(): #{{{
     sp_entladelimit.set_wrap(False)
     sp_entladelimit.set_numeric(True)
     vbox.pack_start(sp_entladelimit, False, True, 0)
-
     if cfg.GEWAEHLTER_AUSGANG == 2:
         sp_entladelimit.set_sensitive(False)
-
     sp_entladelimit.show()
 
     label = gtk.Label("Menge mAh")
