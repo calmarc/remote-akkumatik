@@ -68,7 +68,8 @@ def main_window():
             cfg.FSER.close()
             #truncates old file
             cfg.FSER = helper.open_file(cfg.TMP_DIR + '/serial-akkumatik.dat', 'w+b')
-            cfg.FLOG.write("%s opened (new or create binary)" % cfg.TMP_DIR + '/serial-akkumatik.dat\n')
+            cfg.FLOG.write("%s opened (new or create binary)" % \
+                    cfg.TMP_DIR + '/serial-akkumatik.dat\n')
             cfg.FILE_BLOCK = False
             message_dialog(cfg.GTK_WINDOW, "Old serial data disposed.")
             return
@@ -78,7 +79,8 @@ def main_window():
 
     def event_simple_enter_cb(widget, event, data):
         """ general event enter function """
-        widget.get_child().set_from_file(cfg.EXE_DIR + "/bilder/"+data+"_hover.png")
+        widget.get_child().set_from_file(cfg.EXE_DIR + \
+                "/bilder/"+data+"_hover.png")
 
     def event_simple_leave_cb(widget, event, data):
         """ general event leave function """
@@ -104,10 +106,12 @@ def main_window():
         """ hover effect - hover when _off """
         if data == "1":
             if cfg.GEWAEHLTER_AUSGANG == 2:
-                cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_hover.png")
+                cfg.IMG_AKKU1.set_from_file(cfg.EXE_DIR + \
+                        "/bilder/Ausgang_hover.png")
         else:
             if cfg.GEWAEHLTER_AUSGANG == 1:
-                cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + "/bilder/Ausgang_hover.png")
+                cfg.IMG_AKKU2.set_from_file(cfg.EXE_DIR + \
+                        "/bilder/Ausgang_hover.png")
     def event_leave_cb(widget, event, data):
         """ hover effect 2 - reset """
         if data == "1":
@@ -199,7 +203,7 @@ def main_window():
     cfg.LABEL1.set_size_request(342, 92)
     cfg.LABEL1.set_alignment(0, 0)
     cfg.LABEL1.set_justify(gtk.JUSTIFY_LEFT)
-    if platform.system() == "Windows": #TODO check once if that fits...
+    if platform.system() == "Windows":
         cfg.LABEL1.modify_font(pango.FontDescription("mono bold 25"))
         gfixed.put(cfg.LABEL1, 45, 40)
     else:
@@ -211,7 +215,7 @@ def main_window():
     cfg.LABEL2.set_size_request(340, 100)
     cfg.LABEL2.set_alignment(0, 0)
     cfg.LABEL2.set_justify(gtk.JUSTIFY_LEFT)
-    if platform.system() == "Windows": #TODO check once if that fits...
+    if platform.system() == "Windows":
         gfixed.put(cfg.LABEL2, 418, 33)
         cfg.LABEL2.modify_font(pango.FontDescription("mono bold 14"))
     else:
@@ -231,7 +235,7 @@ def main_window():
             cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#aaaaaa"))
 
     gfixed.put(cfg.EVENT_BOX_LSTATUS, 34, 136)
-    if platform.system() == "Windows": #TODO check once if that fits...
+    if platform.system() == "Windows":
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 14"))
     else:
         cfg.LABEL_STATUS.modify_font(pango.FontDescription("mono bold 12"))
@@ -480,7 +484,8 @@ def akkupara_dialog(): #{{{
             if retval == -3: #OK
                 akkulist.pop(active_i) #gtk synchron to akkulist (should)
                 cb_akkulist.remove_text(active_i)
-                cfg.FLOG.write("Akku-Parameter geloescht '" + akkulist[active_i][0] + '\'\n\n')
+                cfg.FLOG.write("Akku-Parameter geloescht '" + \
+                        akkulist[active_i][0] + '\'\n\n')
 
             dialog.destroy()
 
