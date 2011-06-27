@@ -55,11 +55,9 @@ def get_16bit_hex(integer):
 def akkumatik_command(string, what):
     """ Send a Command to the Akkumatik """
 
-    #TODO tname possibly last of str_tuple..
-    def command_thread(tname, str_tuple): #{{{
+    def command_thread(tname, com_str): #{{{
         """ thread each single command """
 
-        (com_str, what) = str_tuple
         #TODO make it how it *should be* instead of that here...
         cfg.THREADLOCK.acquire()
 
@@ -72,7 +70,7 @@ def akkumatik_command(string, what):
             cfg.SER.write(com_str)
         except serial.SerialException, err:
             tmp = "%s" % err
-            tmp += ":" + com_str + ", "+ what
+            tmp += ":" + com_str + ", "+ tname
             print (tmp)
             cfg.FLOG.write(tmp)
             gtk_stuff.message_dialog(None, tmp)
@@ -80,9 +78,9 @@ def akkumatik_command(string, what):
         okk = False
         i = 0
         #Status
-        if len(what) > 6:
-            what = what[:6]
-        label_txt = "[%-5s]: " % (what)
+        if len(tname) > 6:
+            tname = tname[:6]
+        label_txt = "[%-5s]: " % (tname)
         cfg.LABEL_STATUS.show()
         cfg.LABEL_STATUS.set_text(label_txt)
         while gtk.events_pending():
@@ -100,7 +98,7 @@ def akkumatik_command(string, what):
                 #Status
                 label_txt += " OK"
                 cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
-                        cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#66cc66"))
+                   cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#66cc66"))
                 cfg.LABEL_STATUS.set_text(label_txt)
                 while gtk.events_pending():
                     gtk.main_iteration()
@@ -132,8 +130,8 @@ def akkumatik_command(string, what):
     checksum ^= 64 #dummy checksum byte itself to checksum...
 
     #try:
-    thread.start_new_thread(command_thread, (what, (chr(2) + string +\
-            chr(checksum) + chr(3), what)))
+    thread.start_new_thread(command_thread, (what, chr(2) + string +\
+            chr(checksum) + chr(3)))
     #except:
     #    print "Error: unable to start thread"
 
