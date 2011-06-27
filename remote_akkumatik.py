@@ -29,12 +29,12 @@ import helper
 ##########################################
 #Serial + output stuff{{{
 ##########################################
-def output_data(output, label, output2, label2): #{{{
+def output_data(output, output2): #{{{
     """ print the stuff to the display """
 
-    label.set_markup('<span foreground="#444444">'+\
+    cfg.LABEL1.set_markup('<span foreground="#444444">'+\
             output + '</span>')
-    label2.set_markup('<span foreground="#339933">'+\
+    cfg.LABEL2.set_markup('<span foreground="#339933">'+\
             output2 + '</span>')
     while gtk.events_pending():
         gtk.main_iteration()
@@ -256,7 +256,7 @@ def generate_output_strs(daten): #{{{
 
     return (output, output2)
 #}}}
-def read_line(labels): #{{{
+def read_line(): #{{{
     """Read serial data (called via interval via 
     gobject.timeout_add) and print it to display"""
 
@@ -327,7 +327,7 @@ def read_line(labels): #{{{
     if (daten[0] == "1" and cfg.GEWAEHLTER_AUSGANG == 1) \
             or (daten[0] == "2" and cfg.GEWAEHLTER_AUSGANG == 2):
         (labstr1, labstr2) = generate_output_strs(daten)
-        output_data(labstr1, labels[0], labstr2, labels[1])
+        output_data(labstr1, labstr2)
 
     return True
 
@@ -482,13 +482,12 @@ if __name__ == '__main__': #{{{
     cfg.SER = serial_setup()
     cfg.FSER = serial_file_setup()
 
-    #TODO: why not putting label's also into cfg....
-    (LABEL, LABEL2) = gtk_stuff.main_window()
+    gtk_stuff.main_window()
 
     #finally begin collecting
     #TODO: faster when data-uploading via memoery-thing?
     # some tuning around with that value possibly
-    gobject.timeout_add(120, read_line, (LABEL, LABEL2))
+    gobject.timeout_add(120, read_line)
 
     gtk.main()
     cfg.FLOG.close()

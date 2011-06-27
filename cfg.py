@@ -62,9 +62,10 @@ PICTURE_EXE = ""
 TMP_DIR = ""
 CHART_DIR = ""
 
-#main gtk windows
+#gtk
 GTK_WINDOW = None
-# could be transfered from main-window to read_line.. together with labels..
+LABEL1 = None
+LABEL2 = None
 START_STOP = None
 START_STOP_HOVER = False
 LABEL_STATUS = None

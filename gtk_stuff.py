@@ -195,28 +195,28 @@ def main_window():
     hbox.pack_start(gfixed, True, True, 0)
 
     #Left part of display
-    label = gtk.Label()
-    label.set_size_request(342, 92)
-    label.set_alignment(0, 0)
-    label.set_justify(gtk.JUSTIFY_LEFT)
+    cfg.LABEL1 = gtk.Label()
+    cfg.LABEL1.set_size_request(342, 92)
+    cfg.LABEL1.set_alignment(0, 0)
+    cfg.LABEL1.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
-        label.modify_font(pango.FontDescription("mono bold 25"))
-        gfixed.put(label, 45, 40)
+        cfg.LABEL1.modify_font(pango.FontDescription("mono bold 25"))
+        gfixed.put(cfg.LABEL1, 45, 40)
     else:
-        label.modify_font(pango.FontDescription("mono 22"))
-        gfixed.put(label, 45, 36)
+        cfg.LABEL1.modify_font(pango.FontDescription("mono 22"))
+        gfixed.put(cfg.LABEL1, 45, 36)
 
     #Right part of display
-    label2 = gtk.Label()
-    label2.set_size_request(340, 100)
-    label2.set_alignment(0, 0)
-    label2.set_justify(gtk.JUSTIFY_LEFT)
+    cfg.LABEL2 = gtk.Label()
+    cfg.LABEL2.set_size_request(340, 100)
+    cfg.LABEL2.set_alignment(0, 0)
+    cfg.LABEL2.set_justify(gtk.JUSTIFY_LEFT)
     if platform.system() == "Windows": #TODO check once if that fits...
-        gfixed.put(label2, 418, 33)
-        label2.modify_font(pango.FontDescription("mono bold 14"))
+        gfixed.put(cfg.LABEL2, 418, 33)
+        cfg.LABEL2.modify_font(pango.FontDescription("mono bold 14"))
     else:
-        label2.modify_font(pango.FontDescription("mono 12"))
-        gfixed.put(label2, 418, 33)
+        cfg.LABEL2.modify_font(pango.FontDescription("mono 12"))
+        gfixed.put(cfg.LABEL2, 418, 33)
 
     #Status of display
     cfg.LABEL_STATUS = gtk.Label()
@@ -356,7 +356,7 @@ def main_window():
     cfg.GTK_WINDOW.show_all()
     cfg.LABEL_STATUS.hide()
 
-    return (label, label2)
+    return
 
 ##########################################}}}
 # Akku Parameter Dialog{{{
