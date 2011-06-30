@@ -444,8 +444,8 @@ def gnuplot(): #{{{
         else:
             thread.start_new_thread(os.system,(cfg.PICTURE_EXE+' '+arguments,))
     else:
-        tmp = "Not sufficient serial data available\n"
-        tmp += "(About 2 min of a same 'phase' required.)"
+        tmp = "Nicht genügend serielle Daten vorhanden\n"
+        tmp += "(Etwa 2 min von der selben 'Phase' werden benoetigt.)"
         gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
 
 #}}}
