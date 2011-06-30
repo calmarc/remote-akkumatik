@@ -289,6 +289,7 @@ def gnuplot(): #{{{
     print (tmp)
     cfg.FLOG.write(tmp + '\n')
 
+    anzbild = 0
     for fname in dir_list:
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg.GEWAEHLTER_AUSGANG)+\
                 "-" and fname [8:12] == ".dat":
@@ -299,6 +300,7 @@ def gnuplot(): #{{{
                 continue
 
             qiv_files += cfg.CHART_DIR + "/" + fname[:-4] + ".png "
+            anzbild += 1
 
             fhan = helper.open_file(cfg.TMP_DIR + "/" + fname, "r")
             while True: #ignore other than real data lines
@@ -395,7 +397,7 @@ def gnuplot(): #{{{
 
             #gnuplot does not like MS-Windoof's \
             gpl('wfile="' + cfg.TMP_DIR.replace('\\', '/') + "/" + fname + '";')
-            gpl('set title "Akkumatik - ' + titel + ' (' + fname + ')";')
+            gpl('set title "Akkumatik - ' + titel + ' (' + str(anzbild) + ')";')
 
 
             gpl('plot \
@@ -435,10 +437,10 @@ def gnuplot(): #{{{
         args = shlex.split(qiv_files)
         arguments = ' '.join(str(n) for n in args)
         if platform.system() == "Windows":
-            for xtmp in args:
+            for xtmp in args[-1:]:
                 # os.startfile(xtmp)
                 thread.start_new_thread(os.startfile,(xtmp,))
-                break #one is enough for eg. irfanview
+                break #one (letzte) is enough for eg. irfanview
         else:
             thread.start_new_thread(os.system,(cfg.PICTURE_EXE+' '+arguments,))
     else:
