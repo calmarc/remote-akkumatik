@@ -439,6 +439,11 @@ if __name__ == '__main__': #{{{
                 cfg.CHART_DIR = split[1].strip().replace("\\","/")
             elif split[0].strip().lower() == "tmp_path":
                 cfg.TMP_DIR = split[1].strip().replace("\\","/")
+            elif split[0].strip().lower() == "tooltips":
+                if split[1].strip().lower() == "off" or \
+                        split[1].strip().lower() == "aus" or \
+                        split[1].strip().lower() == "0":
+                    cfg.TOOLTIPS = 0
 
     tmp = "* [ Config ] ***********************************\n"
     tmp += "Bild-Betrachter:%s\n" % (cfg.PICTURE_EXE)
