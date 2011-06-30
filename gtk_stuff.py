@@ -71,7 +71,7 @@ def main_window():
             cfg.FLOG.write("%s opened (new or create binary)" % \
                     cfg.TMP_DIR + '/serial-akkumatik.dat\n')
             cfg.FILE_BLOCK = False
-            message_dialog(cfg.GTK_WINDOW, "Old serial data disposed.")
+            message_dialog(cfg.GTK_WINDOW, "Alte serielle Daten wurden geloescht.")
             return
 
         elif data == "quit":
@@ -579,7 +579,7 @@ def akkupara_dialog(): #{{{
             tmp = item.split('\xff')
             #tmp = tmp[:-1] # remove -  last is newline
             if len(tmp) != 12:
-                tmp = "Some Error in liste_akkus.dat - is " +\
+                tmp = "Error in liste_akkus.dat - is " +\
                         str(len(tmp)) + " - should be 12"
                 print (tmp)
                 cfg.FLOG.write(tmp + '\n')

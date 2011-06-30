@@ -72,7 +72,7 @@ def filesplit(): #{{{
                 fh1.write(ausgang1_part)
                 fh1.close()
 
-                tmp = "Generated:  " + "%48s" % (fname[-47:])
+                tmp = "Generiert:  " + "%48s" % (fname[-47:])
                 print (tmp)
                 cfg.FLOG.write(tmp + '\n')
 
@@ -100,7 +100,7 @@ def filesplit(): #{{{
 
                 fh2.write(ausgang2_part)
                 fh2.close()
-                tmp = "Generated:  " + "%48s" % (fname[-47:])
+                tmp = "Generiert:  " + "%48s" % (fname[-47:])
                 print (tmp)
                 cfg.FLOG.write(tmp + '\n')
 
@@ -125,7 +125,7 @@ def filesplit(): #{{{
 
         fh1.write(ausgang1_part)
         fh1.close()
-        tmp = "Generated:  " + "%48s" % (fname[-47:])
+        tmp = "Generiert:  " + "%48s" % (fname[-47:])
         print (tmp)
         cfg.FLOG.write(tmp + '\n')
     if len(ausgang2_part) > 0:
@@ -136,7 +136,7 @@ def filesplit(): #{{{
             ausgang2_part = ausgang2_part.replace('\xff', " ")
 
         fh2.write(ausgang2_part)
-        tmp = "Generated:  " + "%48s" % (fname[-47:])
+        tmp = "Generiert:  " + "%48s" % (fname[-47:])
         print (tmp)
         cfg.FLOG.write(tmp + '\n')
 
@@ -423,7 +423,7 @@ def gnuplot(): #{{{
 
             gpl('set nomultiplot;')
             gpl('reset')
-            tmp = "Generated:  "+"%44s" % (cfg.CHART_DIR + "/"+\
+            tmp = "Generiert:  "+"%44s" % (cfg.CHART_DIR + "/"+\
                     fname[-27:-4])+".png"
             print (tmp)
             cfg.FLOG.write(tmp + '\n')

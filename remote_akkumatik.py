@@ -89,8 +89,8 @@ def generate_output_strs(daten): #{{{
         phase = int(daten[9]) #Ladephase 0-stop ...
         cfg.PHASE = phase #...needed for START/STOP button
     except ValueError, err:
-        tmp = "Should not happen. Please report this line"
-        tmp += " to the maintainer\n"
+        tmp = "Sollte nicht passieren. Bitte Nachricht"
+        tmp += " an die Programmierer\n"
         tmp += "(generate_output_strs) ValueError: %s\n"\
                 % str(err)
         tmp += ", ".join([str(x) for x in daten])
@@ -317,7 +317,7 @@ def read_line(): #{{{
             cfg.FSER.write(lin)
     except  ValueError, err:
         tmp = "%s\n" % err
-        tmp += "Should not happen, but reopening file anyway\n\n"
+        tmp += "Sollte nicht passieren, erneutes Oeffnen sowieso\n\n"
         print(tmp)
         cfg.FLOG.write(tmp)
         gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
@@ -336,7 +336,7 @@ def serial_setup(): #{{{
     """ try to connect to the serial port """
 
     tmp = "* [ Serial Port ] ***********************************\n"
-    tmp += ("Trying to open serial port '%s': " % cfg.SERIAL_PORT)
+    tmp += ("Versuche zu oeffen den seriellen Port '%s': " % cfg.SERIAL_PORT)
     if platform.system() == "Windows":
         #needen on comx>10 - seems to work
         cfg.SERIAL_PORT = '\\\\.\\' + cfg.SERIAL_PORT
@@ -361,9 +361,9 @@ def serial_setup(): #{{{
         tmp += "OK\n"
 
     except serial.SerialException, err:
-        tmp += "Failed\n"
+        tmp += "Fehler\n"
 
-        tmp += "Program abort: \"%s\"\n" % err
+        tmp += "Program Abruch: \"%s\"\n" % err
         time.sleep(3)
         cfg.FLOG.write(tmp)
         cfg.FLOG.close()
@@ -395,10 +395,10 @@ def serial_file_setup(): #{{{
 if __name__ == '__main__': #{{{
 ##########################################
     if len(sys.argv) > 1 and (sys.argv[1] == "-h" or sys.argv[1] == "-H" or sys.argv[1] == "--help"):
-        print """Usage:
+        print """Benutzung:
 
-    -n      Begin from Scratch collecting Serial-Data
-    -h      Print this."""
+    -n      Starte mit neuen Daten. Loesche die Alten.
+    -h      Drucke das hier."""
         sys.exit()
 
     ##########################################
@@ -441,10 +441,10 @@ if __name__ == '__main__': #{{{
                 cfg.TMP_DIR = split[1].strip().replace("\\","/")
 
     tmp = "* [ Config ] ***********************************\n"
-    tmp += "Picture viewer: %s\n" % (cfg.PICTURE_EXE)
+    tmp += "Bild-Betrachter:%s\n" % (cfg.PICTURE_EXE)
     tmp += "Serial Port:    %s\n" % (cfg.SERIAL_PORT)
-    tmp += "Chart Path:     %s\n" % (cfg.CHART_DIR)
-    tmp += "Tmp Path:       %s\n\n" % (cfg.TMP_DIR)
+    tmp += "Chart Pfad:     %s\n" % (cfg.CHART_DIR)
+    tmp += "Tmp Pfad:       %s\n\n" % (cfg.TMP_DIR)
     print tmp
     cfg.FLOG.write(tmp)
 
@@ -455,7 +455,7 @@ if __name__ == '__main__': #{{{
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                tmp = "Unable to create [%s] directory" \
+                tmp = "Fehler bei Kreieren vom  [%s] Ordner" \
                         % cfg.TMP_DIR, "Ending program.\n", errx
                 print tmp
                 cfg.FLOG.write(tmp)
@@ -470,7 +470,7 @@ if __name__ == '__main__': #{{{
             if OSError.errno == errno.EEXIST:
                 pass
             else:
-                tmp = "Unable to create [%s] directory" \
+                tmp = "Fehler bei Kreieren vom  [%s] Ordner" \
                         % cfg.TMP_DIR, "Ending program.\n", errx
                 print tmp
                 cfg.FLOG.write(tmp)
