@@ -189,8 +189,6 @@ def main_window():
     cfg.GTK_WINDOW.connect("destroy", destroy)
     cfg.GTK_WINDOW.set_border_width(8)
 
-    tooltips = gtk.Tooltips()
-
     # overall hbox
     hbox = gtk.HBox()
     cfg.GTK_WINDOW.add(hbox)
@@ -260,8 +258,8 @@ def main_window():
     #hover effect
     evbox.connect("enter-notify-event", event_enter_cb, "1")
     evbox.connect("leave-notify-event", event_leave_cb, "1")
+    evbox.set_tooltip_text("Akku Ausgang 1")
     hbox.pack_start(evbox, False, False, 0)
-    tooltips.set_tip(evbox, "Akku Ausgang 1")
 
 
     #START/STOP
@@ -274,8 +272,8 @@ def main_window():
     evbox.connect("button-press-event", event_start_stop_cb, "StartStop")
     evbox.connect("enter-notify-event", event_start_stop_enter_cb, "StartStop")
     evbox.connect("leave-notify-event", event_start_stop_leave_cb, "StartStop")
+    evbox.set_tooltip_text("Start/Stop")
     hbox.pack_start(evbox, True, True, 2)
-    tooltips.set_tip(evbox, "Start/Stop")
 
     #AKKU2
     evbox = gtk.EventBox()
@@ -286,8 +284,8 @@ def main_window():
     evbox.connect("button-press-event", eventcb, "2")
     evbox.connect("enter-notify-event", event_enter_cb, "2")
     evbox.connect("leave-notify-event", event_leave_cb, "2")
+    evbox.set_tooltip_text("Akku Ausgang 2")
     hbox.pack_end(evbox, False, False, 0)
-    tooltips.set_tip(evbox, "Akku Ausgang 2")
 
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
@@ -314,8 +312,8 @@ def main_window():
     evbox.connect("button-press-event", event_simple_cb, "para")
     evbox.connect("enter-notify-event", event_simple_enter_cb, "para")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "para")
+    evbox.set_tooltip_text("Akku Parameter")
     hbox.pack_start(evbox, False, False, 0)
-    tooltips.set_tip(evbox, "Akku Parameter")
 
     #chart
     evbox = gtk.EventBox()
@@ -327,8 +325,8 @@ def main_window():
     evbox.connect("button-press-event", event_simple_cb, "chart")
     evbox.connect("enter-notify-event", event_simple_enter_cb, "chart")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "chart")
+    evbox.set_tooltip_text("Chart(s)")
     hbox.pack_end(evbox, False, False, 0)
-    tooltips.set_tip(evbox, "Charts")
 
     vbox.pack_start(gtk.HSeparator(), False, True, 8)
 
@@ -346,8 +344,8 @@ def main_window():
     evbox.connect("button-press-event", event_simple_cb, "recycle")
     evbox.connect("enter-notify-event", event_simple_enter_cb, "recycle")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "recycle")
+    evbox.set_tooltip_text("Alte Daten löschen")
     hbox.pack_start(evbox, True, True, 0)
-    tooltips.set_tip(evbox, "Alte gesammelte Daten löschen")
 
     evbox = gtk.EventBox()
     evbox.set_visible_window(False)
@@ -358,8 +356,8 @@ def main_window():
     evbox.connect("button-press-event", event_simple_cb, "quit")
     evbox.connect("enter-notify-event", event_simple_enter_cb, "quit")
     evbox.connect("leave-notify-event", event_simple_leave_cb, "quit")
+    evbox.set_tooltip_text("Programm verlassen")
     hbox.pack_end(evbox, False, True, 0)
-    tooltips.set_tip(evbox, "Programm verlassen")
 
     hbox.pack_end(gtk.VSeparator(), False, True, 2)
 
