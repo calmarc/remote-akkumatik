@@ -61,6 +61,7 @@ EXE_DIR = ""
 PICTURE_EXE = ""
 TMP_DIR = ""
 CHART_DIR = ""
+TOOLTIPS = 1
 
 #gtk
 GTK_WINDOW = None

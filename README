@@ -10,6 +10,7 @@ serial_port = "/dev/ttyS0"
 viewer = /usr/local/bin/qiv
 chart_path = /home/calmar/remote-akkumatik/data
 tmp_path =  /tmp/remote-akkumatik
+#tooltips = off
 --
 
 While Remote-Akkumatik is tweaked for irfan-view on Windows,
