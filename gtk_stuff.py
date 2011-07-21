@@ -588,10 +588,13 @@ def akkupara_dialog(): #{{{
 
             lipo_flag[0] = False
 
-
-        if val != "NiMH" and val != "NiCd":
+        # no kapa on Ni.. with autoerkennung
+        # TODO should get integretaed with combo_prog_stoppm_cb possibly
+        val2 = cb_stoppm.get_active_text()
+        if (val == "NiMH" or val == "NiCd") and val2 != "Lademenge":
+            sp_kapazitaet.set_sensitive(False)
+        else:
             sp_kapazitaet.set_sensitive(True)
-            # just in case it was disabled (via stoppm)
 
     def get_akkulist():
         """ load akkulist from harddrive """
