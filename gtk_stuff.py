@@ -524,13 +524,20 @@ def akkupara_dialog(): #{{{
                 break
 
     def combo_prog_stoppm_cb(data=None):
-        """ enable/disable sp_menge depenging if stoppm ->lademenge or not """
+        """ enable/disable sp_menge depenging if stoppm ->lademenge or not and more """
         val = cb_stoppm.get_active_text()
+        val2 = cb_atyp.get_active_text()
 
         if val == "Lademenge": #TODO replace these things with cfg.LAD[...] once
             sp_menge.set_sensitive(True)
         else:
             sp_menge.set_sensitive(False)
+
+        # no kapa on Ni.. with autoerkennung
+        if (val2 == "NiMH" or val2 == "NiCd") and val != "Lademenge":
+            sp_kapazitaet.set_sensitive(False)
+        else:
+            sp_kapazitaet.set_sensitive(True)
 
     def combo_prog_stromw_cb(data=None):
         """ when the program or stromwahl changed """
@@ -580,6 +587,14 @@ def akkupara_dialog(): #{{{
             cb_stromw.set_sensitive(True)
 
             lipo_flag[0] = False
+
+        # no kapa on Ni.. with autoerkennung
+        # TODO should get integretaed with combo_prog_stoppm_cb possibly
+        val2 = cb_stoppm.get_active_text()
+        if (val == "NiMH" or val == "NiCd") and val2 != "Lademenge":
+            sp_kapazitaet.set_sensitive(False)
+        else:
+            sp_kapazitaet.set_sensitive(True)
 
     def get_akkulist():
         """ load akkulist from harddrive """
