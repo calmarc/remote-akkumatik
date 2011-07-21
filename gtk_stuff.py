@@ -543,6 +543,7 @@ def akkupara_dialog(): #{{{
         """ when the program or stromwahl changed """
         val = cb_prog.get_active_text()
         val2 = cb_stromw.get_active_text()
+        val3 = cb_atyp.get_active_text()
 
         if val2 == "Auto": #always False
             sp_ladelimit.set_sensitive(False)
@@ -558,6 +559,12 @@ def akkupara_dialog(): #{{{
         else: #programs that require both
             sp_entladelimit.set_sensitive(True)
             sp_ladelimit.set_sensitive(True)
+
+        # No anz_zellen if...
+        if val == "Laden" and (val3 == "NiCd" or val3 == "NiMH") :
+            sp_anzzellen.set_sensitive(False)
+        else:
+            sp_anzzellen.set_sensitive(True)
 
     def combo_atyp_cb(data, lipo_flag):
         """ akku type callback (when changed) """
@@ -588,13 +595,22 @@ def akkupara_dialog(): #{{{
 
             lipo_flag[0] = False
 
+        # TODO Double stuff... should *really* not be...
+        # only ONE big callback for all this stuff?
+
         # no kapa on Ni.. with autoerkennung
-        # TODO should get integretaed with combo_prog_stoppm_cb possibly
         val2 = cb_stoppm.get_active_text()
         if (val == "NiMH" or val == "NiCd") and val2 != "Lademenge":
             sp_kapazitaet.set_sensitive(False)
         else:
             sp_kapazitaet.set_sensitive(True)
+
+        # No anz_zellen if...
+        val3 = cb_prog.get_active_text()
+        if val3 == "Laden" and (val == "NiCd" or val == "NiMH") :
+            sp_anzzellen.set_sensitive(False)
+        else:
+            sp_anzzellen.set_sensitive(True)
 
     def get_akkulist():
         """ load akkulist from harddrive """
