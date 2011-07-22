@@ -14,7 +14,7 @@
 # Temporary stuff like serial data etc.
 #tmp_path =  /tmp/remote-akkumatik
 
-tooltips = off
+#tooltips = off
 
 #######################
 #M$ Windows

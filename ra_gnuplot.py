@@ -40,7 +40,7 @@ def filesplit(): #{{{
     cfg.FILE_BLOCK = True #Block (on read_line) while doing stuff here
     cfg.FSER.close()
 
-    if os.path.getsize(cfg.TMP_DIR + '/serial-akkumatik.dat') < 12000:
+    if os.path.getsize(cfg.TMP_DIR + '/serial-akkumatik.dat') < 8000:
         #reopen (append) and return
         cfg.FSER = helper.open_file(cfg.TMP_DIR+'/serial-akkumatik.dat', 'ab')
         cfg.FILE_BLOCK = False
@@ -294,8 +294,8 @@ def gnuplot(): #{{{
         if fname[0:4] == "Akku" and fname[4:6] == str(cfg.GEWAEHLTER_AUSGANG)+\
                 "-" and fname [8:12] == ".dat":
 
-            #byte - about 3 minutes minimum
-            if os.path.getsize(cfg.TMP_DIR + "/" + fname) < 12000:
+            #byte - about 2 minutes minimum
+            if os.path.getsize(cfg.TMP_DIR + "/" + fname) < 8000:
                 #skip on too little data-packages
                 continue
 
