@@ -536,28 +536,35 @@ def akkupara_dialog(): #{{{
         if atyp == cfg.AKKU_TYP[5] and lipo_flag[0] == False:
             lipo_flag[0] = True
 
-            cb_lart.remove_text(1) #Puls
-            cb_lart.remove_text(1) #Reflex
-            cb_lart.append_text(cfg.LADEART[3])
-            cb_lart.set_active(0)
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[3]])
+            cb_lart.set_active(0) # and set to 0
 
-            cb_stromw.remove_text(0) #Auto
-            cb_stromw.remove_text(0) #Limit
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[2]])
             cb_stromw.set_active(0) #fest
-
 
         #newly no lipo anymore (was..)
         elif atyp != cfg.AKKU_TYP[5] and lipo_flag[0] == True:
             lipo_flag[0] = False
 
-            cb_lart.remove_text(1) # remove LiPo Fast charge method
-            cb_lart.append_text(cfg.LADEART[1])
-            cb_lart.append_text(cfg.LADEART[2])
-            cb_lart.set_active(0) # and set to 0
-
             #restore
-            cb_stromw.insert_text(0, cfg.STROMWAHL[1]) #Limit
-            cb_stromw.insert_text(0, cfg.STROMWAHL[0]) #Auto
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[1]])
+            model.append([cfg.LADEART[2]])
+            cb_lart.set_active(0)
+
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[0]])
+            model.append([cfg.STROMWAHL[1]])
+            model.append([cfg.STROMWAHL[2]])
+            cb_stromw.set_active(0)
 
 
         # ext-Wiederstand only on Entladen + Ausg==1
@@ -592,7 +599,8 @@ def akkupara_dialog(): #{{{
             cb_stoppm.set_sensitive(False)
 
         # lagern -> no zyklen
-        if amprog == "Lagern":
+        if amprog == "Lagern" or amprog == "Laden" or \
+                amprog == "Entladen" or amprog == "Sender":
             sp_zyklen.set_sensitive(False)
         else:
             sp_zyklen.set_sensitive(True)
