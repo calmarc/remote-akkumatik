@@ -523,37 +523,102 @@ def akkupara_dialog(): #{{{
                 sp_zyklen.set_value(int(item[11]))
                 break
 
-    def combo_prog_stoppm_cb(data=None):
-        """ enable/disable sp_menge depenging if stoppm ->lademenge or not and more """
-        val = cb_stoppm.get_active_text()
-        val2 = cb_atyp.get_active_text()
+    def combo_general_cb(data, lipo_flag):
+        """ akku type callback (when changed) """
 
-        if val == "Lademenge": #TODO replace these things with cfg.LAD[...] once
-            sp_menge.set_sensitive(True)
+        atyp = cb_atyp.get_active_text()
+        stoppm = cb_stoppm.get_active_text()
+        stromw = cb_stromw.get_active_text()
+        amprog = cb_prog.get_active_text()
+
+        #special Lipo stuff
+        #newly Lipo now
+        if atyp == cfg.AKKU_TYP[5] and lipo_flag[0] == False:
+            lipo_flag[0] = True
+
+            cb_lart.remove_text(1) #Puls
+            cb_lart.remove_text(1) #Reflex
+            cb_lart.append_text(cfg.LADEART[3])
+            cb_lart.set_active(0)
+
+            cb_stromw.remove_text(0) #Auto
+            cb_stromw.remove_text(0) #Limit
+            cb_stromw.set_active(0) #fest
+
+
+        #newly no lipo anymore (was..)
+        elif atyp != cfg.AKKU_TYP[5] and lipo_flag[0] == True:
+            lipo_flag[0] = False
+
+            cb_lart.remove_text(1) # remove LiPo Fast charge method
+            cb_lart.append_text(cfg.LADEART[1])
+            cb_lart.append_text(cfg.LADEART[2])
+            cb_lart.set_active(0) # and set to 0
+
+            #restore
+            cb_stromw.insert_text(0, cfg.STROMWAHL[1]) #Limit
+            cb_stromw.insert_text(0, cfg.STROMWAHL[0]) #Auto
+
+
+        # ext-Wiederstand only on Entladen + Ausg==1
+        cb_model = cb_stromw.get_model()
+        xflag = False
+        xiter = cb_model.get_iter_first()
+        position = 0
+        if xiter:
+            while True:
+                if cb_model.get_value(xiter, 0) == cfg.STROMWAHL[3]:
+                    xflag = True
+                    break
+                xiter = cb_model.iter_next(xiter)
+                if not xiter:
+                    break
+                position += 1
+
+            if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
+                if xflag == False:
+                    cb_stromw.append_text(cfg.STROMWAHL[3])
+            else:
+                if xflag == True:
+                    xyz = cb_stromw.get_active()
+                    cb_stromw.remove_text(position)
+                    if xyz == position:
+                        cb_stromw.set_active(0)
+
+        #Nixx
+        if atyp == cfg.AKKU_TYP[0] or atyp == cfg.AKKU_TYP[1]:
+            cb_stoppm.set_sensitive(True)
         else:
-            sp_menge.set_sensitive(False)
+            cb_stoppm.set_sensitive(False)
+
+        # lagern -> no zyklen
+        if amprog == "Lagern":
+            sp_zyklen.set_sensitive(False)
+        else:
+            sp_zyklen.set_sensitive(True)
 
         # no kapa on Ni.. with autoerkennung
-        if (val2 == "NiMH" or val2 == "NiCd") and val != "Lademenge":
+        if (atyp == "NiMH" or atyp == "NiCd") and stoppm != "Lademenge":
             sp_kapazitaet.set_sensitive(False)
         else:
             sp_kapazitaet.set_sensitive(True)
 
-    def combo_prog_stromw_cb(data=None):
-        """ when the program or stromwahl changed """
-        val = cb_prog.get_active_text()
-        val2 = cb_stromw.get_active_text()
-        val3 = cb_atyp.get_active_text()
+        # No anz_zellen if...
+        if amprog == "Laden" and (atyp == "NiCd" or atyp == "NiMH") :
+            sp_anzzellen.set_sensitive(False)
+        else:
+            sp_anzzellen.set_sensitive(True)
 
-        if val2 == "Auto": #always False
+        # stromwahl stuff
+        if stromw == "Auto": #always False
             sp_ladelimit.set_sensitive(False)
             sp_entladelimit.set_sensitive(False)
 
-        elif val == "Laden":
+        elif amprog == "Laden":
             sp_entladelimit.set_sensitive(False)
             sp_ladelimit.set_sensitive(True)
 
-        elif val == "Entladen":
+        elif amprog == "Entladen":
             sp_entladelimit.set_sensitive(True)
             sp_ladelimit.set_sensitive(False)
         else: #programs that require both
@@ -561,56 +626,16 @@ def akkupara_dialog(): #{{{
             sp_ladelimit.set_sensitive(True)
 
         # No anz_zellen if...
-        if val == "Laden" and (val3 == "NiCd" or val3 == "NiMH") :
+        if amprog == "Laden" and (atyp == "NiCd" or atyp == "NiMH") :
             sp_anzzellen.set_sensitive(False)
         else:
             sp_anzzellen.set_sensitive(True)
 
-    def combo_atyp_cb(data, lipo_flag):
-        """ akku type callback (when changed) """
-        val = cb_atyp.get_active_text()
-        if val == cfg.AKKU_TYP[5]: #LiPo
-            cb_lart.remove_text(1) #Puls
-            cb_lart.remove_text(1) #Reflex
-            cb_lart.append_text(cfg.LADEART[3])
-            cb_lart.set_active(0)
-
-            cb_stromw.set_active(2) #fest
-            cb_stromw.set_sensitive(False)
-            cb_stoppm.set_active(-1)
-            cb_stoppm.set_sensitive(False)
-
-            lipo_flag[0] = True
-
-        elif lipo_flag[0] == True:
-            cb_stoppm.set_active(0) # was -1
-            cb_stoppm.set_sensitive(True) # was disabled
-
-            cb_lart.remove_text(1) # remove LiPo Fast charge method
-            cb_lart.append_text(cfg.LADEART[1])
-            cb_lart.append_text(cfg.LADEART[2])
-            cb_lart.set_active(0) # and set to 0
-
-            cb_stromw.set_sensitive(True)
-
-            lipo_flag[0] = False
-
-        # TODO Double stuff... should *really* not be...
-        # only ONE big callback for all this stuff?
-
-        # no kapa on Ni.. with autoerkennung
-        val2 = cb_stoppm.get_active_text()
-        if (val == "NiMH" or val == "NiCd") and val2 != "Lademenge":
-            sp_kapazitaet.set_sensitive(False)
+        #Lademenge only on lademenge
+        if stoppm == "Lademenge":
+            sp_menge.set_sensitive(True)
         else:
-            sp_kapazitaet.set_sensitive(True)
-
-        # No anz_zellen if...
-        val3 = cb_prog.get_active_text()
-        if val3 == "Laden" and (val == "NiCd" or val == "NiMH") :
-            sp_anzzellen.set_sensitive(False)
-        else:
-            sp_anzzellen.set_sensitive(True)
+            sp_menge.set_sensitive(False)
 
     def get_akkulist():
         """ load akkulist from harddrive """
@@ -712,7 +737,7 @@ def akkupara_dialog(): #{{{
         cb_atyp.append_text(item)
     cb_atyp.set_active(cfg.ATYP[cfg.GEWAEHLTER_AUSGANG])
     cb_atyp.show()
-    cb_atyp.connect("changed", combo_atyp_cb, lipo_flag)
+    cb_atyp.connect("changed", combo_general_cb, lipo_flag)
 
     vbox.pack_start(cb_atyp, True, True, 0)
 
@@ -729,7 +754,7 @@ def akkupara_dialog(): #{{{
         cb_prog.append_text(cfg.AMPROGRAMM[6])
 
     cb_prog.set_active(cfg.PRG[cfg.GEWAEHLTER_AUSGANG])
-    cb_prog.connect("changed", combo_prog_stromw_cb)
+    cb_prog.connect("changed", combo_general_cb, lipo_flag)
     cb_prog.show()
     vbox.pack_start(cb_prog, True, True, 0)
 
@@ -750,7 +775,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STROMWAHL:
         cb_stromw.append_text(item)
     cb_stromw.set_active(cfg.STROMW[cfg.GEWAEHLTER_AUSGANG])
-    cb_stromw.connect("changed", combo_prog_stromw_cb)
+    cb_stromw.connect("changed", combo_general_cb, lipo_flag)
     cb_stromw.show()
     vbox.pack_start(cb_stromw, True, True, 0)
 
@@ -761,7 +786,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
     cb_stoppm.set_active(cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG])
-    cb_stoppm.connect("changed", combo_prog_stoppm_cb)
+    cb_stoppm.connect("changed", combo_general_cb, lipo_flag)
     cb_stoppm.show()
     vbox.pack_start(cb_stoppm, True, True, 0)
 
@@ -842,9 +867,7 @@ def akkupara_dialog(): #{{{
     vbox.pack_start(sp_zyklen, False, True, 0)
     sp_zyklen.show()
 
-    combo_atyp_cb("", lipo_flag)
-    combo_prog_stromw_cb(None)
-    combo_prog_stoppm_cb(None)
+    combo_general_cb("", lipo_flag)
 
     hex_str = None
     hex_str2 = None
