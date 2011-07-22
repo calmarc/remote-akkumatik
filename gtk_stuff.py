@@ -534,53 +534,56 @@ def akkupara_dialog(): #{{{
         #special Lipo stuff
         #newly Lipo now
         if atyp == cfg.AKKU_TYP[5] and lipo_flag[0] == False:
+            lipo_flag[0] = True
+
             cb_lart.remove_text(1) #Puls
             cb_lart.remove_text(1) #Reflex
             cb_lart.append_text(cfg.LADEART[3])
             cb_lart.set_active(0)
 
-            cb_stromw.set_active(2) #fest
-            cb_stromw.set_sensitive(False)
-            cb_stoppm.set_active(-1)
-            cb_stoppm.set_sensitive(False)
+            cb_stromw.remove_text(0) #Auto
+            cb_stromw.remove_text(0) #Limit
+            cb_stromw.set_active(0) #fest
 
-            lipo_flag[0] = True
 
         #newly no lipo anymore (was..)
         elif atyp != cfg.AKKU_TYP[5] and lipo_flag[0] == True:
-            cb_stoppm.set_active(0) # was -1
-            cb_stoppm.set_sensitive(True) # was disabled
+            lipo_flag[0] = False
 
             cb_lart.remove_text(1) # remove LiPo Fast charge method
             cb_lart.append_text(cfg.LADEART[1])
             cb_lart.append_text(cfg.LADEART[2])
             cb_lart.set_active(0) # and set to 0
 
-            cb_stromw.set_sensitive(True)
+            #restore
+            cb_stromw.insert_text(0, cfg.STROMWAHL[1]) #Limit
+            cb_stromw.insert_text(0, cfg.STROMWAHL[0]) #Auto
 
-            lipo_flag[0] = False
 
         # ext-Wiederstand only on Entladen + Ausg==1
         cb_model = cb_stromw.get_model()
         xflag = False
         xiter = cb_model.get_iter_first()
-        while True:
-            if cb_model.get_value(xiter, 0) == cfg.STROMWAHL[3]:
-                xflag = True
-                break
-            xiter = cb_model.iter_next(xiter)
-            if not xiter:
-                break
+        position = 0
+        if xiter:
+            while True:
+                if cb_model.get_value(xiter, 0) == cfg.STROMWAHL[3]:
+                    xflag = True
+                    break
+                xiter = cb_model.iter_next(xiter)
+                if not xiter:
+                    break
+                position += 1
 
-        if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
-            if xflag == False:
-                cb_stromw.append_text(cfg.STROMWAHL[3])
-        else:
-            if xflag == True:
-                xyz = cb_stromw.get_active()
-                cb_stromw.remove_text(3)
-                if xyz == 3:
-                    cb_stromw.set_active(0)
+            if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
+                if xflag == False:
+                    cb_stromw.append_text(cfg.STROMWAHL[3])
+            else:
+                if xflag == True:
+                    xyz = cb_stromw.get_active()
+                    cb_stromw.remove_text(position)
+                    if xyz == position:
+                        cb_stromw.set_active(0)
 
         #Nixx
         if atyp == cfg.AKKU_TYP[0] or atyp == cfg.AKKU_TYP[1]:
@@ -593,7 +596,6 @@ def akkupara_dialog(): #{{{
             sp_zyklen.set_sensitive(False)
         else:
             sp_zyklen.set_sensitive(True)
-
 
         # no kapa on Ni.. with autoerkennung
         if (atyp == "NiMH" or atyp == "NiCd") and stoppm != "Lademenge":
