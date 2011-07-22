@@ -172,7 +172,7 @@ def generate_output_strs(daten): #{{{
             phasedesc = "?????" # should not happen possibly
 
     elif phase == 10:
-        phasedesc = " PAUSE    "
+        phasedesc = " PAUSE   "
         lade_v = ""
     else:
         if phase >= 1 and phase <= 5:
