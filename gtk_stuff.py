@@ -577,7 +577,10 @@ def akkupara_dialog(): #{{{
                 cb_stromw.append_text(cfg.STROMWAHL[3])
         else:
             if xflag == True:
+                xyz = cb_stromw.get_active()
                 cb_stromw.remove_text(3)
+                if xyz == 3:
+                    cb_stromw.set_active(0)
 
         #Nixx
         if atyp == cfg.AKKU_TYP[0] or atyp == cfg.AKKU_TYP[1]:
