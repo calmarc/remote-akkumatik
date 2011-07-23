@@ -729,6 +729,7 @@ def akkupara_dialog(): #{{{
     hbox.pack_start(frame, True, True, 0)
 
     vbox = gtk.VBox(False, 0)
+    vbox.set_size_request(120, 280)
     vbox.set_border_width(5)
     frame.add(vbox)
     frame.show()
@@ -803,6 +804,7 @@ def akkupara_dialog(): #{{{
     hbox.pack_start(frame, True, True, 0)
 
     vbox = gtk.VBox(False, 0)
+    vbox.set_size_request(80, 280)
     vbox.set_border_width(5)
     frame.add(vbox)
     frame.show()
