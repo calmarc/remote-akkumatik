@@ -535,22 +535,30 @@ def akkupara_dialog(): #{{{
         # General stromwahl stuff
         if amprog == "Laden":
             sp_entladelimit.set_sensitive(False)
+            sp_entladelimit_label.set_sensitive(False)
             sp_ladelimit.set_sensitive(True)
+            sp_ladelimit_label.set_sensitive(True)
 
         elif amprog == "Entladen":
             sp_entladelimit.set_sensitive(True)
+            sp_entladelimit_label.set_sensitive(True)
             sp_ladelimit.set_sensitive(False)
+            sp_ladelimit_label.set_sensitive(False)
         else: #programs that require both
             sp_entladelimit.set_sensitive(True)
+            sp_entladelimit_label.set_sensitive(True)
             sp_ladelimit.set_sensitive(True)
+            sp_ladelimit_label.set_sensitive(True)
             # if Auto it gets changed later on Nixx
 
         # lagern etc. -> no zyklen
         if amprog == "Lagern" or amprog == "Laden" or \
                 amprog == "Entladen" or amprog == "Sender":
             sp_zyklen.set_sensitive(False)
+            sp_zyklen_label.set_sensitive(False)
         else:
             sp_zyklen.set_sensitive(True)
+            sp_zyklen_label.set_sensitive(True)
 
         # ext-Wiederstand only on Entladen + Ausg==1
         cb_model = cb_stromw.get_model()
@@ -597,39 +605,56 @@ def akkupara_dialog(): #{{{
                 stromw = cfg.STROMWAHL[0]
 
                 cb_stoppm.set_sensitive(True)
+                cb_stoppm_label.set_sensitive(True)
                 cb_stromw.set_sensitive(True)
+                cb_stromw_label.set_sensitive(True)
                 cb_lart.set_sensitive(True)
+                cb_lart_label.set_sensitive(True)
 
             #Lademenge only on lademenge
             #no kapa. on lademenge
             if stoppm == "Lademenge":
                 sp_menge.set_sensitive(True)
+                sp_menge_label.set_sensitive(True)
                 sp_kapazitaet.set_sensitive(True)
+                sp_kapazitaet_label.set_sensitive(True)
             else:
                 sp_menge.set_sensitive(False)
+                sp_menge_label.set_sensitive(False)
                 sp_kapazitaet.set_sensitive(False)
+                sp_kapazitaet_label.set_sensitive(False)
 
             # No anz_zellen if...
             if amprog == "Laden":
                 sp_anzzellen.set_sensitive(False)
+                sp_anzzellen_label.set_sensitive(False)
             else:
                 sp_anzzellen.set_sensitive(True)
+                sp_anzzellen_label.set_sensitive(True)
 
             if stromw == "Auto": #always False
                 sp_ladelimit.set_sensitive(False)
+                sp_ladelimit_label.set_sensitive(False)
                 sp_entladelimit.set_sensitive(False)
+                sp_entladelimit_label.set_sensitive(False)
 
         #Blei, BeiGel
         elif atyp_nr in [2, 3]:
             if old_atyp[0] != atyp_nr:
                 old_atyp[0] = atyp_nr
                 cb_lart.set_sensitive(False)
+                cb_lart_label.set_sensitive(False)
                 cb_stromw.set_sensitive(False)
+                cb_stromw_label.set_sensitive(False)
                 cb_stoppm.set_sensitive(False)
+                cb_stoppm_label.set_sensitive(False)
                 sp_anzzellen.set_sensitive(True)
+                sp_anzzellen_label.set_sensitive(True)
                 sp_menge.set_sensitive(True)
+                sp_menge_label.set_sensitive(True)
 
                 sp_kapazitaet.set_sensitive(True)
+                sp_kapazitaet_label.set_sensitive(True)
 
         #LiLo, LiPo, LiFe, Uixx
         elif atyp_nr in [4, 5, 6, 7]:
@@ -648,12 +673,18 @@ def akkupara_dialog(): #{{{
                 stromw = cfg.STROMWAHL[2]
 
                 cb_stoppm.set_sensitive(False)
+                cb_stoppm_label.set_sensitive(False)
                 cb_stromw.set_sensitive(True)
+                cb_stromw_label.set_sensitive(True)
                 cb_lart.set_sensitive(True)
+                cb_lart_label.set_sensitive(True)
                 sp_anzzellen.set_sensitive(True)
+                sp_anzzellen_label.set_sensitive(True)
                 sp_menge.set_sensitive(True)
+                sp_menge_label.set_sensitive(True)
 
                 sp_kapazitaet.set_sensitive(True)
+                sp_kapazitaet_label.set_sensitive(True)
 
     def get_akkulist():
         """ load akkulist from harddrive """
@@ -749,9 +780,9 @@ def akkupara_dialog(): #{{{
     old_atyp = [-1]
 
     #stuff into frame (vbox)
-    label = gtk.Label("Batterie Typ")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    cb_atyp_label = gtk.Label("Batterie Typ")
+    vbox.pack_start(cb_atyp_label, True, True, 0)
+    cb_atyp_label.show()
     cb_atyp = gtk.combo_box_new_text()
     for item in cfg.AKKU_TYP:
         cb_atyp.append_text(item)
@@ -761,9 +792,9 @@ def akkupara_dialog(): #{{{
 
     vbox.pack_start(cb_atyp, True, True, 0)
 
-    label = gtk.Label("Programm")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    cb_prog_label = gtk.Label("Programm")
+    vbox.pack_start(cb_prog_label, True, True, 0)
+    cb_prog_label.show()
     cb_prog = gtk.combo_box_new_text()
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
@@ -778,9 +809,9 @@ def akkupara_dialog(): #{{{
     cb_prog.show()
     vbox.pack_start(cb_prog, True, True, 0)
 
-    label = gtk.Label("Ladeart")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    cb_lart_label = gtk.Label("Ladeart")
+    vbox.pack_start(cb_lart_label, True, True, 0)
+    cb_lart_label.show()
     cb_lart = gtk.combo_box_new_text()
     for item in cfg.LADEART[:-1]: #exclude LiPo
         cb_lart.append_text(item)
@@ -788,9 +819,9 @@ def akkupara_dialog(): #{{{
     cb_lart.show()
     vbox.pack_start(cb_lart, True, True, 0)
 
-    label = gtk.Label("Stromwahl")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    cb_stromw_label = gtk.Label("Stromwahl")
+    vbox.pack_start(cb_stromw_label, True, True, 0)
+    cb_stromw_label.show()
     cb_stromw = gtk.combo_box_new_text()
     for item in cfg.STROMWAHL:
         cb_stromw.append_text(item)
@@ -799,9 +830,9 @@ def akkupara_dialog(): #{{{
     cb_stromw.show()
     vbox.pack_start(cb_stromw, True, True, 0)
 
-    label = gtk.Label("Stoppmethode")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    cb_stoppm_label = gtk.Label("Stoppmethode")
+    vbox.pack_start(cb_stoppm_label, True, True, 0)
+    cb_stoppm_label.show()
     cb_stoppm = gtk.combo_box_new_text()
     for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
@@ -821,9 +852,9 @@ def akkupara_dialog(): #{{{
     frame.show()
     vbox.show()
 
-    label = gtk.Label("Zellen Anzahl")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    sp_anzzellen_label = gtk.Label("Zellen Anzahl")
+    vbox.pack_start(sp_anzzellen_label, True, True, 0)
+    sp_anzzellen_label.show()
     adj = gtk.Adjustment(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], \
             0.0, 30, 1, 1, 0.0)
     sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
@@ -832,9 +863,9 @@ def akkupara_dialog(): #{{{
     vbox.pack_start(sp_anzzellen, False, True, 0)
     sp_anzzellen.show()
 
-    label = gtk.Label("Kapazität mAh")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    sp_kapazitaet_label = gtk.Label("Kapazität mAh")
+    vbox.pack_start(sp_kapazitaet_label, True, True, 0)
+    sp_kapazitaet_label.show()
     adj = gtk.Adjustment(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG], \
             0.0, 99999, 25, 25, 0.0)
     sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
@@ -843,9 +874,9 @@ def akkupara_dialog(): #{{{
     vbox.pack_start(sp_kapazitaet, False, True, 0)
     sp_kapazitaet.show()
 
-    label = gtk.Label("I-Laden mA")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    sp_ladelimit_label = gtk.Label("I-Laden mA")
+    vbox.pack_start(sp_ladelimit_label, True, True, 0)
+    sp_ladelimit_label.show()
     adj = gtk.Adjustment(cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
             0.0, 9999, 25, 25, 0.0)
     sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
@@ -854,9 +885,9 @@ def akkupara_dialog(): #{{{
     vbox.pack_start(sp_ladelimit, False, True, 0)
     sp_ladelimit.show()
 
-    label = gtk.Label("I-Entladen mA")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    sp_entladelimit_label = gtk.Label("I-Entladen mA")
+    vbox.pack_start(sp_entladelimit_label, True, True, 0)
+    sp_entladelimit_label.show()
     adj = gtk.Adjustment(cfg.ENTLADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
             0.0, 9999, 25, 25, 0.0)
     sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
@@ -867,9 +898,9 @@ def akkupara_dialog(): #{{{
         sp_entladelimit.set_sensitive(False)
     sp_entladelimit.show()
 
-    label = gtk.Label("Menge mAh")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    sp_menge_label = gtk.Label("Menge mAh")
+    vbox.pack_start(sp_menge_label, True, True, 0)
+    sp_menge_label.show()
     adj = gtk.Adjustment(cfg.MENGE[cfg.GEWAEHLTER_AUSGANG], \
             0.0, 99999, 25, 25, 0.0)
     sp_menge = gtk.SpinButton(adj, 1.0, 0)
@@ -878,9 +909,9 @@ def akkupara_dialog(): #{{{
     vbox.pack_start(sp_menge, False, True, 0)
     sp_menge.show()
 
-    label = gtk.Label("Zyklen")
-    vbox.pack_start(label, True, True, 0)
-    label.show()
+    sp_zyklen_label = gtk.Label("Zyklen")
+    vbox.pack_start(sp_zyklen_label, True, True, 0)
+    sp_zyklen_label.show()
     adj = gtk.Adjustment(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG], 1, 10, 1, 1, 0.0)
     sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
     sp_zyklen.set_wrap(False)
