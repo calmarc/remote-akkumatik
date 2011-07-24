@@ -9,7 +9,7 @@
 AKKU_TYP = ["NiCd", "NiMH", "Blei", "Bgel", "LiIo", "LiPo", "LiFe", "Uixx"]
 AMPROGRAMM = ["Laden", "Entladen", "E+L", "L+E", "(L)E+L", \
         "(E)L+E", "Sender", "Lagern"]
-LADEART = ["Konst", "Puls", "Reflex", "LiPo-Fast"]
+LADEART = ["Konst", "Puls", "Reflex", "Fast"]
 STROMWAHL = ["Auto", "Limit", "Fest", "Ext. Wiederstand"]
 STOPPMETHODE = ["Lademenge", "Gradient", "Delta-Peak-1", "Delta-Peak-2", \
         "Delta-Peak-3"]

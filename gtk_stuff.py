@@ -523,7 +523,7 @@ def akkupara_dialog(): #{{{
                 sp_zyklen.set_value(int(item[11]))
                 break
 
-    def combo_general_cb(data, lipo_flag):
+    def combo_general_cb(data, old_atyp):
         """ akku type callback (when changed) """
 
         atyp = cb_atyp.get_active_text()
@@ -531,27 +531,15 @@ def akkupara_dialog(): #{{{
         stromw = cb_stromw.get_active_text()
         amprog = cb_prog.get_active_text()
 
-        #special Lipo stuff
-        #newly Lipo now
-        if atyp == cfg.AKKU_TYP[5] and lipo_flag[0] == False:
-            lipo_flag[0] = True
-
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[3]])
-            cb_lart.set_active(0) # and set to 0
-
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0) #fest
-
-        #newly no lipo anymore (was..)
-        elif atyp != cfg.AKKU_TYP[5] and lipo_flag[0] == True:
-            lipo_flag[0] = False
-
-            #restore
+        #TODO no duplicate code
+        #atypnr = 0
+        #for num in len(cg.AKKU_TYP):
+            #if atyp = cg.AKKU_TYP[num]
+                #atypnr = num
+                #break
+        #NiCd
+        if atyp == cfg.AKKU_TYP[0] and old_atyp[0] != 0:
+            old_atyp[0] = 0
             model = cb_lart.get_model()
             model.clear()
             model.append([cfg.LADEART[0]])
@@ -565,6 +553,121 @@ def akkupara_dialog(): #{{{
             model.append([cfg.STROMWAHL[1]])
             model.append([cfg.STROMWAHL[2]])
             cb_stromw.set_active(0)
+
+            cb_stoppm.set_sensitive(True)
+            cb_stromw.set_sensitive(True)
+            cb_lart.set_sensitive(True)
+
+        #NiMh
+        if atyp == cfg.AKKU_TYP[1] and old_atyp[0] != 1:
+            old_atyp[0] = 1
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[1]])
+            model.append([cfg.LADEART[2]])
+            cb_lart.set_active(0)
+
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[0]])
+            model.append([cfg.STROMWAHL[1]])
+            model.append([cfg.STROMWAHL[2]])
+            cb_stromw.set_active(0)
+
+            cb_stoppm.set_sensitive(True)
+            cb_stromw.set_sensitive(True)
+            cb_lart.set_sensitive(True)
+
+        #Blei
+        if atyp == cfg.AKKU_TYP[2] and old_atyp[0] != 2:
+            old_atyp[0] = 2
+            cb_lart.set_sensitive(False)
+            cb_stromw.set_sensitive(False)
+            cb_stoppm.set_sensitive(False)
+
+        #BleiGel
+        if atyp == cfg.AKKU_TYP[3] and old_atyp[0] != 3:
+            old_atyp[0] = 3
+            cb_lart.set_sensitive(False)
+            cb_stromw.set_sensitive(False)
+            cb_stoppm.set_sensitive(False)
+
+        #LiLo
+        if atyp == cfg.AKKU_TYP[4] and old_atyp[0] != 4:
+            old_atyp[0] = 4
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[3]])
+            cb_lart.set_active(0) # and set to 0
+
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[2]])
+            cb_stromw.set_active(0) #fest
+
+            #only on Nixx
+            cb_stoppm.set_sensitive(False)
+            cb_stromw.set_sensitive(True)
+            cb_lart.set_sensitive(True)
+
+        #LiPo
+        if atyp == cfg.AKKU_TYP[5] and old_atyp[0] != 5:
+            old_atyp[0] = 5
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[3]])
+            cb_lart.set_active(0) # and set to 0
+
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[2]])
+            cb_stromw.set_active(0) #fest
+
+            #only on Nixx
+            cb_stoppm.set_sensitive(False)
+            cb_stromw.set_sensitive(True)
+            cb_lart.set_sensitive(True)
+
+        #LiFe
+        if atyp == cfg.AKKU_TYP[6] and old_atyp[0] != 6:
+            old_atyp[0] = 6
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[3]])
+            cb_lart.set_active(0) # and set to 0
+
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[2]])
+            cb_stromw.set_active(0) #fest
+
+            #only on Nixx
+            cb_stoppm.set_sensitive(False)
+            cb_stromw.set_sensitive(True)
+            cb_lart.set_sensitive(True)
+
+        #Uixx
+        if atyp == cfg.AKKU_TYP[7] and old_atyp[0] != 7:
+            old_atyp[0] = 7
+            model = cb_lart.get_model()
+            model.clear()
+            model.append([cfg.LADEART[0]])
+            model.append([cfg.LADEART[3]])
+            cb_lart.set_active(0) # and set to 0
+
+            model = cb_stromw.get_model()
+            model.clear()
+            model.append([cfg.STROMWAHL[2]])
+            cb_stromw.set_active(0) #fest
+
+            #only on Nixx
+            cb_stoppm.set_sensitive(False)
+            cb_stromw.set_sensitive(True)
+            cb_lart.set_sensitive(True)
 
 
         # ext-Wiederstand only on Entladen + Ausg==1
@@ -591,12 +694,6 @@ def akkupara_dialog(): #{{{
                     cb_stromw.remove_text(position)
                     if xyz == position:
                         cb_stromw.set_active(0)
-
-        #Nixx
-        if atyp == cfg.AKKU_TYP[0] or atyp == cfg.AKKU_TYP[1]:
-            cb_stoppm.set_sensitive(True)
-        else:
-            cb_stoppm.set_sensitive(False)
 
         # lagern -> no zyklen
         if amprog == "Lagern" or amprog == "Laden" or \
@@ -634,16 +731,16 @@ def akkupara_dialog(): #{{{
             sp_ladelimit.set_sensitive(True)
 
         # No anz_zellen if...
-        if amprog == "Laden" and (atyp == "NiCd" or atyp == "NiMH") :
+        if amprog == "Laden" and (atyp == "NiCd" or atyp == "NiMH"):
             sp_anzzellen.set_sensitive(False)
         else:
             sp_anzzellen.set_sensitive(True)
 
         #Lademenge only on lademenge
-        if stoppm == "Lademenge":
-            sp_menge.set_sensitive(True)
-        else:
+        if stoppm != "Lademenge" and (atyp == "NiCd" or atyp == "NiMH"):
             sp_menge.set_sensitive(False)
+        else:
+            sp_menge.set_sensitive(True)
 
     def get_akkulist():
         """ load akkulist from harddrive """
@@ -735,7 +832,8 @@ def akkupara_dialog(): #{{{
     frame.show()
     vbox.show()
 
-    lipo_flag = [False] #list, so the callback-function can change the value
+    #list, so the callback-function can change the value
+    old_atyp = [-1]
 
     #stuff into frame (vbox)
     label = gtk.Label("Batterie Typ")
@@ -746,7 +844,7 @@ def akkupara_dialog(): #{{{
         cb_atyp.append_text(item)
     cb_atyp.set_active(cfg.ATYP[cfg.GEWAEHLTER_AUSGANG])
     cb_atyp.show()
-    cb_atyp.connect("changed", combo_general_cb, lipo_flag)
+    cb_atyp.connect("changed", combo_general_cb, old_atyp)
 
     vbox.pack_start(cb_atyp, True, True, 0)
 
@@ -763,7 +861,7 @@ def akkupara_dialog(): #{{{
         cb_prog.append_text(cfg.AMPROGRAMM[6])
 
     cb_prog.set_active(cfg.PRG[cfg.GEWAEHLTER_AUSGANG])
-    cb_prog.connect("changed", combo_general_cb, lipo_flag)
+    cb_prog.connect("changed", combo_general_cb, old_atyp)
     cb_prog.show()
     vbox.pack_start(cb_prog, True, True, 0)
 
@@ -784,7 +882,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STROMWAHL:
         cb_stromw.append_text(item)
     cb_stromw.set_active(cfg.STROMW[cfg.GEWAEHLTER_AUSGANG])
-    cb_stromw.connect("changed", combo_general_cb, lipo_flag)
+    cb_stromw.connect("changed", combo_general_cb, old_atyp)
     cb_stromw.show()
     vbox.pack_start(cb_stromw, True, True, 0)
 
@@ -795,7 +893,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
     cb_stoppm.set_active(cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG])
-    cb_stoppm.connect("changed", combo_general_cb, lipo_flag)
+    cb_stoppm.connect("changed", combo_general_cb, old_atyp)
     cb_stoppm.show()
     vbox.pack_start(cb_stoppm, True, True, 0)
 
@@ -877,7 +975,7 @@ def akkupara_dialog(): #{{{
     vbox.pack_start(sp_zyklen, False, True, 0)
     sp_zyklen.show()
 
-    combo_general_cb("", lipo_flag)
+    combo_general_cb("", old_atyp)
 
     hex_str = None
     hex_str2 = None
