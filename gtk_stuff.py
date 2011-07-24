@@ -524,151 +524,33 @@ def akkupara_dialog(): #{{{
                 break
 
     def combo_general_cb(data, old_atyp):
-        """ akku type callback (when changed) """
+        """ akku-typ callback (when changed) """
 
         atyp = cb_atyp.get_active_text()
+        atyp_nr = cfg.AKKU_TYP.index(atyp)
         stoppm = cb_stoppm.get_active_text()
         stromw = cb_stromw.get_active_text()
         amprog = cb_prog.get_active_text()
 
-        #TODO no duplicate code
-        #atypnr = 0
-        #for num in len(cg.AKKU_TYP):
-            #if atyp = cg.AKKU_TYP[num]
-                #atypnr = num
-                #break
-        #NiCd
-        if atyp == cfg.AKKU_TYP[0] and old_atyp[0] != 0:
-            old_atyp[0] = 0
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[1]])
-            model.append([cfg.LADEART[2]])
-            cb_lart.set_active(0)
+        # General stromwahl stuff
+        if amprog == "Laden":
+            sp_entladelimit.set_sensitive(False)
+            sp_ladelimit.set_sensitive(True)
 
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[0]])
-            model.append([cfg.STROMWAHL[1]])
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0)
+        elif amprog == "Entladen":
+            sp_entladelimit.set_sensitive(True)
+            sp_ladelimit.set_sensitive(False)
+        else: #programs that require both
+            sp_entladelimit.set_sensitive(True)
+            sp_ladelimit.set_sensitive(True)
+            # if Auto it gets changed later on Nixx
 
-            cb_stoppm.set_sensitive(True)
-            cb_stromw.set_sensitive(True)
-            cb_lart.set_sensitive(True)
-
-        #NiMh
-        if atyp == cfg.AKKU_TYP[1] and old_atyp[0] != 1:
-            old_atyp[0] = 1
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[1]])
-            model.append([cfg.LADEART[2]])
-            cb_lart.set_active(0)
-
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[0]])
-            model.append([cfg.STROMWAHL[1]])
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0)
-
-            cb_stoppm.set_sensitive(True)
-            cb_stromw.set_sensitive(True)
-            cb_lart.set_sensitive(True)
-
-        #Blei
-        if atyp == cfg.AKKU_TYP[2] and old_atyp[0] != 2:
-            old_atyp[0] = 2
-            cb_lart.set_sensitive(False)
-            cb_stromw.set_sensitive(False)
-            cb_stoppm.set_sensitive(False)
-
-        #BleiGel
-        if atyp == cfg.AKKU_TYP[3] and old_atyp[0] != 3:
-            old_atyp[0] = 3
-            cb_lart.set_sensitive(False)
-            cb_stromw.set_sensitive(False)
-            cb_stoppm.set_sensitive(False)
-
-        #LiLo
-        if atyp == cfg.AKKU_TYP[4] and old_atyp[0] != 4:
-            old_atyp[0] = 4
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[3]])
-            cb_lart.set_active(0) # and set to 0
-
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0) #fest
-
-            #only on Nixx
-            cb_stoppm.set_sensitive(False)
-            cb_stromw.set_sensitive(True)
-            cb_lart.set_sensitive(True)
-
-        #LiPo
-        if atyp == cfg.AKKU_TYP[5] and old_atyp[0] != 5:
-            old_atyp[0] = 5
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[3]])
-            cb_lart.set_active(0) # and set to 0
-
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0) #fest
-
-            #only on Nixx
-            cb_stoppm.set_sensitive(False)
-            cb_stromw.set_sensitive(True)
-            cb_lart.set_sensitive(True)
-
-        #LiFe
-        if atyp == cfg.AKKU_TYP[6] and old_atyp[0] != 6:
-            old_atyp[0] = 6
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[3]])
-            cb_lart.set_active(0) # and set to 0
-
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0) #fest
-
-            #only on Nixx
-            cb_stoppm.set_sensitive(False)
-            cb_stromw.set_sensitive(True)
-            cb_lart.set_sensitive(True)
-
-        #Uixx
-        if atyp == cfg.AKKU_TYP[7] and old_atyp[0] != 7:
-            old_atyp[0] = 7
-            model = cb_lart.get_model()
-            model.clear()
-            model.append([cfg.LADEART[0]])
-            model.append([cfg.LADEART[3]])
-            cb_lart.set_active(0) # and set to 0
-
-            model = cb_stromw.get_model()
-            model.clear()
-            model.append([cfg.STROMWAHL[2]])
-            cb_stromw.set_active(0) #fest
-
-            #only on Nixx
-            cb_stoppm.set_sensitive(False)
-            cb_stromw.set_sensitive(True)
-            cb_lart.set_sensitive(True)
-
+        # lagern etc. -> no zyklen
+        if amprog == "Lagern" or amprog == "Laden" or \
+                amprog == "Entladen" or amprog == "Sender":
+            sp_zyklen.set_sensitive(False)
+        else:
+            sp_zyklen.set_sensitive(True)
 
         # ext-Wiederstand only on Entladen + Ausg==1
         cb_model = cb_stromw.get_model()
@@ -695,52 +577,83 @@ def akkupara_dialog(): #{{{
                     if xyz == position:
                         cb_stromw.set_active(0)
 
-        # lagern -> no zyklen
-        if amprog == "Lagern" or amprog == "Laden" or \
-                amprog == "Entladen" or amprog == "Sender":
-            sp_zyklen.set_sensitive(False)
-        else:
-            sp_zyklen.set_sensitive(True)
+        #NiCd, NiMh
+        if atyp_nr in [0, 1]:
+            if old_atyp[0] != atyp_nr: #new
+                old_atyp[0] = atyp_nr
+                model = cb_lart.get_model()
+                model.clear()
+                model.append([cfg.LADEART[0]])
+                model.append([cfg.LADEART[1]])
+                model.append([cfg.LADEART[2]])
+                cb_lart.set_active(0)
 
-        # no kapa on Ni.. with autoerkennung
-        if (atyp == "NiMH" or atyp == "NiCd") and stoppm != "Lademenge":
-            sp_kapazitaet.set_sensitive(False)
-        else:
-            sp_kapazitaet.set_sensitive(True)
+                model = cb_stromw.get_model()
+                model.clear()
+                model.append([cfg.STROMWAHL[0]])
+                model.append([cfg.STROMWAHL[1]])
+                model.append([cfg.STROMWAHL[2]])
+                cb_stromw.set_active(0)
+                stromw = cfg.STROMWAHL[0]
 
-        # No anz_zellen if...
-        if amprog == "Laden" and (atyp == "NiCd" or atyp == "NiMH") :
-            sp_anzzellen.set_sensitive(False)
-        else:
-            sp_anzzellen.set_sensitive(True)
+                cb_stoppm.set_sensitive(True)
+                cb_stromw.set_sensitive(True)
+                cb_lart.set_sensitive(True)
 
-        # stromwahl stuff
-        if stromw == "Auto": #always False
-            sp_ladelimit.set_sensitive(False)
-            sp_entladelimit.set_sensitive(False)
+            #Lademenge only on lademenge
+            #no kapa. on lademenge
+            if stoppm == "Lademenge":
+                sp_menge.set_sensitive(True)
+                sp_kapazitaet.set_sensitive(True)
+            else:
+                sp_menge.set_sensitive(False)
+                sp_kapazitaet.set_sensitive(False)
 
-        elif amprog == "Laden":
-            sp_entladelimit.set_sensitive(False)
-            sp_ladelimit.set_sensitive(True)
+            # No anz_zellen if...
+            if amprog == "Laden":
+                sp_anzzellen.set_sensitive(False)
+            else:
+                sp_anzzellen.set_sensitive(True)
 
-        elif amprog == "Entladen":
-            sp_entladelimit.set_sensitive(True)
-            sp_ladelimit.set_sensitive(False)
-        else: #programs that require both
-            sp_entladelimit.set_sensitive(True)
-            sp_ladelimit.set_sensitive(True)
+            if stromw == "Auto": #always False
+                sp_ladelimit.set_sensitive(False)
+                sp_entladelimit.set_sensitive(False)
 
-        # No anz_zellen if...
-        if amprog == "Laden" and (atyp == "NiCd" or atyp == "NiMH"):
-            sp_anzzellen.set_sensitive(False)
-        else:
-            sp_anzzellen.set_sensitive(True)
+        #Blei, BeiGel
+        elif atyp_nr in [2, 3]:
+            if old_atyp[0] != atyp_nr:
+                old_atyp[0] = atyp_nr
+                cb_lart.set_sensitive(False)
+                cb_stromw.set_sensitive(False)
+                cb_stoppm.set_sensitive(False)
+                sp_anzzellen.set_sensitive(True)
+                sp_menge.set_sensitive(True)
 
-        #Lademenge only on lademenge
-        if stoppm != "Lademenge" and (atyp == "NiCd" or atyp == "NiMH"):
-            sp_menge.set_sensitive(False)
-        else:
-            sp_menge.set_sensitive(True)
+                sp_kapazitaet.set_sensitive(True)
+
+        #LiLo, LiPo, LiFe, Uixx
+        elif atyp_nr in [4, 5, 6, 7]:
+            if atyp == cfg.AKKU_TYP[atyp_nr] and old_atyp[0] != atyp_nr:
+                old_atyp[0] = atyp_nr
+                model = cb_lart.get_model()
+                model.clear()
+                model.append([cfg.LADEART[0]])
+                model.append([cfg.LADEART[3]])
+                cb_lart.set_active(0) # and set to 0
+
+                model = cb_stromw.get_model()
+                model.clear()
+                model.append([cfg.STROMWAHL[2]])
+                cb_stromw.set_active(0) #fest
+                stromw = cfg.STROMWAHL[2]
+
+                cb_stoppm.set_sensitive(False)
+                cb_stromw.set_sensitive(True)
+                cb_lart.set_sensitive(True)
+                sp_anzzellen.set_sensitive(True)
+                sp_menge.set_sensitive(True)
+
+                sp_kapazitaet.set_sensitive(True)
 
     def get_akkulist():
         """ load akkulist from harddrive """
