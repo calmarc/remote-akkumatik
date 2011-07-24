@@ -292,7 +292,9 @@ def read_line(): #{{{
         return True
 
     curtime = daten[1]
-    if len(curtime) != 8 or curtime[2] != ":":
+    #check: time, Vers.U and int Temp fields to validate line somehow
+    if len(curtime) != 8 or curtime[2] != ":" or len(daten[5]) != 5 \
+            or len(daten[17]) != 2:
         tmp = "gebrochene serial-dings:" + lin + "\n"
         tmp += "Curtime: <%s>" % curtime
         print (tmp)
