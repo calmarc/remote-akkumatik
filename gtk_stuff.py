@@ -594,15 +594,32 @@ def akkupara_dialog(): #{{{
                 model.append([cfg.LADEART[0]])
                 model.append([cfg.LADEART[1]])
                 model.append([cfg.LADEART[2]])
-                cb_lart.set_active(0)
+
+                lart = cb_lart.get_active_text()
+                if lart == None:
+                    tmp = 0
+                else:
+                    tmp = cfg.LADEART.index(lart)
+
+                if tmp < 3:
+                    cb_lart.set_active(tmp)
+                else:
+                    cb_lart.set_active(0)
 
                 model = cb_stromw.get_model()
                 model.clear()
                 model.append([cfg.STROMWAHL[0]])
                 model.append([cfg.STROMWAHL[1]])
                 model.append([cfg.STROMWAHL[2]])
-                cb_stromw.set_active(0)
-                stromw = cfg.STROMWAHL[0]
+
+                if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
+                    model.append([cfg.STROMWAHL[3]])
+
+                if stromw == None:
+                    tmp = 0
+                else:
+                    tmp = cfg.STROMWAHL.index(stromw)
+                cb_stromw.set_active(tmp)
 
                 cb_stoppm.set_sensitive(True)
                 cb_stoppm_label.set_sensitive(True)
@@ -669,8 +686,19 @@ def akkupara_dialog(): #{{{
                 model = cb_stromw.get_model()
                 model.clear()
                 model.append([cfg.STROMWAHL[2]])
-                cb_stromw.set_active(0) #fest
-                stromw = cfg.STROMWAHL[2]
+
+                if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
+                    model.append([cfg.STROMWAHL[3]])
+
+                if stromw == None:
+                    tmp = 0
+                else:
+                    tmp = cfg.STROMWAHL.index(stromw)
+
+                if tmp == 3: #ext. Wiederstand
+                    cb_stromw.set_active(1)
+                else:
+                    cb_stromw.set_active(0) #fest
 
                 cb_stoppm.set_sensitive(False)
                 cb_stoppm_label.set_sensitive(False)
