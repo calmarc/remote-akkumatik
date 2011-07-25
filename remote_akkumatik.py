@@ -84,10 +84,11 @@ def generate_output_strs(daten): #{{{
         if tmp_zellen < 50:
             cfg.ANZAHL_ZELLEN[int(ausgang)] = tmp_zellen
 
-        zyklus = int(daten[10]) #Zyklus
-        #sp = int(daten[11]) #Aktive Akkuspeicher
         phase = int(daten[9]) #Ladephase 0-stop ...
         cfg.PHASE = phase #...needed for START/STOP button
+
+        zyklus = int(daten[10]) #Zyklus
+        #sp = int(daten[11]) #Aktive Akkuspeicher
     except ValueError, err:
         tmp = "Sollte nicht passieren. Bitte Nachricht"
         tmp += " an die Programmierer\n"
@@ -98,7 +99,6 @@ def generate_output_strs(daten): #{{{
         print (tmp)
         cfg.FLOG.write(tmp)
         gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
-
 
     cfg.ATYP[cfg.GEWAEHLTER_AUSGANG] = int(daten[12]) #Akkutyp
     atyp_str = cfg.AKKU_TYP[int(daten[12])] #Akkutyp
@@ -140,7 +140,7 @@ def generate_output_strs(daten): #{{{
             cfg.FLOG.write(tmp)
             gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
 
-    balance_delta = -1
+    balance_delta = -1 #< Not needed - but anyway
     if len(tmp_a) > 0:
         balance_delta = max(tmp_a) - min(tmp_a)
 
