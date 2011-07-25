@@ -210,6 +210,11 @@ def generate_output_strs(daten): #{{{
     if zykll == "0":
         zykll = "*"
 
+    # zyklus 0 means only one zyklus Total
+    if zyklus == 0:
+        zyklus = 1
+        zykll = 1
+
     kapa = str(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG])
     if kapa != "0":
         kapa = "{%smAh}" % kapa
