@@ -451,12 +451,26 @@ if __name__ == '__main__': #{{{
                         split[1].strip().lower() == "aus" or \
                         split[1].strip().lower() == "0":
                     cfg.TOOLTIPS = 0
+            elif split[0].strip().lower() == "command_resend":
+                try:
+                    cfg.COMMAND_RETRY = int(split[1].strip().lower())
+                    if cfg.COMMAND_RETRY < 0 or cfg.COMMAND_RETRY > 20:
+                        raise ValueError
+                except ValueError:
+                    cfg.COMMAND_RETRY = 1
+                    tmp = "Fehlerhafte 'command_resend' Angabe: '" \
+                            + split[1].strip().lower() + "'"
+                    print tmp
+                    gtk_stuff.message_dialog(None, tmp)
+
 
     tmp = "* [ Config ] ***********************************\n"
     tmp += "Bild-Betrachter:%s\n" % (cfg.PICTURE_EXE)
     tmp += "Serial Port:    %s\n" % (cfg.SERIAL_PORT)
     tmp += "Chart Pfad:     %s\n" % (cfg.CHART_DIR)
-    tmp += "Tmp Pfad:       %s\n\n" % (cfg.TMP_DIR)
+    tmp += "Tmp Pfad:       %s\n" % (cfg.TMP_DIR)
+    tmp += "Tooltips:       %s\n" % (bool(cfg.TOOLTIPS))
+    tmp += "Resend Count:   %s\n\n" % (cfg.COMMAND_RETRY)
     print tmp
     cfg.FLOG.write(tmp)
 
