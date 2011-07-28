@@ -1,27 +1,29 @@
 # Remote Akkumatik Config File
- 
-#######################
-#Linux etc:
+##############################
+
+# Serielle Port
 
 #serial_port = /dev/ttyS0
+#serial_port = COM1
 
-# There will be the pictures.
+# Generierte Bilder Ordner
+
 #chart_path = /home/calmar/remote-akkumatik/
+#chart_path = D:\Akkumatik
 
-# should be able to handle the chart-pictures as arguments
+# Bild Betrachter muss Bildernamen als Argument akzeptieren
+
 #viewer = /usr/local/bin/qiv
 
-# Temporary stuff like serial data etc.
+# Tempraeres Zeugs wie.die Seriellen Daten
+
 #tmp_path =  /tmp/remote-akkumatik
+#tmp_path =  C:\.......
+
+# Tooltips
 
 #tooltips = off
 
-#######################
-#M$ Windows
-
-#serial_port = COM1
-
-#chart_path = D:\Akkumatik
-
-#tmp_path =  C:\.......
+# Neue Versuche bei nicht fehlgeschlagenen Befehlen
+command_resend = 2
 

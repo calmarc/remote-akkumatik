@@ -55,17 +55,21 @@ def get_16bit_hex(integer):
 def akkumatik_command(string, what):
     """ Send a Command to the Akkumatik """
 
-    def command_thread(tname, com_str): #{{{
-        """ thread each single command """
+    def serial_send_command (tname, com_str, retry_count): #{{{
+        """ Send command and wait for Ack (or not) """
 
-        #TODO make it how it *should be* instead of that here...
-        cfg.THREADLOCK.acquire()
-
-        if cfg.COMMAND_ABORT == True: #skip on further soon to arrive commands
-            cfg.THREADLOCK.release()
+        retry_count += 1
+        if retry_count > (cfg.COMMAND_RETRY):
+            cfg.COMMAND_ABORT = True #skip on further soon to arrive commands
             return
 
-        cfg.COMMAND_WAIT = True
+        if retry_count == (cfg.COMMAND_RETRY):
+            failed_string = " Failed"
+            failed_color = "#cc6666"
+        else:
+            failed_string = " Resend"
+            failed_color = "#cccccc"
+
         try:
             cfg.SER.write(com_str)
         except serial.SerialException, err:
@@ -81,12 +85,16 @@ def akkumatik_command(string, what):
         if len(tname) > 6:
             tname = tname[:6]
         label_txt = "[%-5s]: " % (tname)
+
+        cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
+                cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#cccccc"))
+
         cfg.LABEL_STATUS.show()
         cfg.LABEL_STATUS.set_text(label_txt)
         while gtk.events_pending():
             gtk.main_iteration()
         while i < 50:
-            time.sleep(0.1)
+            time.sleep(0.08)
             label_txt += "."
             cfg.LABEL_STATUS.set_text(label_txt)
             while gtk.events_pending():
@@ -106,20 +114,34 @@ def akkumatik_command(string, what):
                 break
 
         if okk == False:
-            cfg.COMMAND_ABORT = True #skip on further soon to arrive commands
             #Status
             cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
-                    cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#cc6666"))
-            label_txt += " Failed"
+                    cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color(failed_color))
+            label_txt += failed_string
             cfg.LABEL_STATUS.set_text(label_txt)
             while gtk.events_pending():
                 gtk.main_iteration()
             time.sleep(2.0)
+            serial_send_command (tname, com_str, retry_count)
+
+        cfg.LABEL_STATUS.hide()
+
+
+    def command_thread(tname, com_str):
+        """ thread each single command """
+
+        #TODO make it how it *should be* instead of that here...
+        cfg.THREADLOCK.acquire()
+
+        if cfg.COMMAND_ABORT == True: #skip on further soon to arrive commands
+            cfg.THREADLOCK.release()
+            return
+
+        cfg.COMMAND_WAIT = True
+
+        serial_send_command(tname, com_str, -1)
 
         cfg.THREADLOCK.release()
-        cfg.EVENT_BOX_LSTATUS.modify_bg(gtk.STATE_NORMAL, \
-                cfg.EVENT_BOX_LSTATUS.get_colormap().alloc_color("#cccccc"))
-        cfg.LABEL_STATUS.hide()
 
     #}}}
 

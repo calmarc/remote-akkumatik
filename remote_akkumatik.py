@@ -84,10 +84,11 @@ def generate_output_strs(daten): #{{{
         if tmp_zellen < 50:
             cfg.ANZAHL_ZELLEN[int(ausgang)] = tmp_zellen
 
-        zyklus = int(daten[10]) #Zyklus
-        #sp = int(daten[11]) #Aktive Akkuspeicher
         phase = int(daten[9]) #Ladephase 0-stop ...
         cfg.PHASE = phase #...needed for START/STOP button
+
+        zyklus = int(daten[10]) #Zyklus
+        #sp = int(daten[11]) #Aktive Akkuspeicher
     except ValueError, err:
         tmp = "Sollte nicht passieren. Bitte Nachricht"
         tmp += " an die Programmierer\n"
@@ -98,7 +99,6 @@ def generate_output_strs(daten): #{{{
         print (tmp)
         cfg.FLOG.write(tmp)
         gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
-
 
     cfg.ATYP[cfg.GEWAEHLTER_AUSGANG] = int(daten[12]) #Akkutyp
     atyp_str = cfg.AKKU_TYP[int(daten[12])] #Akkutyp
@@ -140,7 +140,7 @@ def generate_output_strs(daten): #{{{
             cfg.FLOG.write(tmp)
             gtk_stuff.message_dialog(cfg.GTK_WINDOW, tmp)
 
-    balance_delta = -1
+    balance_delta = -1 #< Not needed - but anyway
     if len(tmp_a) > 0:
         balance_delta = max(tmp_a) - min(tmp_a)
 
@@ -451,12 +451,26 @@ if __name__ == '__main__': #{{{
                         split[1].strip().lower() == "aus" or \
                         split[1].strip().lower() == "0":
                     cfg.TOOLTIPS = 0
+            elif split[0].strip().lower() == "command_resend":
+                try:
+                    cfg.COMMAND_RETRY = int(split[1].strip().lower())
+                    if cfg.COMMAND_RETRY < 0 or cfg.COMMAND_RETRY > 20:
+                        raise ValueError
+                except ValueError:
+                    cfg.COMMAND_RETRY = 1
+                    tmp = "Fehlerhafte 'command_resend' Angabe: '" \
+                            + split[1].strip().lower() + "'"
+                    print tmp
+                    gtk_stuff.message_dialog(None, tmp)
+
 
     tmp = "* [ Config ] ***********************************\n"
     tmp += "Bild-Betrachter:%s\n" % (cfg.PICTURE_EXE)
     tmp += "Serial Port:    %s\n" % (cfg.SERIAL_PORT)
     tmp += "Chart Pfad:     %s\n" % (cfg.CHART_DIR)
-    tmp += "Tmp Pfad:       %s\n\n" % (cfg.TMP_DIR)
+    tmp += "Tmp Pfad:       %s\n" % (cfg.TMP_DIR)
+    tmp += "Tooltips:       %s\n" % (bool(cfg.TOOLTIPS))
+    tmp += "Resend Count:   %s\n\n" % (cfg.COMMAND_RETRY)
     print tmp
     cfg.FLOG.write(tmp)
 
