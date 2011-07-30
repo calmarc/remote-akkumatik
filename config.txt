@@ -15,7 +15,7 @@
 
 #viewer = /usr/local/bin/qiv
 
-# Tempraeres Zeugs wie.die Seriellen Daten
+# Tempraeres Zeugs (Serielle Daten etc.)
 
 #tmp_path =  /tmp/remote-akkumatik
 #tmp_path =  C:\.......

@@ -172,12 +172,12 @@ def main_window():
         else:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop.png")
 
-    def draw_pixbuf(widget, event):
-        """ add the picture to the window """
-        path = cfg.EXE_DIR + '/bilder/Display.png'
-        pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
-                pixbuf, 0, 0, 0,0)
+    #def draw_pixbuf(widget, event):
+        #""" add the picture to the window """
+        #path = cfg.EXE_DIR + '/bilder/Display.png'
+        #pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+        #widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
+                #pixbuf, 0, 0, 0,0)
 
     cfg.GTK_WINDOW = gtk.Window(gtk.WINDOW_TOPLEVEL)
     cfg.GTK_WINDOW.set_title('Akkumatic Remote Display')
@@ -192,7 +192,8 @@ def main_window():
     # overall hbox
     hbox = gtk.HBox()
     cfg.GTK_WINDOW.add(hbox)
-    hbox.connect('expose-event', draw_pixbuf)
+    hbox.connect('expose-event', helper.draw_pixbuf, \
+            cfg.EXE_DIR + '/bilder/Display.png')
 
     # akkumatik display label
     gfixed = gtk.Fixed()
@@ -750,21 +751,67 @@ def akkupara_dialog(): #{{{
     #GTK Akku parameter dialog main window
     dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
             + str(cfg.GEWAEHLTER_AUSGANG), cfg.GTK_WINDOW, \
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, \
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
 
-    dialog.add_button("Übertragen", 2)
-    dialog.add_button("Starten", -3)
+    #dialog.add_button("Abbruch", 0)
+
+    #Abbruch
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/Cancel24.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Abbruch")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+    button.show()
+    dialog.add_action_widget(button, 0)
+
+    #Uebertragen
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/Transfer24.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Parameter übertragen")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+    button.show()
+    dialog.add_action_widget(button, 2)
+
+    #Start
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/start24.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Übertragen + Starten")
+    image.show()
+    button = gtk.Button()
+    #button.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ccddcc"))
+    button.add(image)
+    button.show()
+    dialog.add_action_widget(button, -3)
 
     frame = gtk.Frame(None)
     dialog.vbox.pack_start(frame, True, True, 0)
+
+    dialog.vbox.connect('expose-event', helper.draw_pixbuf, \
+            cfg.EXE_DIR + '/bilder/akku-para.png')
 
     hbox = gtk.HBox(False, 0)
     hbox.show()
     frame.add(hbox)
     frame.show()
 
-    button = gtk.Button("+")
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/add.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Parameter abspeichern als ...")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+
     button.connect("clicked", button_akku_cb, dialog, "+")
     hbox.pack_start(button, False, True, 1)
     button.show()
@@ -781,7 +828,15 @@ def akkupara_dialog(): #{{{
     cb_akkulist.connect("changed", cb_akkulist_cb)
     cb_akkulist.show()
 
-    button = gtk.Button("x")
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/remove.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Eintrag löschen")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+
     button.connect("clicked", button_akku_cb, dialog, "x")
     hbox.pack_start(button, False, True, 1)
     button.show()
@@ -874,7 +929,7 @@ def akkupara_dialog(): #{{{
     hbox.pack_start(frame, True, True, 0)
 
     vbox = gtk.VBox(False, 0)
-    vbox.set_size_request(80, 280)
+    vbox.set_size_request(90, 280)
     vbox.set_border_width(5)
     frame.add(vbox)
     frame.show()

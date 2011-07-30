@@ -26,6 +26,11 @@ def open_file(file_name, mode):
     else:
         return the_file
 
+def draw_pixbuf(widget, event, path):
+    """ add the picture to the window """
+    pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+    widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
+            pixbuf, 0, 0, 0,0)
 
 #command stuff
 def get_pos_hex(string, konst_arr):
