@@ -784,7 +784,7 @@ def akkupara_dialog(): #{{{
     image.set_from_file(cfg.EXE_DIR + \
             "/bilder/start24.png")
     if cfg.TOOLTIPS:
-        image.set_tooltip_text("Übertragen + Starten")
+        image.set_tooltip_text("Übertragen + starten")
     image.show()
     button = gtk.Button()
     #button.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ccddcc"))
