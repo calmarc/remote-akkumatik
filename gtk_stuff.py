@@ -527,11 +527,26 @@ def akkupara_dialog(): #{{{
     def combo_general_cb(data, old_atyp):
         """ akku-typ callback (when changed) """
 
+        def stoppm_lademenge():
+            """ only lademenge """
+            model = cb_stoppm.get_model()
+            model.clear()
+            model.append([cfg.STOPPMETHODE[0]])
+            cb_stoppm.set_active(0) #Lademenge
+
+        # else this callback calls itself for nothing
+        # on changes it makes itself
+        cb_atyp.handler_block(cb_atyp_hd)
+        cb_prog.handler_block(cb_prog_hd)
+        cb_stoppm.handler_block(cb_stoppm_hd)
+        cb_stromw.handler_block(cb_stromw_hd)
+
         atyp = cb_atyp.get_active_text()
         atyp_nr = cfg.AKKU_TYP.index(atyp)
         stoppm = cb_stoppm.get_active_text()
         stromw = cb_stromw.get_active_text()
         amprog = cb_prog.get_active_text()
+        lart = cb_lart.get_active_text()
 
         # General stromwahl stuff
         if amprog == "Laden":
@@ -595,39 +610,39 @@ def akkupara_dialog(): #{{{
                 model.append([cfg.LADEART[0]])
                 model.append([cfg.LADEART[1]])
                 model.append([cfg.LADEART[2]])
-
-                lart = cb_lart.get_active_text()
-                if lart == None:
-                    tmp = 0
-                else:
-                    tmp = cfg.LADEART.index(lart)
-
-                if tmp < 3:
-                    cb_lart.set_active(tmp)
-                else:
-                    cb_lart.set_active(0)
+                cb_lart.set_active(cfg.NIXX_LADEART)
 
                 model = cb_stromw.get_model()
                 model.clear()
                 model.append([cfg.STROMWAHL[0]])
                 model.append([cfg.STROMWAHL[1]])
                 model.append([cfg.STROMWAHL[2]])
+                print "restore:" + str(cfg.NIXX_STROMWAHL)
+                print cfg.STROMWAHL[cfg.NIXX_STROMWAHL]
+                cb_stromw.set_active(cfg.NIXX_STROMWAHL)
+
+                model = cb_stoppm.get_model()
+                model.clear()
+                model.append([cfg.STOPPMETHODE[0]])
+                model.append([cfg.STOPPMETHODE[1]])
+                model.append([cfg.STOPPMETHODE[2]])
+                model.append([cfg.STOPPMETHODE[3]])
+                model.append([cfg.STOPPMETHODE[4]])
+                cb_stoppm.set_active(cfg.NIXX_STOPPM)
 
                 if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
                     model.append([cfg.STROMWAHL[3]])
 
-                if stromw == None:
-                    tmp = 0
-                else:
-                    tmp = cfg.STROMWAHL.index(stromw)
-                cb_stromw.set_active(tmp)
-
-                cb_stoppm.set_sensitive(True)
-                cb_stoppm_label.set_sensitive(True)
                 cb_stromw.set_sensitive(True)
                 cb_stromw_label.set_sensitive(True)
                 cb_lart.set_sensitive(True)
                 cb_lart_label.set_sensitive(True)
+            else:
+                #store Nixx lademethode
+                cfg.NIXX_STOPPM = cfg.STOPPMETHODE.index(stoppm)
+                cfg.NIXX_STROMWAHL = cfg.STROMWAHL.index(stromw)
+                print "store:" + str(cfg.NIXX_STROMWAHL)
+                cfg.NIXX_LADEART = cfg.LADEART.index(lart)
 
             #Lademenge only on lademenge
             #no kapa. on lademenge
@@ -660,12 +675,13 @@ def akkupara_dialog(): #{{{
         elif atyp_nr in [2, 3]:
             if old_atyp[0] != atyp_nr:
                 old_atyp[0] = atyp_nr
+
+                stoppm_lademenge()
+
                 cb_lart.set_sensitive(False)
                 cb_lart_label.set_sensitive(False)
                 cb_stromw.set_sensitive(False)
                 cb_stromw_label.set_sensitive(False)
-                cb_stoppm.set_sensitive(False)
-                cb_stoppm_label.set_sensitive(False)
                 sp_anzzellen.set_sensitive(True)
                 sp_anzzellen_label.set_sensitive(True)
                 sp_menge.set_sensitive(True)
@@ -701,8 +717,8 @@ def akkupara_dialog(): #{{{
                 else:
                     cb_stromw.set_active(0) #fest
 
-                cb_stoppm.set_sensitive(False)
-                cb_stoppm_label.set_sensitive(False)
+                stoppm_lademenge()
+
                 cb_stromw.set_sensitive(True)
                 cb_stromw_label.set_sensitive(True)
                 cb_lart.set_sensitive(True)
@@ -714,6 +730,11 @@ def akkupara_dialog(): #{{{
 
                 sp_kapazitaet.set_sensitive(True)
                 sp_kapazitaet_label.set_sensitive(True)
+
+        cb_atyp.handler_unblock(cb_atyp_hd)
+        cb_prog.handler_unblock(cb_prog_hd)
+        cb_stoppm.handler_unblock(cb_stoppm_hd)
+        cb_stromw.handler_unblock(cb_stromw_hd)
 
     def get_akkulist():
         """ load akkulist from harddrive """
@@ -871,7 +892,7 @@ def akkupara_dialog(): #{{{
         cb_atyp.append_text(item)
     cb_atyp.set_active(cfg.ATYP[cfg.GEWAEHLTER_AUSGANG])
     cb_atyp.show()
-    cb_atyp.connect("changed", combo_general_cb, old_atyp)
+    cb_atyp_hd = cb_atyp.connect("changed", combo_general_cb, old_atyp)
 
     vbox.pack_start(cb_atyp, True, True, 0)
 
@@ -888,7 +909,7 @@ def akkupara_dialog(): #{{{
         cb_prog.append_text(cfg.AMPROGRAMM[6])
 
     cb_prog.set_active(cfg.PRG[cfg.GEWAEHLTER_AUSGANG])
-    cb_prog.connect("changed", combo_general_cb, old_atyp)
+    cb_prog_hd = cb_prog.connect("changed", combo_general_cb, old_atyp)
     cb_prog.show()
     vbox.pack_start(cb_prog, True, True, 0)
 
@@ -909,7 +930,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STROMWAHL:
         cb_stromw.append_text(item)
     cb_stromw.set_active(cfg.STROMW[cfg.GEWAEHLTER_AUSGANG])
-    cb_stromw.connect("changed", combo_general_cb, old_atyp)
+    cb_stromw_hd = cb_stromw.connect("changed", combo_general_cb, old_atyp)
     cb_stromw.show()
     vbox.pack_start(cb_stromw, True, True, 0)
 
@@ -920,7 +941,7 @@ def akkupara_dialog(): #{{{
     for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
     cb_stoppm.set_active(cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG])
-    cb_stoppm.connect("changed", combo_general_cb, old_atyp)
+    cb_stoppm_hd = cb_stoppm.connect("changed", combo_general_cb, old_atyp)
     cb_stoppm.show()
     vbox.pack_start(cb_stoppm, True, True, 0)
 
