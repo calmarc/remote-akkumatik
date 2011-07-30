@@ -617,8 +617,6 @@ def akkupara_dialog(): #{{{
                 model.append([cfg.STROMWAHL[0]])
                 model.append([cfg.STROMWAHL[1]])
                 model.append([cfg.STROMWAHL[2]])
-                print "restore:" + str(cfg.NIXX_STROMWAHL)
-                print cfg.STROMWAHL[cfg.NIXX_STROMWAHL]
                 cb_stromw.set_active(cfg.NIXX_STROMWAHL)
 
                 model = cb_stoppm.get_model()
@@ -641,7 +639,6 @@ def akkupara_dialog(): #{{{
                 #store Nixx lademethode
                 cfg.NIXX_STOPPM = cfg.STOPPMETHODE.index(stoppm)
                 cfg.NIXX_STROMWAHL = cfg.STROMWAHL.index(stromw)
-                print "store:" + str(cfg.NIXX_STROMWAHL)
                 cfg.NIXX_LADEART = cfg.LADEART.index(lart)
 
             #Lademenge only on lademenge
@@ -680,7 +677,9 @@ def akkupara_dialog(): #{{{
 
                 cb_lart.set_sensitive(False)
                 cb_lart_label.set_sensitive(False)
+                cb_lart.set_active(-1)
                 cb_stromw.set_sensitive(False)
+                cb_stromw.set_active(-1)
                 cb_stromw_label.set_sensitive(False)
                 sp_anzzellen.set_sensitive(True)
                 sp_anzzellen_label.set_sensitive(True)
