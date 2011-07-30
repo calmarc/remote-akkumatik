@@ -82,4 +82,9 @@ SERIAL_PORT = ""
 SER = None
 FSER = None
 FLOG = None
+
+#div
+NIXX_STOPPM = 0
+NIXX_LADEART = 0
+NIXX_STROMWAHL = 0
 # vim: set nosi ai ts=8 et shiftwidth=4 sts=4 fdm=marker foldnestmax=1 :
