@@ -751,11 +751,46 @@ def akkupara_dialog(): #{{{
     #GTK Akku parameter dialog main window
     dialog = gtk.Dialog("Akkumatik Settings Ausgang "\
             + str(cfg.GEWAEHLTER_AUSGANG), cfg.GTK_WINDOW, \
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, \
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
 
-    dialog.add_button("Übertragen", 2)
-    dialog.add_button("Starten", -3)
+    #dialog.add_button("Abbruch", 0)
+
+    #Abbruch
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/Cancel24.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Abbruch")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+    button.show()
+    dialog.add_action_widget(button, 0)
+
+    #Uebertragen
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/Transfer24.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Parameter übertragen")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+    button.show()
+    dialog.add_action_widget(button, 2)
+
+    #Start
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/start24.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Übertragen + Starten")
+    image.show()
+    button = gtk.Button()
+    #button.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ccddcc"))
+    button.add(image)
+    button.show()
+    dialog.add_action_widget(button, -3)
 
     frame = gtk.Frame(None)
     dialog.vbox.pack_start(frame, True, True, 0)
@@ -771,6 +806,8 @@ def akkupara_dialog(): #{{{
     image = gtk.Image()
     image.set_from_file(cfg.EXE_DIR + \
             "/bilder/add.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Parameter abspeichern als ...")
     image.show()
     button = gtk.Button()
     button.add(image)
@@ -794,6 +831,8 @@ def akkupara_dialog(): #{{{
     image = gtk.Image()
     image.set_from_file(cfg.EXE_DIR + \
             "/bilder/remove.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Eintrag löschen")
     image.show()
     button = gtk.Button()
     button.add(image)
@@ -890,7 +929,7 @@ def akkupara_dialog(): #{{{
     hbox.pack_start(frame, True, True, 0)
 
     vbox = gtk.VBox(False, 0)
-    vbox.set_size_request(80, 280)
+    vbox.set_size_request(90, 280)
     vbox.set_border_width(5)
     frame.add(vbox)
     frame.show()
