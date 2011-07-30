@@ -172,12 +172,12 @@ def main_window():
         else:
             cfg.START_STOP.set_from_file(cfg.EXE_DIR + "/bilder/stop.png")
 
-    def draw_pixbuf(widget, event):
-        """ add the picture to the window """
-        path = cfg.EXE_DIR + '/bilder/Display.png'
-        pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-        widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
-                pixbuf, 0, 0, 0,0)
+    #def draw_pixbuf(widget, event):
+        #""" add the picture to the window """
+        #path = cfg.EXE_DIR + '/bilder/Display.png'
+        #pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+        #widget.window.draw_pixbuf(widget.style.bg_gc[gtk.STATE_NORMAL], \
+                #pixbuf, 0, 0, 0,0)
 
     cfg.GTK_WINDOW = gtk.Window(gtk.WINDOW_TOPLEVEL)
     cfg.GTK_WINDOW.set_title('Akkumatic Remote Display')
@@ -192,7 +192,8 @@ def main_window():
     # overall hbox
     hbox = gtk.HBox()
     cfg.GTK_WINDOW.add(hbox)
-    hbox.connect('expose-event', draw_pixbuf)
+    hbox.connect('expose-event', helper.draw_pixbuf, \
+            cfg.EXE_DIR + '/bilder/Display.png')
 
     # akkumatik display label
     gfixed = gtk.Fixed()
@@ -759,12 +760,21 @@ def akkupara_dialog(): #{{{
     frame = gtk.Frame(None)
     dialog.vbox.pack_start(frame, True, True, 0)
 
+    dialog.vbox.connect('expose-event', helper.draw_pixbuf, \
+            cfg.EXE_DIR + '/bilder/akku-para.png')
+
     hbox = gtk.HBox(False, 0)
     hbox.show()
     frame.add(hbox)
     frame.show()
 
-    button = gtk.Button("+")
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/add.png")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+
     button.connect("clicked", button_akku_cb, dialog, "+")
     hbox.pack_start(button, False, True, 1)
     button.show()
@@ -781,7 +791,13 @@ def akkupara_dialog(): #{{{
     cb_akkulist.connect("changed", cb_akkulist_cb)
     cb_akkulist.show()
 
-    button = gtk.Button("x")
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/remove.png")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+
     button.connect("clicked", button_akku_cb, dialog, "x")
     hbox.pack_start(button, False, True, 1)
     button.show()

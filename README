@@ -33,7 +33,14 @@ pythonw.exe what does not show the console normally).
 
 == TODO ==
 
-Matplot as alternative to gnuplot
+. Matplot as alternative to gnuplot
+
+. Beim LiPo Lagern -> fertig anstatt 'akku leer' etc.
+
+. lademenge immer gleich 'fest'
+
+. schnell vom chip laden.. allenfalls check intervall and
+tune it accordingly
 
 == Contact ==
 
