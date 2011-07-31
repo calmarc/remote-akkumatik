@@ -22,7 +22,14 @@ Mydata_files.append(('bilder', [
         'bilder/start.png',
         'bilder/start_hover.png',
         'bilder/stop.png',
-        'bilder/stop_hover.png']))
+        'bilder/stop_hover.png',
+        'bilder/akku-para.png',
+        'bilder/add.png',
+        'bilder/remove.png',
+        'bilder/Cancel24.png',
+        'bilder/Transfer24.png',
+        'bilder/start24.png']))
+
 Mydata_files.append(('', ['config.txt']))
 Mydata_files.append(('', ['README']))
 
