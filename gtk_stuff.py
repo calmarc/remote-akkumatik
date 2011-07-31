@@ -557,59 +557,9 @@ def akkupara_dialog(): #{{{
         amprog = cb_prog.get_active_text()
         lart = cb_lart.get_active_text()
 
-        # General stromwahl stuff
-        if amprog == "Laden":
-            sp_entladelimit.set_sensitive(False)
-            sp_entladelimit_label.set_sensitive(False)
-            sp_ladelimit.set_sensitive(True)
-            sp_ladelimit_label.set_sensitive(True)
-
-        elif amprog == "Entladen":
-            sp_entladelimit.set_sensitive(True)
-            sp_entladelimit_label.set_sensitive(True)
-            sp_ladelimit.set_sensitive(False)
-            sp_ladelimit_label.set_sensitive(False)
-        else: #programs that require both
-            sp_entladelimit.set_sensitive(True)
-            sp_entladelimit_label.set_sensitive(True)
-            sp_ladelimit.set_sensitive(True)
-            sp_ladelimit_label.set_sensitive(True)
-            # if Auto it gets changed later on Nixx
-
-        # lagern etc. -> no zyklen
-        if amprog == "Lagern" or amprog == "Laden" or \
-                amprog == "Entladen" or amprog == "Sender":
-            sp_zyklen.set_sensitive(False)
-            sp_zyklen_label.set_sensitive(False)
-        else:
-            sp_zyklen.set_sensitive(True)
-            sp_zyklen_label.set_sensitive(True)
-
-        # ext-Wiederstand only on Entladen + Ausg==1
-        # TODO: nach dem anderen? damit bei Nixx...
-        cb_model = cb_stromw.get_model()
-        xflag = False
-        xiter = cb_model.get_iter_first()
-        position = 0
-        if xiter:
-            while True:
-                if cb_model.get_value(xiter, 0) == cfg.STROMWAHL[3]:
-                    xflag = True
-                    break
-                xiter = cb_model.iter_next(xiter)
-                if not xiter:
-                    break
-                position += 1
-
-            if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
-                if xflag == False:
-                    cb_stromw.append_text(cfg.STROMWAHL[3])
-            else:
-                if xflag == True:
-                    xyz = cb_stromw.get_active()
-                    cb_stromw.remove_text(position)
-                    if xyz == position:
-                        cb_stromw.set_active(0)
+        if None in [atyp, stoppm, stromw, amprog, lart]:
+            print "Should not happen, somehow - but it's not serious"
+            return
 
         #NiCd, NiMh
         if atyp_nr in [0, 1]:
@@ -627,10 +577,6 @@ def akkupara_dialog(): #{{{
                 model.append([cfg.STROMWAHL[0]])
                 model.append([cfg.STROMWAHL[1]])
                 model.append([cfg.STROMWAHL[2]])
-
-                #ext wiederstand
-                if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
-                    model.append([cfg.STROMWAHL[3]])
 
                 cb_stromw.set_active(cfg.NIXX_STROMWAHL)
 
@@ -723,9 +669,6 @@ def akkupara_dialog(): #{{{
                 model.clear()
                 model.append([cfg.STROMWAHL[2]])
 
-                if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
-                    model.append([cfg.STROMWAHL[3]])
-
                 if stromw == None:
                     tmp = 0
                 else:
@@ -749,6 +692,64 @@ def akkupara_dialog(): #{{{
 
                 sp_kapazitaet.set_sensitive(True)
                 sp_kapazitaet_label.set_sensitive(True)
+
+        # General stromwahl stuff
+        if amprog == "Laden":
+            sp_entladelimit.set_sensitive(False)
+            sp_entladelimit_label.set_sensitive(False)
+            sp_ladelimit.set_sensitive(True)
+            sp_ladelimit_label.set_sensitive(True)
+
+        elif amprog == "Entladen":
+            sp_entladelimit.set_sensitive(True)
+            sp_entladelimit_label.set_sensitive(True)
+            sp_ladelimit.set_sensitive(False)
+            sp_ladelimit_label.set_sensitive(False)
+        else: #programs that require both
+            sp_entladelimit.set_sensitive(True)
+            sp_entladelimit_label.set_sensitive(True)
+            sp_ladelimit.set_sensitive(True)
+            sp_ladelimit_label.set_sensitive(True)
+            # if Auto it gets changed later on Nixx
+
+        # lagern etc. -> no zyklen
+        if amprog == "Lagern" or amprog == "Laden" or \
+                amprog == "Entladen" or amprog == "Sender":
+            sp_zyklen.set_sensitive(False)
+            sp_zyklen_label.set_sensitive(False)
+        else:
+            sp_zyklen.set_sensitive(True)
+            sp_zyklen_label.set_sensitive(True)
+
+        # ext-Wiederstand only on Entladen + Ausg==1
+        # TODO: nach dem anderen? damit bei Nixx...
+        cb_model = cb_stromw.get_model()
+        xflag = False
+        xiter = cb_model.get_iter_first()
+        position = 0
+        if xiter:
+            #find ext. Wiederstand
+            while True:
+                if cb_model.get_value(xiter, 0) == cfg.STROMWAHL[3]:
+                    xflag = True
+                    break
+                xiter = cb_model.iter_next(xiter)
+                if not xiter:
+                    break
+                position += 1
+            if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
+                if xflag == False:
+                    cb_stromw.append_text(cfg.STROMWAHL[3])
+                    cb_stromw.set_sensitive(True)
+            else:
+                if xflag == True:
+                    xyz = cb_stromw.get_active()
+                    cb_stromw.remove_text(position)
+                    if xyz == position:
+                        cb_stromw.set_active(0)
+                    # Only one entry left then -> False
+                    if position == 1:
+                        cb_stromw.set_sensitive(False)
 
         unblock_signals()
 
