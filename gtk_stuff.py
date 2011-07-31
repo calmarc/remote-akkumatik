@@ -643,12 +643,9 @@ def akkupara_dialog(): #{{{
                 model.append([cfg.STOPPMETHODE[4]])
                 cb_stoppm.set_active(cfg.NIXX_STOPPM)
                 cb_stoppm.set_sensitive(True)
-                cb_stoppm_label.set_sensitive(True)
 
                 cb_stromw.set_sensitive(True)
-                cb_stromw_label.set_sensitive(True)
                 cb_lart.set_sensitive(True)
-                cb_lart_label.set_sensitive(True)
 
             else:
                 #store Nixx lademethode
@@ -694,18 +691,15 @@ def akkupara_dialog(): #{{{
                 cb_lart.set_active(0) # and set to 0
 
                 cb_lart.set_sensitive(False)
-                cb_lart_label.set_sensitive(False)
 
                 model = cb_stromw.get_model()
                 model.clear()
                 model.append([cfg.STROMWAHL[2]])
                 cb_stromw.set_sensitive(False)
                 cb_stromw.set_active(0)
-                cb_stromw_label.set_sensitive(False)
 
                 stoppm_lademenge()
                 cb_stoppm.set_sensitive(False)
-                cb_stoppm_label.set_sensitive(False)
 
                 sp_anzzellen.set_sensitive(True)
                 sp_anzzellen_label.set_sensitive(True)
@@ -745,11 +739,8 @@ def akkupara_dialog(): #{{{
                 stoppm_lademenge()
 
                 cb_stromw.set_sensitive(False)
-                cb_stromw_label.set_sensitive(False)
                 cb_lart.set_sensitive(True)
-                cb_lart_label.set_sensitive(True)
                 cb_stoppm.set_sensitive(False)
-                cb_stoppm_label.set_sensitive(False)
                 sp_anzzellen.set_sensitive(True)
                 sp_anzzellen_label.set_sensitive(True)
 
@@ -841,8 +832,8 @@ def akkupara_dialog(): #{{{
     frame = gtk.Frame(None)
     dialog.vbox.pack_start(frame, True, True, 0)
 
-    dialog.vbox.connect('expose-event', helper.draw_pixbuf, \
-            cfg.EXE_DIR + '/bilder/akku-para.png')
+    #dialog.vbox.connect('expose-event', helper.draw_pixbuf, \
+            #cfg.EXE_DIR + '/bilder/akku-para.png')
 
     hbox = gtk.HBox(False, 0)
     hbox.show()
@@ -887,31 +878,34 @@ def akkupara_dialog(): #{{{
     hbox.pack_start(button, False, True, 1)
     button.show()
 
+    #list, so the callback-function can change the value
+    old_atyp = [-1]
+
     #####################################
     # hbox over the whole dialog (besides of akkulist)
 
     hbox = gtk.HBox(False, 0)
-    dialog.vbox.pack_start(hbox, True, True, 0)
+    dialog.vbox.pack_start(hbox, False, False, 0)
     hbox.show()
 
-    #frame 1 (vbox)
-    frame = gtk.Frame(None)
-    hbox.pack_start(frame, True, True, 0)
-
+    # vbox over the whole left part dialog (besides of akkulist)
     vbox = gtk.VBox(False, 0)
-    vbox.set_size_request(120, 280)
-    vbox.set_border_width(5)
-    frame.add(vbox)
-    frame.show()
+    vbox.set_size_request(180, 300)
+    vbox.set_border_width(0)
+    hbox.pack_start(vbox, False, False, 8)
     vbox.show()
 
-    #list, so the callback-function can change the value
-    old_atyp = [-1]
+    #frame 1,1 (vbox)
+    frame = gtk.Frame(None)
+    frame.set_label("Batterie")
+    vbox.pack_start(frame, False, False, 8)
+    vbox_frame = gtk.VBox(False, 0)
+    vbox_frame.set_border_width(4)
+    frame.add(vbox_frame)
+    frame.show()
+    vbox_frame.show()
 
     #stuff into frame (vbox)
-    cb_atyp_label = gtk.Label("Batterie Typ")
-    vbox.pack_start(cb_atyp_label, True, True, 0)
-    cb_atyp_label.show()
     cb_atyp = gtk.combo_box_new_text()
     for item in cfg.AKKU_TYP:
         cb_atyp.append_text(item)
@@ -919,11 +913,48 @@ def akkupara_dialog(): #{{{
     cb_atyp.show()
     cb_atyp_hd = cb_atyp.connect("changed", combo_general_cb, old_atyp)
 
-    vbox.pack_start(cb_atyp, True, True, 0)
+    vbox_frame.pack_start(cb_atyp, False, False, 2)
 
-    cb_prog_label = gtk.Label("Programm")
-    vbox.pack_start(cb_prog_label, True, True, 0)
-    cb_prog_label.show()
+    hbox_iframe = gtk.HBox(False, 0)
+    hbox_iframe.show()
+    vbox_frame.pack_start(hbox_iframe, False, False, 0)
+
+    sp_anzzellen_label = gtk.Label("Zellen-Anzahl: ")
+    hbox_iframe.pack_start(sp_anzzellen_label, False, False, 0)
+    sp_anzzellen_label.show()
+    adj = gtk.Adjustment(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], \
+            0.0, 99999, 1, 1, 0.0)
+    sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
+    sp_anzzellen.set_wrap(False)
+    sp_anzzellen.set_numeric(True)
+    hbox_iframe.pack_end(sp_anzzellen, False, False, 0)
+    sp_anzzellen.show()
+
+    hbox_iframe = gtk.HBox(False, 0)
+    hbox_iframe.show()
+    vbox_frame.pack_start(hbox_iframe, False, False, 0)
+
+    sp_kapazitaet_label = gtk.Label("Kapazität mAh: ")
+    hbox_iframe.pack_start(sp_kapazitaet_label, False, False, 4)
+    sp_kapazitaet_label.show()
+    adj = gtk.Adjustment(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG], \
+            0.0, 99999, 25, 25, 0.0)
+    sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
+    sp_kapazitaet.set_wrap(False)
+    sp_kapazitaet.set_numeric(True)
+    hbox_iframe.pack_end(sp_kapazitaet, False, False, 0)
+    sp_kapazitaet.show()
+
+    #frame 1,2 (vbox)
+    frame = gtk.Frame(None)
+    frame.set_label("Programm")
+    vbox.pack_start(frame, False, False, 8)
+    vbox_frame = gtk.VBox(False, 0)
+    vbox_frame.set_border_width(4)
+    frame.add(vbox_frame)
+    frame.show()
+    vbox_frame.show()
+
     cb_prog = gtk.combo_box_new_text()
 
     if cfg.GEWAEHLTER_AUSGANG == 1:
@@ -936,117 +967,128 @@ def akkupara_dialog(): #{{{
     cb_prog.set_active(cfg.PRG[cfg.GEWAEHLTER_AUSGANG])
     cb_prog_hd = cb_prog.connect("changed", combo_general_cb, old_atyp)
     cb_prog.show()
-    vbox.pack_start(cb_prog, True, True, 0)
+    vbox_frame.pack_start(cb_prog, False, False, 2)
 
-    cb_lart_label = gtk.Label("Ladeart")
-    vbox.pack_start(cb_lart_label, True, True, 0)
-    cb_lart_label.show()
+    hbox_iframe = gtk.HBox(False, 0)
+    hbox_iframe.show()
+    vbox_frame.pack_start(hbox_iframe, False, False, 0)
+
+    sp_zyklen_label = gtk.Label("Zyklen")
+    hbox_iframe.pack_start(sp_zyklen_label, False, False, 0)
+    sp_zyklen_label.show()
+    adj = gtk.Adjustment(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG], 1, 99999, 1, 1, 0.0)
+    sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
+    sp_zyklen.set_wrap(False)
+    sp_zyklen.set_numeric(True)
+    hbox_iframe.pack_end(sp_zyklen, False, False, 0)
+    sp_zyklen.show()
+
+    # vbox over the whole right part dialog (besides of akkulist)
+    vbox = gtk.VBox(False, 0)
+    vbox.set_size_request(180, 300)
+    vbox.set_border_width(0)
+    hbox.pack_start(vbox, False, False, 8)
+    vbox.show()
+
+    #frame 2,1 (vbox)
+    frame = gtk.Frame(None)
+    frame.set_label("Ladeart")
+    vbox.pack_start(frame, False, False, 8)
+    vbox_frame = gtk.VBox(False, 0)
+    vbox_frame.set_border_width(4)
+    frame.add(vbox_frame)
+    frame.show()
+    vbox_frame.show()
+
     cb_lart = gtk.combo_box_new_text()
     for item in cfg.LADEART[:-1]: #exclude LiPo
         cb_lart.append_text(item)
     cb_lart.set_active(cfg.LART[cfg.GEWAEHLTER_AUSGANG])
     cb_lart.show()
-    vbox.pack_start(cb_lart, True, True, 0)
+    vbox_frame.pack_start(cb_lart, False, False, 2)
 
-    cb_stromw_label = gtk.Label("Stromwahl")
-    vbox.pack_start(cb_stromw_label, True, True, 0)
-    cb_stromw_label.show()
+    #frame 2,2 (vbox)
+    frame = gtk.Frame(None)
+    frame.set_label("Stromwahl")
+    vbox.pack_start(frame, False, False, 8)
+    vbox_frame = gtk.VBox(False, 0)
+    vbox_frame.set_border_width(4)
+    frame.add(vbox_frame)
+    frame.show()
+    vbox_frame.show()
+
     cb_stromw = gtk.combo_box_new_text()
     for item in cfg.STROMWAHL:
         cb_stromw.append_text(item)
     cb_stromw.set_active(cfg.STROMW[cfg.GEWAEHLTER_AUSGANG])
     cb_stromw_hd = cb_stromw.connect("changed", combo_general_cb, old_atyp)
     cb_stromw.show()
-    vbox.pack_start(cb_stromw, True, True, 0)
+    vbox_frame.pack_start(cb_stromw, False, False, 2)
 
-    cb_stoppm_label = gtk.Label("Stoppmethode")
-    vbox.pack_start(cb_stoppm_label, True, True, 0)
-    cb_stoppm_label.show()
+    hbox_iframe = gtk.HBox(False, 0)
+    hbox_iframe.show()
+    vbox_frame.pack_start(hbox_iframe, False, False, 0)
+
+    sp_ladelimit_label = gtk.Label("I-Laden mA:")
+    hbox_iframe.pack_start(sp_ladelimit_label, False, False, 0)
+    sp_ladelimit_label.show()
+    adj = gtk.Adjustment(cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
+            0.0, 99999, 25, 25, 0.0)
+    sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
+    sp_ladelimit.set_wrap(False)
+    sp_ladelimit.set_numeric(True)
+    hbox_iframe.pack_end(sp_ladelimit, False, False, 0)
+    sp_ladelimit.show()
+
+    hbox_iframe = gtk.HBox(False, 0)
+    hbox_iframe.show()
+    vbox_frame.pack_start(hbox_iframe, False, False, 0)
+
+    sp_entladelimit_label = gtk.Label("I-Entladen mA:")
+    hbox_iframe.pack_start(sp_entladelimit_label, False, False, 0)
+    sp_entladelimit_label.show()
+    adj = gtk.Adjustment(cfg.ENTLADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
+            0.0, 99999, 25, 25, 0.0)
+    sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
+    sp_entladelimit.set_wrap(False)
+    sp_entladelimit.set_numeric(True)
+    hbox_iframe.pack_end(sp_entladelimit, False, False, 0)
+    if cfg.GEWAEHLTER_AUSGANG == 2:
+        sp_entladelimit.set_sensitive(False)
+    sp_entladelimit.show()
+
+    #frame 2,3 (vbox)
+    frame = gtk.Frame(None)
+    frame.set_label("Stoppmethode")
+    vbox.pack_start(frame, False, False, 8)
+    vbox_frame = gtk.VBox(False, 0)
+    vbox_frame.set_border_width(4)
+    frame.add(vbox_frame)
+    frame.show()
+    vbox_frame.show()
+
     cb_stoppm = gtk.combo_box_new_text()
     for item in cfg.STOPPMETHODE:
         cb_stoppm.append_text(item)
     cb_stoppm.set_active(cfg.STOPPM[cfg.GEWAEHLTER_AUSGANG])
     cb_stoppm_hd = cb_stoppm.connect("changed", combo_general_cb, old_atyp)
     cb_stoppm.show()
-    vbox.pack_start(cb_stoppm, True, True, 0)
+    vbox_frame.pack_start(cb_stoppm, False, False, 2)
 
-    #frame 2 (vbox)
-    frame = gtk.Frame(None)
-    hbox.pack_start(frame, True, True, 0)
+    hbox_iframe = gtk.HBox(False, 0)
+    hbox_iframe.show()
+    vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    vbox = gtk.VBox(False, 0)
-    vbox.set_size_request(90, 280)
-    vbox.set_border_width(5)
-    frame.add(vbox)
-    frame.show()
-    vbox.show()
-
-    sp_anzzellen_label = gtk.Label("Zellen Anzahl")
-    vbox.pack_start(sp_anzzellen_label, True, True, 0)
-    sp_anzzellen_label.show()
-    adj = gtk.Adjustment(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], \
-            0.0, 30, 1, 1, 0.0)
-    sp_anzzellen = gtk.SpinButton(adj, 0.0, 0)
-    sp_anzzellen.set_wrap(False)
-    sp_anzzellen.set_numeric(True)
-    vbox.pack_start(sp_anzzellen, False, True, 0)
-    sp_anzzellen.show()
-
-    sp_kapazitaet_label = gtk.Label("Kapazität mAh")
-    vbox.pack_start(sp_kapazitaet_label, True, True, 0)
-    sp_kapazitaet_label.show()
-    adj = gtk.Adjustment(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG], \
-            0.0, 99999, 25, 25, 0.0)
-    sp_kapazitaet = gtk.SpinButton(adj, 1.0, 0)
-    sp_kapazitaet.set_wrap(False)
-    sp_kapazitaet.set_numeric(True)
-    vbox.pack_start(sp_kapazitaet, False, True, 0)
-    sp_kapazitaet.show()
-
-    sp_ladelimit_label = gtk.Label("I-Laden mA")
-    vbox.pack_start(sp_ladelimit_label, True, True, 0)
-    sp_ladelimit_label.show()
-    adj = gtk.Adjustment(cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
-            0.0, 9999, 25, 25, 0.0)
-    sp_ladelimit = gtk.SpinButton(adj, 1.0, 0)
-    sp_ladelimit.set_wrap(False)
-    sp_ladelimit.set_numeric(True)
-    vbox.pack_start(sp_ladelimit, False, True, 0)
-    sp_ladelimit.show()
-
-    sp_entladelimit_label = gtk.Label("I-Entladen mA")
-    vbox.pack_start(sp_entladelimit_label, True, True, 0)
-    sp_entladelimit_label.show()
-    adj = gtk.Adjustment(cfg.ENTLADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
-            0.0, 9999, 25, 25, 0.0)
-    sp_entladelimit = gtk.SpinButton(adj, 1.0, 0)
-    sp_entladelimit.set_wrap(False)
-    sp_entladelimit.set_numeric(True)
-    vbox.pack_start(sp_entladelimit, False, True, 0)
-    if cfg.GEWAEHLTER_AUSGANG == 2:
-        sp_entladelimit.set_sensitive(False)
-    sp_entladelimit.show()
-
-    sp_menge_label = gtk.Label("Menge mAh")
-    vbox.pack_start(sp_menge_label, True, True, 0)
+    sp_menge_label = gtk.Label("Menge mAh:")
+    hbox_iframe.pack_start(sp_menge_label, False, False, 0)
     sp_menge_label.show()
     adj = gtk.Adjustment(cfg.MENGE[cfg.GEWAEHLTER_AUSGANG], \
             0.0, 99999, 25, 25, 0.0)
     sp_menge = gtk.SpinButton(adj, 1.0, 0)
     sp_menge.set_wrap(False)
     sp_menge.set_numeric(True)
-    vbox.pack_start(sp_menge, False, True, 0)
+    hbox_iframe.pack_end(sp_menge, False, False, 0)
     sp_menge.show()
-
-    sp_zyklen_label = gtk.Label("Zyklen")
-    vbox.pack_start(sp_zyklen_label, True, True, 0)
-    sp_zyklen_label.show()
-    adj = gtk.Adjustment(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG], 1, 10, 1, 1, 0.0)
-    sp_zyklen = gtk.SpinButton(adj, 0.0, 0)
-    sp_zyklen.set_wrap(False)
-    sp_zyklen.set_numeric(True)
-    vbox.pack_start(sp_zyklen, False, True, 0)
-    sp_zyklen.show()
 
     combo_general_cb("", old_atyp)
 
