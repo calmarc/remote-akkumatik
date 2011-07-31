@@ -409,7 +409,7 @@ def akkupara_dialog(): #{{{
             label.show()
 
             tbx = gtk.Entry()
-            tbx.set_max_length(20)
+            tbx.set_max_length(40)
             tbx.show()
             dialog.vbox.pack_start(tbx, True, True, 8)
 
@@ -824,6 +824,7 @@ def akkupara_dialog(): #{{{
         image.set_tooltip_text("Übertragen + starten")
     image.show()
     button = gtk.Button()
+    button.set_size_request(136, 30)
     #button.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#ccddcc"))
     button.add(image)
     button.show()
@@ -890,7 +891,7 @@ def akkupara_dialog(): #{{{
 
     # vbox over the whole left part dialog (besides of akkulist)
     vbox = gtk.VBox(False, 0)
-    vbox.set_size_request(180, 300)
+    vbox.set_size_request(210, 320)
     vbox.set_border_width(0)
     hbox.pack_start(vbox, False, False, 8)
     vbox.show()
@@ -1005,7 +1006,7 @@ def akkupara_dialog(): #{{{
 
     # vbox over the whole right part dialog (besides of akkulist)
     vbox = gtk.VBox(False, 0)
-    vbox.set_size_request(180, 300)
+    vbox.set_size_request(210, 320)
     vbox.set_border_width(0)
     hbox.pack_start(vbox, False, False, 8)
     vbox.show()
