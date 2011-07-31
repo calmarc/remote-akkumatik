@@ -832,8 +832,8 @@ def akkupara_dialog(): #{{{
     frame = gtk.Frame(None)
     dialog.vbox.pack_start(frame, True, True, 0)
 
-    #dialog.vbox.connect('expose-event', helper.draw_pixbuf, \
-            #cfg.EXE_DIR + '/bilder/akku-para.png')
+    dialog.vbox.connect('expose-event', helper.draw_pixbuf, \
+            cfg.EXE_DIR + '/bilder/akku-para.png')
 
     hbox = gtk.HBox(False, 0)
     hbox.show()
@@ -897,12 +897,22 @@ def akkupara_dialog(): #{{{
 
     #frame 1,1 (vbox)
     frame = gtk.Frame(None)
+    frame.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#666666"))
     frame.set_label("Batterie")
+
+    evbox = gtk.EventBox()
+    evbox.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#cccccc"))
+    frame.add(evbox)
+
     vbox.pack_start(frame, False, False, 8)
     vbox_frame = gtk.VBox(False, 0)
     vbox_frame.set_border_width(4)
-    frame.add(vbox_frame)
+    evbox.add(vbox_frame)
+
     frame.show()
+    evbox.show()
     vbox_frame.show()
 
     #stuff into frame (vbox)
@@ -947,12 +957,22 @@ def akkupara_dialog(): #{{{
 
     #frame 1,2 (vbox)
     frame = gtk.Frame(None)
+    frame.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#999999"))
     frame.set_label("Programm")
+
+    evbox = gtk.EventBox()
+    evbox.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#cccccc"))
+    frame.add(evbox)
+
     vbox.pack_start(frame, False, False, 8)
     vbox_frame = gtk.VBox(False, 0)
     vbox_frame.set_border_width(4)
-    frame.add(vbox_frame)
+    evbox.add(vbox_frame)
+
     frame.show()
+    evbox.show()
     vbox_frame.show()
 
     cb_prog = gtk.combo_box_new_text()
@@ -992,12 +1012,22 @@ def akkupara_dialog(): #{{{
 
     #frame 2,1 (vbox)
     frame = gtk.Frame(None)
+    frame.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#669999"))
     frame.set_label("Ladeart")
+
+    evbox = gtk.EventBox()
+    evbox.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#cccccc"))
+    frame.add(evbox)
+
     vbox.pack_start(frame, False, False, 8)
     vbox_frame = gtk.VBox(False, 0)
     vbox_frame.set_border_width(4)
-    frame.add(vbox_frame)
+    evbox.add(vbox_frame)
+
     frame.show()
+    evbox.show()
     vbox_frame.show()
 
     cb_lart = gtk.combo_box_new_text()
@@ -1009,12 +1039,22 @@ def akkupara_dialog(): #{{{
 
     #frame 2,2 (vbox)
     frame = gtk.Frame(None)
+    frame.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#666699"))
     frame.set_label("Stromwahl")
+
+    evbox = gtk.EventBox()
+    evbox.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#cccccc"))
+    frame.add(evbox)
+
     vbox.pack_start(frame, False, False, 8)
     vbox_frame = gtk.VBox(False, 0)
     vbox_frame.set_border_width(4)
-    frame.add(vbox_frame)
+    evbox.add(vbox_frame)
+
     frame.show()
+    evbox.show()
     vbox_frame.show()
 
     cb_stromw = gtk.combo_box_new_text()
@@ -1059,12 +1099,22 @@ def akkupara_dialog(): #{{{
 
     #frame 2,3 (vbox)
     frame = gtk.Frame(None)
+    frame.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#cc9999"))
     frame.set_label("Stoppmethode")
+
+    evbox = gtk.EventBox()
+    evbox.modify_bg(gtk.STATE_NORMAL, \
+            gtk.gdk.color_parse("#cccccc"))
+    frame.add(evbox)
+
     vbox.pack_start(frame, False, False, 8)
     vbox_frame = gtk.VBox(False, 0)
     vbox_frame.set_border_width(4)
-    frame.add(vbox_frame)
+    evbox.add(vbox_frame)
+
     frame.show()
+    evbox.show()
     vbox_frame.show()
 
     cb_stoppm = gtk.combo_box_new_text()
