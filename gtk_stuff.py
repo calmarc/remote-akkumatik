@@ -930,7 +930,7 @@ def akkupara_dialog(): #{{{
     hbox_iframe.show()
     vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    sp_anzzellen_label = gtk.Label("Zellen-Anzahl: ")
+    sp_anzzellen_label = gtk.Label(" Zellen-Anzahl: ")
     hbox_iframe.pack_start(sp_anzzellen_label, False, False, 0)
     sp_anzzellen_label.show()
     adj = gtk.Adjustment(cfg.ANZAHL_ZELLEN[cfg.GEWAEHLTER_AUSGANG], \
@@ -945,7 +945,7 @@ def akkupara_dialog(): #{{{
     hbox_iframe.show()
     vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    sp_kapazitaet_label = gtk.Label("Kapazität mAh: ")
+    sp_kapazitaet_label = gtk.Label(" Kapazität mAh: ")
     hbox_iframe.pack_start(sp_kapazitaet_label, False, False, 4)
     sp_kapazitaet_label.show()
     adj = gtk.Adjustment(cfg.KAPAZITAET[cfg.GEWAEHLTER_AUSGANG], \
@@ -994,7 +994,7 @@ def akkupara_dialog(): #{{{
     hbox_iframe.show()
     vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    sp_zyklen_label = gtk.Label("Zyklen")
+    sp_zyklen_label = gtk.Label(" Zyklen")
     hbox_iframe.pack_start(sp_zyklen_label, False, False, 0)
     sp_zyklen_label.show()
     adj = gtk.Adjustment(cfg.ZYKLEN[cfg.GEWAEHLTER_AUSGANG], 1, 99999, 1, 1, 0.0)
@@ -1070,7 +1070,7 @@ def akkupara_dialog(): #{{{
     hbox_iframe.show()
     vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    sp_ladelimit_label = gtk.Label("I-Laden mA:")
+    sp_ladelimit_label = gtk.Label(" I-Laden mA:")
     hbox_iframe.pack_start(sp_ladelimit_label, False, False, 0)
     sp_ladelimit_label.show()
     adj = gtk.Adjustment(cfg.LADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
@@ -1085,7 +1085,7 @@ def akkupara_dialog(): #{{{
     hbox_iframe.show()
     vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    sp_entladelimit_label = gtk.Label("I-Entladen mA:")
+    sp_entladelimit_label = gtk.Label(" I-Entladen mA:")
     hbox_iframe.pack_start(sp_entladelimit_label, False, False, 0)
     sp_entladelimit_label.show()
     adj = gtk.Adjustment(cfg.ENTLADELIMIT[cfg.GEWAEHLTER_AUSGANG], \
@@ -1130,7 +1130,7 @@ def akkupara_dialog(): #{{{
     hbox_iframe.show()
     vbox_frame.pack_start(hbox_iframe, False, False, 0)
 
-    sp_menge_label = gtk.Label("Menge mAh:")
+    sp_menge_label = gtk.Label(" Menge mAh:")
     hbox_iframe.pack_start(sp_menge_label, False, False, 0)
     sp_menge_label.show()
     adj = gtk.Adjustment(cfg.MENGE[cfg.GEWAEHLTER_AUSGANG], \
