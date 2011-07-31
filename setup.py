@@ -28,7 +28,8 @@ Mydata_files.append(('bilder', [
         'bilder/remove.png',
         'bilder/Cancel24.png',
         'bilder/Transfer24.png',
-        'bilder/start24.png']))
+        'bilder/start24.png',
+        'bilder/overwrite.png']))
 
 Mydata_files.append(('', ['config.txt']))
 Mydata_files.append(('', ['README']))
