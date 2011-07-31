@@ -396,7 +396,8 @@ def akkupara_dialog(): #{{{
         fha.close()
 
     def button_akku_cb(widget, para_dia, data=None):
-        """ Either add or delete from the akkulist """
+        """ Add, overwrite or delete from the akkulist """
+
         if data == "+":
             dialog = gtk.Dialog("Name Akkuparameter ", \
                     para_dia, \
@@ -416,19 +417,26 @@ def akkupara_dialog(): #{{{
             # run the dialog
             retval = dialog.run()
 
-            if retval == -3: #OK
-                txt = tbx.get_text()
+            txt = tbx.get_text().strip()
 
-                #check if there is that name already - possibly remove it then
+            dialog.destroy()
+
+            if retval == -3: #OK
+                # if no text... quit
+                if txt == "":
+                    message_dialog(para_dia, "Nicht gespeichert - es wurde kein Namen angegeben")
+                    dialog.destroy()
+                    return
+
+                #check if there is that name already -> quit
                 i = 0
                 for item in akkulist:
                     if item[0] == txt:
-                        akkulist.pop(i)
-                        cb_akkulist.remove_text(i)
-                        tmp = 'Akkuparameter: "%s" wurden ueberschrieben' % txt
-                        print (tmp)
-                        cfg.FLOG.write(tmp + '\n')
-                        break
+                        message_dialog(para_dia, "Name existiert bereits.\n\
+Allenfalls den \">\" Button verwenden um \
+zu überschreiben.")
+                        dialog.destroy()
+                        return
                     i += 1
 
                 akkulist.append([txt, \
@@ -467,13 +475,44 @@ def akkupara_dialog(): #{{{
                 cb_akkulist.insert_text(i, txt)
                 cb_akkulist.set_active(i)
 
-            dialog.destroy()
-            save_akkulist()
+        elif data == ">":
 
-        elif data == "x":
+            active_i = cb_akkulist.get_active()
+            active_txt = cb_akkulist.get_active_text()
+            if active_i == -1:
+                message_dialog(para_dia, "Kein Namen zum überschreiben ausgewählt")
+                return
+                #find name
+            #remove from list
+            akkulist.pop(active_i)
+
+            #reinsert into list
+            akkulist.insert(active_i, [active_txt, \
+                    int(cb_atyp.get_active()), \
+                    int(cb_prog.get_active()), \
+                    int(cb_lart.get_active()), \
+                    int(cb_stromw.get_active()), \
+                    int(cb_stoppm.get_active()), \
+                    int(sp_anzzellen.get_value()), \
+                    int(sp_kapazitaet.get_value()), \
+                    int(sp_ladelimit.get_value()), \
+                    int(sp_entladelimit.get_value()), \
+                    int(sp_menge.get_value()), \
+                    int(sp_zyklen.get_value())])
+
+            item = akkulist[active_i]
+            tmp = "Parameter: "
+            tmp +=  ", ".join(str(x) for x in item) + '\n'
+            tmp += "Gespeichert als %s" % active_txt
+            tmp += '\n'
+            message_dialog(para_dia, "'%s' wurde überschrieben" % (active_txt))
+            cfg.FLOG.write(tmp)
+
+        elif data == "-":
 
             active_i = cb_akkulist.get_active()
             if active_i == -1:
+                message_dialog(para_dia, "Kein Namen zum löschen ausgewählt")
                 return
 
             dialog = gtk.Dialog("Akkuparameter löschen", \
@@ -481,8 +520,6 @@ def akkupara_dialog(): #{{{
                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, \
                     (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT, \
                     gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-
-            active_i = cb_akkulist.get_active()
 
             label = gtk.Label('Akkuparameter "%s" löschen?' %\
                     (akkulist[active_i][0]))
@@ -495,6 +532,7 @@ def akkupara_dialog(): #{{{
 
             # run the dialog
             retval = dialog.run()
+            dialog.destroy()
 
             if retval == -3: #OK
                 akkulist.pop(active_i) #gtk synchron to akkulist (should)
@@ -502,9 +540,8 @@ def akkupara_dialog(): #{{{
                 cfg.FLOG.write("Akku-Parameter geloescht '" + \
                         akkulist[active_i][0] + '\'\n\n')
 
-            dialog.destroy()
 
-            save_akkulist()
+        save_akkulist()
 
     def block_signals():
         cb_atyp.handler_block(cb_atyp_hd)
@@ -550,148 +587,13 @@ def akkupara_dialog(): #{{{
         # on changes it makes itself
         block_signals()
 
+        #get data
         atyp = cb_atyp.get_active_text()
         atyp_nr = cfg.AKKU_TYP.index(atyp)
         stoppm = cb_stoppm.get_active_text()
         stromw = cb_stromw.get_active_text()
         amprog = cb_prog.get_active_text()
         lart = cb_lart.get_active_text()
-
-        if None in [atyp, stoppm, stromw, amprog, lart]:
-            print "Should not happen, somehow - but it's not serious"
-            return
-
-        #NiCd, NiMh
-        if atyp_nr in [0, 1]:
-            if old_atyp[0] != atyp_nr: #new
-                old_atyp[0] = atyp_nr
-                model = cb_lart.get_model()
-                model.clear()
-                model.append([cfg.LADEART[0]])
-                model.append([cfg.LADEART[1]])
-                model.append([cfg.LADEART[2]])
-                cb_lart.set_active(cfg.NIXX_LADEART)
-
-                model = cb_stromw.get_model()
-                model.clear()
-                model.append([cfg.STROMWAHL[0]])
-                model.append([cfg.STROMWAHL[1]])
-                model.append([cfg.STROMWAHL[2]])
-
-                cb_stromw.set_active(cfg.NIXX_STROMWAHL)
-
-                model = cb_stoppm.get_model()
-                model.clear()
-                model.append([cfg.STOPPMETHODE[0]])
-                model.append([cfg.STOPPMETHODE[1]])
-                model.append([cfg.STOPPMETHODE[2]])
-                model.append([cfg.STOPPMETHODE[3]])
-                model.append([cfg.STOPPMETHODE[4]])
-                cb_stoppm.set_active(cfg.NIXX_STOPPM)
-                cb_stoppm.set_sensitive(True)
-
-                cb_stromw.set_sensitive(True)
-                cb_lart.set_sensitive(True)
-
-            else:
-                #store Nixx lademethode
-                cfg.NIXX_STOPPM = cfg.STOPPMETHODE.index(stoppm)
-                cfg.NIXX_STROMWAHL = cfg.STROMWAHL.index(stromw)
-                cfg.NIXX_LADEART = cfg.LADEART.index(lart)
-
-            #Lademenge only when lademenge
-            #kapa. if lademenge
-            if stoppm == "Lademenge":
-                sp_menge.set_sensitive(True)
-                sp_menge_label.set_sensitive(True)
-            else:
-                sp_menge.set_sensitive(False)
-                sp_menge_label.set_sensitive(False)
-
-            #TODO: check if true when lademenge...
-            sp_kapazitaet.set_sensitive(False)
-            sp_kapazitaet_label.set_sensitive(False)
-
-            # No anz_zellen if...
-            if amprog == "Laden":
-                sp_anzzellen.set_sensitive(False)
-                sp_anzzellen_label.set_sensitive(False)
-            else:
-                sp_anzzellen.set_sensitive(True)
-                sp_anzzellen_label.set_sensitive(True)
-
-            if stromw == "Auto": #always False
-                sp_ladelimit.set_sensitive(False)
-                sp_ladelimit_label.set_sensitive(False)
-                sp_entladelimit.set_sensitive(False)
-                sp_entladelimit_label.set_sensitive(False)
-
-        #Blei, BeiGel
-        elif atyp_nr in [2, 3]:
-            if old_atyp[0] != atyp_nr:
-                old_atyp[0] = atyp_nr
-
-                model = cb_lart.get_model()
-                model.clear()
-                model.append([cfg.LADEART[0]])
-                cb_lart.set_active(0) # and set to 0
-
-                cb_lart.set_sensitive(False)
-
-                model = cb_stromw.get_model()
-                model.clear()
-                model.append([cfg.STROMWAHL[2]])
-                cb_stromw.set_sensitive(False)
-                cb_stromw.set_active(0)
-
-                stoppm_lademenge()
-                cb_stoppm.set_sensitive(False)
-
-                sp_anzzellen.set_sensitive(True)
-                sp_anzzellen_label.set_sensitive(True)
-                sp_menge.set_sensitive(True)
-                sp_menge_label.set_sensitive(True)
-
-                sp_kapazitaet.set_sensitive(True)
-                sp_kapazitaet_label.set_sensitive(True)
-
-        #LiLo, LiPo, LiFe, Uixx
-        elif atyp_nr in [4, 5, 6, 7]:
-            if atyp == cfg.AKKU_TYP[atyp_nr] and old_atyp[0] != atyp_nr:
-                old_atyp[0] = atyp_nr
-                model = cb_lart.get_model()
-                model.clear()
-                model.append([cfg.LADEART[0]])
-                model.append([cfg.LADEART[3]])
-                cb_lart.set_active(0) # and set to 0
-
-                model = cb_stromw.get_model()
-                model.clear()
-                model.append([cfg.STROMWAHL[2]])
-
-                if stromw == None:
-                    tmp = 0
-                else:
-                    tmp = cfg.STROMWAHL.index(stromw)
-
-                if tmp == 3: #ext. Wiederstand
-                    cb_stromw.set_active(1)
-                else:
-                    cb_stromw.set_active(0) #fest
-
-                stoppm_lademenge()
-
-                cb_stromw.set_sensitive(False)
-                cb_lart.set_sensitive(True)
-                cb_stoppm.set_sensitive(False)
-                sp_anzzellen.set_sensitive(True)
-                sp_anzzellen_label.set_sensitive(True)
-
-                sp_menge.set_sensitive(True)
-                sp_menge_label.set_sensitive(True)
-
-                sp_kapazitaet.set_sensitive(True)
-                sp_kapazitaet_label.set_sensitive(True)
 
         # General stromwahl stuff
         if amprog == "Laden":
@@ -712,9 +614,147 @@ def akkupara_dialog(): #{{{
             sp_ladelimit_label.set_sensitive(True)
             # if Auto it gets changed later on Nixx
 
+        #NiCd, NiMh
+        if atyp_nr in [0, 1]:
+            if old_atyp[0] != atyp_nr: #new
+
+                old_atyp[0] = atyp_nr
+                model = cb_lart.get_model()
+                model.clear()
+                model.append([cfg.LADEART[0]])
+                model.append([cfg.LADEART[1]])
+                model.append([cfg.LADEART[2]])
+                cb_lart.set_active(cfg.NIXX_LADEART)
+                lart = cfg.LADEART[cfg.NIXX_LADEART]
+
+                model = cb_stromw.get_model()
+                model.clear()
+                model.append([cfg.STROMWAHL[0]])
+                model.append([cfg.STROMWAHL[1]])
+                model.append([cfg.STROMWAHL[2]])
+
+                cb_stromw.set_active(cfg.NIXX_STROMWAHL)
+                stromw = cfg.STROMWAHL[cfg.NIXX_STROMWAHL]
+
+                model = cb_stoppm.get_model()
+                model.clear()
+                model.append([cfg.STOPPMETHODE[0]])
+                model.append([cfg.STOPPMETHODE[1]])
+                model.append([cfg.STOPPMETHODE[2]])
+                model.append([cfg.STOPPMETHODE[3]])
+                model.append([cfg.STOPPMETHODE[4]])
+                cb_stoppm.set_active(cfg.NIXX_STOPPM)
+                stoppm = cfg.STOPPMETHODE[cfg.NIXX_STOPPM]
+                cb_stoppm.set_sensitive(True)
+
+                cb_stromw.set_sensitive(True)
+                cb_lart.set_sensitive(True)
+
+                #Lademenge only when lademenge
+                #kapa. if lademenge
+                if cfg.NIXX_STOPPM == 0: #Lademenge
+                    sp_menge.set_sensitive(True)
+                    sp_menge_label.set_sensitive(True)
+                else:
+                    sp_menge.set_sensitive(False)
+                    sp_menge_label.set_sensitive(False)
+
+                #TODO: check if true when lademenge...
+                sp_kapazitaet.set_sensitive(False)
+                sp_kapazitaet_label.set_sensitive(False)
+
+            else: #not new
+                #store Nixx lademethode for later restore
+                cfg.NIXX_STOPPM = cfg.STOPPMETHODE.index(stoppm)
+                cfg.NIXX_STROMWAHL = cfg.STROMWAHL.index(stromw)
+                cfg.NIXX_LADEART = cfg.LADEART.index(lart)
+
+            # general Nixx stuff
+            # No anz_zellen if...
+            if amprog == "Laden":
+                sp_anzzellen.set_sensitive(False)
+                sp_anzzellen_label.set_sensitive(False)
+            else:
+                sp_anzzellen.set_sensitive(True)
+                sp_anzzellen_label.set_sensitive(True)
+
+            if cfg.NIXX_STROMWAHL == 0: # AUTO:
+                sp_ladelimit.set_sensitive(False)
+                sp_ladelimit_label.set_sensitive(False)
+                sp_entladelimit.set_sensitive(False)
+                sp_entladelimit_label.set_sensitive(False)
+
+        #Blei, BeiGel
+        elif atyp_nr in [2, 3]:
+            if old_atyp[0] != atyp_nr:
+                old_atyp[0] = atyp_nr
+
+                model = cb_lart.get_model()
+                model.clear()
+                model.append([cfg.LADEART[0]])
+                cb_lart.set_active(0) # and set to 0
+                lart = "Konst"
+
+                cb_lart.set_sensitive(False)
+
+                model = cb_stromw.get_model()
+                model.clear()
+                model.append([cfg.STROMWAHL[2]])
+                cb_stromw.set_sensitive(False)
+                cb_stromw.set_active(0)
+                stromw = cfg.STROMWAHL[2] #fest
+
+                stoppm_lademenge()
+                stoppm = "Lademenge"
+
+                sp_anzzellen.set_sensitive(True)
+                sp_anzzellen_label.set_sensitive(True)
+
+                sp_kapazitaet.set_sensitive(True)
+                sp_kapazitaet_label.set_sensitive(True)
+
+        #LiLo, LiPo, LiFe, Uixx
+        elif atyp_nr in [4, 5, 6, 7]:
+            if atyp == cfg.AKKU_TYP[atyp_nr] and old_atyp[0] != atyp_nr:
+                old_atyp[0] = atyp_nr
+                model = cb_lart.get_model()
+                model.clear()
+                model.append([cfg.LADEART[0]])
+                model.append([cfg.LADEART[3]])
+                cb_lart.set_active(0) # and set to 0
+                lart = "Konst"
+
+                model = cb_stromw.get_model()
+                model.clear()
+                model.append([cfg.STROMWAHL[2]])
+
+                if stromw == None:
+                    tmp = 0
+                else:
+                    tmp = cfg.STROMWAHL.index(stromw)
+
+                if tmp == 3: #ext. Wiederstand
+                    cb_stromw.set_active(1)
+                    stromw = cfg.STROMWAHL[3] #ext...
+                else:
+                    cb_stromw.set_active(0)
+                    stromw = cfg.STROMWAHL[0] #Fest
+
+                stoppm_lademenge()
+                stoppm = "Lademenge"
+
+                cb_stromw.set_sensitive(False)
+                cb_lart.set_sensitive(True)
+                sp_anzzellen.set_sensitive(True)
+                sp_anzzellen_label.set_sensitive(True)
+
+                sp_kapazitaet.set_sensitive(True)
+                sp_kapazitaet_label.set_sensitive(True)
+
         # lagern etc. -> no zyklen
         if amprog == "Lagern" or amprog == "Laden" or \
                 amprog == "Entladen" or amprog == "Sender":
+            sp_zyklen.set_value(1)
             sp_zyklen.set_sensitive(False)
             sp_zyklen_label.set_sensitive(False)
         else:
@@ -728,7 +768,7 @@ def akkupara_dialog(): #{{{
         xiter = cb_model.get_iter_first()
         position = 0
         if xiter:
-            #find ext. Wiederstand
+            #find ext. Wiederstand and store into position
             while True:
                 if cb_model.get_value(xiter, 0) == cfg.STROMWAHL[3]:
                     xflag = True
@@ -738,18 +778,35 @@ def akkupara_dialog(): #{{{
                     break
                 position += 1
             if amprog == "Entladen" and cfg.GEWAEHLTER_AUSGANG == 1:
+                # yes - add it - it's not yet there (False)
                 if xflag == False:
                     cb_stromw.append_text(cfg.STROMWAHL[3])
                     cb_stromw.set_sensitive(True)
             else:
+                # remove it - it's there (True)
                 if xflag == True:
                     xyz = cb_stromw.get_active()
                     cb_stromw.remove_text(position)
+                    #ext. wieder - was selected -> 0 now
                     if xyz == position:
                         cb_stromw.set_active(0)
-                    # Only one entry left then -> False
+                        #stromw = cfg.STROMWAHL[0] # Depends... but not used anyway
+                    # Only one entry left then -> disable
                     if position == 1:
                         cb_stromw.set_sensitive(False)
+
+        #general Lademenge thingy
+        if atyp_nr != 0 and atyp_nr != 1: #no Nixx
+            cb_stoppm.set_sensitive(False) #because only one in list
+        else:
+            cb_stoppm.set_sensitive(True)
+
+        if stoppm == "Lademenge":
+            sp_menge_label.set_sensitive(True)
+            sp_menge.set_sensitive(True)
+        else:
+            sp_menge_label.set_sensitive(False)
+            sp_menge.set_sensitive(False)
 
         unblock_signals()
 
@@ -842,6 +899,7 @@ def akkupara_dialog(): #{{{
     frame.add(hbox)
     frame.show()
 
+    #add button
     image = gtk.Image()
     image.set_from_file(cfg.EXE_DIR + \
             "/bilder/add.png")
@@ -852,6 +910,20 @@ def akkupara_dialog(): #{{{
     button.add(image)
 
     button.connect("clicked", button_akku_cb, dialog, "+")
+    hbox.pack_start(button, False, True, 1)
+    button.show()
+
+    # overwriteg
+    image = gtk.Image()
+    image.set_from_file(cfg.EXE_DIR + \
+            "/bilder/overwrite.png")
+    if cfg.TOOLTIPS:
+        image.set_tooltip_text("Überschreiben")
+    image.show()
+    button = gtk.Button()
+    button.add(image)
+
+    button.connect("clicked", button_akku_cb, dialog, ">")
     hbox.pack_start(button, False, True, 1)
     button.show()
 
@@ -876,7 +948,7 @@ def akkupara_dialog(): #{{{
     button = gtk.Button()
     button.add(image)
 
-    button.connect("clicked", button_akku_cb, dialog, "x")
+    button.connect("clicked", button_akku_cb, dialog, "-")
     hbox.pack_start(button, False, True, 1)
     button.show()
 
