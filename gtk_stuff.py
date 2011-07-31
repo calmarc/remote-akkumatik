@@ -546,12 +546,14 @@ zu überschreiben.")
     def block_signals():
         cb_atyp.handler_block(cb_atyp_hd)
         cb_prog.handler_block(cb_prog_hd)
+        cb_lart.handler_block(cb_lart_hd)
         cb_stoppm.handler_block(cb_stoppm_hd)
         cb_stromw.handler_block(cb_stromw_hd)
 
     def unblock_signals():
         cb_atyp.handler_unblock(cb_atyp_hd)
         cb_prog.handler_unblock(cb_prog_hd)
+        cb_lart.handler_unblock(cb_lart_hd)
         cb_stoppm.handler_unblock(cb_stoppm_hd)
         cb_stromw.handler_unblock(cb_stromw_hd)
 
@@ -1108,6 +1110,7 @@ zu überschreiben.")
     for item in cfg.LADEART[:-1]: #exclude LiPo
         cb_lart.append_text(item)
     cb_lart.set_active(cfg.LART[cfg.GEWAEHLTER_AUSGANG])
+    cb_lart_hd = cb_lart.connect("changed", combo_general_cb, old_atyp)
     cb_lart.show()
     vbox_frame.pack_start(cb_lart, False, False, 2)
 
