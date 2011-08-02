@@ -661,10 +661,6 @@ zu überschreiben.")
                     sp_menge.set_sensitive(False)
                     sp_menge_label.set_sensitive(False)
 
-                #TODO: check if true when lademenge...
-                sp_kapazitaet.set_sensitive(False)
-                sp_kapazitaet_label.set_sensitive(False)
-
             else: #not new
                 #store Nixx lademethode for later restore
                 cfg.NIXX_STOPPM = cfg.STOPPMETHODE.index(stoppm)
@@ -712,9 +708,6 @@ zu überschreiben.")
                 sp_anzzellen.set_sensitive(True)
                 sp_anzzellen_label.set_sensitive(True)
 
-                sp_kapazitaet.set_sensitive(True)
-                sp_kapazitaet_label.set_sensitive(True)
-
         #LiLo, LiPo, LiFe, Uixx
         elif atyp_nr in [4, 5, 6, 7]:
             if atyp == cfg.AKKU_TYP[atyp_nr] and old_atyp[0] != atyp_nr:
@@ -749,9 +742,6 @@ zu überschreiben.")
                 cb_lart.set_sensitive(True)
                 sp_anzzellen.set_sensitive(True)
                 sp_anzzellen_label.set_sensitive(True)
-
-                sp_kapazitaet.set_sensitive(True)
-                sp_kapazitaet_label.set_sensitive(True)
 
         # lagern etc. -> no zyklen
         if amprog == "Lagern" or amprog == "Laden" or \
